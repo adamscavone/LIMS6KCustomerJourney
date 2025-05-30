@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package } from 'lucide-react';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('cannabinoids');
   const [expandedBatches, setExpandedBatches] = useState({});
+  const [expandedOrders, setExpandedOrders] = useState({});
+  const [viewMode, setViewMode] = useState('sample'); // 'sample' or 'order'
 
   // Mock data representing realistic sample loads
   const mockSamples = {
@@ -34,10 +36,34 @@ const App = () => {
       },
       {
         id: 'S003',
+        orderId: 'ORD-2024-1157', // Same order as S002
+        client: 'Mountain Peak Cannabis',
+        sampleName: 'MPC-Sativa-Mix-13',
+        dueDate: '2025-05-30',
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: '2025-05-30',
+        analysisDue: '2025-05-31',
+        reportingDue: '2025-06-02'
+      },
+      {
+        id: 'S004',
         orderId: 'ORD-2024-1158',
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-8',
         dueDate: '2025-06-01', // Future
+        status: 'pending_microbial',
+        priority: 'standard',
+        prepDue: '2025-06-01',
+        analysisDue: '2025-06-02',
+        reportingDue: '2025-06-03'
+      },
+      {
+        id: 'S005',
+        orderId: 'ORD-2024-1158', // Same order as S004
+        client: 'Urban Harvest Co',
+        sampleName: 'UHC-Hybrid-Premium-9',
+        dueDate: '2025-06-01',
         status: 'pending_microbial',
         priority: 'standard',
         prepDue: '2025-06-01',
@@ -65,6 +91,18 @@ const App = () => {
         sampleName: 'DB-Myrcene-Study-3',
         dueDate: '2025-06-01',
         status: 'in_progress',
+        priority: 'standard',
+        prepDue: '2025-05-31',
+        analysisDue: '2025-06-01',
+        reportingDue: '2025-06-02'
+      },
+      {
+        id: 'T003',
+        orderId: 'ORD-2024-1160', // Same order as T002
+        client: 'Desert Bloom',
+        sampleName: 'DB-Myrcene-Study-4',
+        dueDate: '2025-06-01',
+        status: 'ready_for_prep',
         priority: 'standard',
         prepDue: '2025-05-31',
         analysisDue: '2025-06-01',
@@ -161,6 +199,13 @@ const App = () => {
     }));
   };
 
+  const toggleOrderExpansion = (orderId) => {
+    setExpandedOrders(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
+
   const sortSamplesByPriority = (samples) => {
     return [...samples].sort((a, b) => {
       // First by due date urgency
@@ -181,11 +226,54 @@ const App = () => {
     });
   };
 
-  const renderSampleRow = (sample) => {
+  const groupSamplesByOrder = (samples) => {
+    const grouped = samples.reduce((acc, sample) => {
+      if (!acc[sample.orderId]) {
+        acc[sample.orderId] = {
+          orderId: sample.orderId,
+          client: sample.client,
+          samples: [],
+          earliestDueDate: sample.dueDate,
+          highestPriority: sample.priority,
+          overallStatus: sample.status
+        };
+      }
+      acc[sample.orderId].samples.push(sample);
+      
+      // Update order-level metadata
+      if (new Date(sample.dueDate) < new Date(acc[sample.orderId].earliestDueDate)) {
+        acc[sample.orderId].earliestDueDate = sample.dueDate;
+      }
+      if (sample.priority === 'rush') {
+        acc[sample.orderId].highestPriority = 'rush';
+      }
+      
+      return acc;
+    }, {});
+    
+    return Object.values(grouped).sort((a, b) => {
+      // Sort orders by same logic as samples
+      const urgencyA = getDueDateUrgency(a.earliestDueDate);
+      const urgencyB = getDueDateUrgency(b.earliestDueDate);
+      
+      if (urgencyA.label === 'OVERDUE' && urgencyB.label !== 'OVERDUE') return -1;
+      if (urgencyB.label === 'OVERDUE' && urgencyA.label !== 'OVERDUE') return 1;
+      if (urgencyA.label === 'TODAY' && urgencyB.label !== 'TODAY' && urgencyB.label !== 'OVERDUE') return -1;
+      if (urgencyB.label === 'TODAY' && urgencyA.label !== 'TODAY' && urgencyA.label !== 'OVERDUE') return 1;
+      
+      if (a.highestPriority === 'rush' && b.highestPriority !== 'rush') return -1;
+      if (b.highestPriority === 'rush' && a.highestPriority !== 'rush') return 1;
+      
+      return a.client.localeCompare(b.client);
+    });
+  };
+
+  const renderSampleRow = (sample, isNested = false) => {
     const urgency = getDueDateUrgency(sample.dueDate);
+    const indentClass = isNested ? 'ml-6 border-l-2 border-gray-200 pl-4' : '';
     
     return (
-      <div key={sample.id} className="border-b border-gray-200 hover:bg-gray-50">
+      <div key={sample.id} className={`border-b border-gray-200 hover:bg-gray-50 ${indentClass}`}>
         <div className="p-4 flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-3">
@@ -230,15 +318,99 @@ const App = () => {
         </div>
         
         {/* Timeline breakdown */}
-        <div className="px-4 pb-3">
-          <div className="flex space-x-4 text-xs text-gray-500">
-            <span>Prep Due: {sample.prepDue}</span>
-            <span>Analysis Due: {sample.analysisDue}</span>
-            <span>Reporting Due: {sample.reportingDue}</span>
+        {!isNested && (
+          <div className="px-4 pb-3">
+            <div className="flex space-x-4 text-xs text-gray-500">
+              <span>Prep Due: {sample.prepDue}</span>
+              <span>Analysis Due: {sample.analysisDue}</span>
+              <span>Reporting Due: {sample.reportingDue}</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
+  };
+
+  const renderOrderRow = (order) => {
+    const urgency = getDueDateUrgency(order.earliestDueDate);
+    const isExpanded = expandedOrders[order.orderId];
+    
+    return (
+      <div key={order.orderId} className="border-b border-gray-200">
+        <div className="hover:bg-gray-50">
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => toggleOrderExpansion(order.orderId)}
+                  className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600"
+                >
+                  {isExpanded ? 
+                    <ChevronDown className="w-4 h-4" /> : 
+                    <ChevronRight className="w-4 h-4" />
+                  }
+                </button>
+                <div className="flex-shrink-0">
+                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(order.highestPriority)}`}>
+                    {order.highestPriority.toUpperCase()}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {order.orderId}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {order.client} • {order.samples.length} sample{order.samples.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className={`text-sm ${urgency.color}`}>
+                  {urgency.label}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Earliest: {order.earliestDueDate}
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <Package className="w-4 h-4 text-gray-400" />
+              </div>
+              
+              <div className="flex space-x-2">
+                <button className="p-2 text-gray-400 hover:text-gray-600">
+                  <Eye className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {isExpanded && (
+          <div className="bg-gray-50">
+            {order.samples.map(sample => renderSampleRow(sample, true))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const getCurrentData = () => {
+    const samples = mockSamples[activeTab];
+    if (viewMode === 'order') {
+      return groupSamplesByOrder(samples);
+    }
+    return sortSamplesByPriority(samples);
+  };
+
+  const getTabCount = (assayType) => {
+    if (viewMode === 'order') {
+      return groupSamplesByOrder(mockSamples[assayType]).length;
+    }
+    return mockSamples[assayType].length;
   };
 
   return (
@@ -271,17 +443,45 @@ const App = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow">
               <div className="border-b border-gray-200">
-                <div className="px-6 py-4">
-                  <h2 className="text-lg font-medium text-gray-900">Sample Pipeline</h2>
-                  <p className="text-sm text-gray-600">Organized by assay type and urgency</p>
+                <div className="px-6 py-4 flex justify-between items-center">
+                  <div>
+                    <h2 className="text-lg font-medium text-gray-900">Sample Pipeline</h2>
+                    <p className="text-sm text-gray-600">Organized by assay type and urgency</p>
+                  </div>
+                  
+                  {/* View Mode Toggle */}
+                  <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setViewMode('sample')}
+                      className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                        viewMode === 'sample'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <List className="w-4 h-4 mr-1.5" />
+                      Sample View
+                    </button>
+                    <button
+                      onClick={() => setViewMode('order')}
+                      className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                        viewMode === 'order'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <Package className="w-4 h-4 mr-1.5" />
+                      Order View
+                    </button>
+                  </div>
                 </div>
                 
                 {/* Tabs */}
                 <div className="flex space-x-8 px-6">
                   {[
-                    { id: 'cannabinoids', label: 'Cannabinoids', icon: Beaker, count: mockSamples.cannabinoids.length },
-                    { id: 'terpenes', label: 'Terpenes', icon: Beaker, count: mockSamples.terpenes.length },
-                    { id: 'pesticides', label: 'Pesticides/Mycotoxins', icon: Beaker, count: mockSamples.pesticides.length }
+                    { id: 'cannabinoids', label: 'Cannabinoids', icon: Beaker },
+                    { id: 'terpenes', label: 'Terpenes', icon: Beaker },
+                    { id: 'pesticides', label: 'Pesticides/Mycotoxins', icon: Beaker }
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -295,21 +495,25 @@ const App = () => {
                       <tab.icon className="w-4 h-4 mr-2" />
                       {tab.label}
                       <span className="ml-2 bg-gray-100 text-gray-600 py-1 px-2 rounded-full text-xs">
-                        {tab.count}
+                        {getTabCount(tab.id)}
                       </span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Sample List */}
+              {/* Content List */}
               <div className="divide-y divide-gray-200">
-                {sortSamplesByPriority(mockSamples[activeTab]).map(renderSampleRow)}
+                {viewMode === 'sample' ? (
+                  sortSamplesByPriority(mockSamples[activeTab]).map(renderSampleRow)
+                ) : (
+                  groupSamplesByOrder(mockSamples[activeTab]).map(renderOrderRow)
+                )}
                 
                 {mockSamples[activeTab].length === 0 && (
                   <div className="p-8 text-center text-gray-500">
                     <Beaker className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>No samples in queue for {activeTab}</p>
+                    <p>No {viewMode === 'order' ? 'orders' : 'samples'} in queue for {activeTab}</p>
                   </div>
                 )}
               </div>
