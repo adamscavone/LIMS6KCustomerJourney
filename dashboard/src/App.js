@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package } from 'lucide-react';
 
 const App = () => {
-  const [activeTab, setActiveTab] = useState('cannabinoids');
   const [expandedBatches, setExpandedBatches] = useState({});
   const [expandedOrders, setExpandedOrders] = useState({});
-  const [viewMode, setViewMode] = useState('sample'); // 'sample' or 'order'
+  const [viewMode, setViewMode] = useState('order'); // Default to 'order' view
 
   // Mock data representing realistic sample loads
   const mockSamples = {
@@ -125,7 +124,7 @@ const App = () => {
     ]
   };
 
-  const mockBatches = [
+  const mockPrimaryBatches = [
     {
       id: 'BATCH-CB-240530-001',
       type: 'cannabinoids',
@@ -145,16 +144,31 @@ const App = () => {
       analysisDate: '2025-05-31',
       qcStatus: 'pending',
       analyst: 'Dr. Sarah Chen'
-    },
+    }
+  ];
+
+  const mockSecondaryBatches = [
     {
       id: 'BATCH-PM-240529-003',
       type: 'pesticides',
-      status: 'ready_for_review',
+      status: 'ready_for_secondary',
       sampleCount: 12,
       prepDate: '2025-05-28',
       analysisDate: '2025-05-29',
       qcStatus: 'deviation',
-      analyst: 'Dr. Mike Rodriguez'
+      analyst: 'Dr. Mike Rodriguez',
+      primaryReviewer: 'Dr. Mike Rodriguez'
+    },
+    {
+      id: 'BATCH-CB-240528-004',
+      type: 'cannabinoids',
+      status: 'ready_for_secondary',
+      sampleCount: 18,
+      prepDate: '2025-05-27',
+      analysisDate: '2025-05-28',
+      qcStatus: 'pass',
+      analyst: 'Dr. Lisa Park',
+      primaryReviewer: 'Dr. Lisa Park'
     }
   ];
 
@@ -164,6 +178,7 @@ const App = () => {
       case 'in_progress': return 'bg-yellow-100 text-yellow-800';
       case 'pending_microbial': return 'bg-purple-100 text-purple-800';
       case 'ready_for_review': return 'bg-green-100 text-green-800';
+      case 'ready_for_secondary': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -270,10 +285,10 @@ const App = () => {
 
   const renderSampleRow = (sample, isNested = false) => {
     const urgency = getDueDateUrgency(sample.dueDate);
-    const indentClass = isNested ? 'ml-6 border-l-2 border-gray-200 pl-4' : '';
+    const indentClass = isNested ? 'ml-6 border-l-2 border-white pl-4' : '';
     
     return (
-      <div key={sample.id} className={`border-b border-gray-200 hover:bg-gray-50 ${indentClass}`}>
+      <div key={sample.id} className={`hover:bg-gray-50 ${indentClass}`}>
         <div className="p-4 flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-3">
@@ -336,7 +351,7 @@ const App = () => {
     const isExpanded = expandedOrders[order.orderId];
     
     return (
-      <div key={order.orderId} className="border-b border-gray-200">
+      <div key={order.orderId}>
         <div className="hover:bg-gray-50">
           <div className="p-4 flex items-center justify-between">
             <div className="flex-1 min-w-0">
@@ -398,25 +413,88 @@ const App = () => {
     );
   };
 
-  const getCurrentData = () => {
-    const samples = mockSamples[activeTab];
+  const getCurrentData = (assayType) => {
+    const samples = mockSamples[assayType];
     if (viewMode === 'order') {
       return groupSamplesByOrder(samples);
     }
     return sortSamplesByPriority(samples);
   };
 
-  const getTabCount = (assayType) => {
+  const getCount = (assayType) => {
     if (viewMode === 'order') {
       return groupSamplesByOrder(mockSamples[assayType]).length;
     }
     return mockSamples[assayType].length;
   };
 
+  const renderPipelineSection = (assayType, title, icon) => {
+    const data = getCurrentData(assayType);
+    const count = getCount(assayType);
+    
+    return (
+      <div className="bg-white rounded-lg shadow">
+        <div className="border-b border-white">
+          <div className="px-6 py-4 flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              {React.createElement(icon, { className: "w-5 h-5 text-blue-600" })}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+                <p className="text-sm text-gray-600">{count} {viewMode === 'order' ? 'orders' : 'samples'}</p>
+              </div>
+            </div>
+            
+            {/* View Mode Toggle */}
+            <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('sample')}
+                className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  viewMode === 'sample'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <List className="w-4 h-4 mr-1.5" />
+                Sample View
+              </button>
+              <button
+                onClick={() => setViewMode('order')}
+                className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  viewMode === 'order'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Package className="w-4 h-4 mr-1.5" />
+                Order View
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content List */}
+        <div className="divide-y divide-white">
+          {viewMode === 'sample' ? (
+            sortSamplesByPriority(mockSamples[assayType]).map(renderSampleRow)
+          ) : (
+            groupSamplesByOrder(mockSamples[assayType]).map(renderOrderRow)
+          )}
+          
+          {mockSamples[assayType].length === 0 && (
+            <div className="p-8 text-center text-gray-500">
+              <Beaker className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p>No {viewMode === 'order' ? 'orders' : 'samples'} in queue for {title.toLowerCase()}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b border-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
@@ -437,87 +515,41 @@ const App = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
-          {/* Sample Pipeline - Main Section */}
-          <div className="lg:col-span-2">
+          {/* Today's Overview - Top Left */}
+          <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow">
-              <div className="border-b border-gray-200">
-                <div className="px-6 py-4 flex justify-between items-center">
-                  <div>
-                    <h2 className="text-lg font-medium text-gray-900">Sample Pipeline</h2>
-                    <p className="text-sm text-gray-600">Organized by assay type and urgency</p>
-                  </div>
-                  
-                  {/* View Mode Toggle */}
-                  <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
-                    <button
-                      onClick={() => setViewMode('sample')}
-                      className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                        viewMode === 'sample'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      <List className="w-4 h-4 mr-1.5" />
-                      Sample View
-                    </button>
-                    <button
-                      onClick={() => setViewMode('order')}
-                      className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                        viewMode === 'order'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      <Package className="w-4 h-4 mr-1.5" />
-                      Order View
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Tabs */}
-                <div className="flex space-x-8 px-6">
-                  {[
-                    { id: 'cannabinoids', label: 'Cannabinoids', icon: Beaker },
-                    { id: 'terpenes', label: 'Terpenes', icon: Beaker },
-                    { id: 'pesticides', label: 'Pesticides/Mycotoxins', icon: Beaker }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center py-4 border-b-2 font-medium text-sm ${
-                        activeTab === tab.id
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
-                      }`}
-                    >
-                      <tab.icon className="w-4 h-4 mr-2" />
-                      {tab.label}
-                      <span className="ml-2 bg-gray-100 text-gray-600 py-1 px-2 rounded-full text-xs">
-                        {getTabCount(tab.id)}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+              <div className="px-6 py-4 border-b border-white">
+                <h3 className="text-lg font-medium text-gray-900">Today's Overview</h3>
               </div>
-
-              {/* Content List */}
-              <div className="divide-y divide-gray-200">
-                {viewMode === 'sample' ? (
-                  sortSamplesByPriority(mockSamples[activeTab]).map(renderSampleRow)
-                ) : (
-                  groupSamplesByOrder(mockSamples[activeTab]).map(renderOrderRow)
-                )}
-                
-                {mockSamples[activeTab].length === 0 && (
-                  <div className="p-8 text-center text-gray-500">
-                    <Beaker className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>No {viewMode === 'order' ? 'orders' : 'samples'} in queue for {activeTab}</p>
-                  </div>
-                )}
+              
+              <div className="p-6 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Overdue Samples</span>
+                  <span className="text-lg font-semibold text-red-600">2</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Due Today</span>
+                  <span className="text-lg font-semibold text-orange-600">3</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Batches to Review</span>
+                  <span className="text-lg font-semibold text-blue-600">2</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">QC Deviations</span>
+                  <span className="text-lg font-semibold text-red-600">1</span>
+                </div>
               </div>
             </div>
+          </div>
+
+          {/* Pipeline Sections - Main Area */}
+          <div className="lg:col-span-2 space-y-6">
+            {renderPipelineSection('cannabinoids', 'Cannabinoids Pipeline', Beaker)}
+            {renderPipelineSection('terpenes', 'Terpenes Pipeline', Beaker)}
+            {renderPipelineSection('pesticides', 'Pesticides/Mycotoxins Pipeline', Beaker)}
           </div>
 
           {/* Right Sidebar */}
@@ -525,13 +557,13 @@ const App = () => {
             
             {/* Primary Review Batches */}
             <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200">
+              <div className="px-6 py-4 border-b border-white">
                 <h3 className="text-lg font-medium text-gray-900">Primary Review Batches</h3>
                 <p className="text-sm text-gray-600">Ready for your review</p>
               </div>
               
-              <div className="divide-y divide-gray-200">
-                {mockBatches.map((batch) => (
+              <div className="divide-y divide-white">
+                {mockPrimaryBatches.map((batch) => (
                   <div key={batch.id} className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <button
@@ -570,35 +602,56 @@ const App = () => {
               </div>
             </div>
 
-            {/* Quick Stats */}
+            {/* Secondary Review Batches */}
             <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">Today's Overview</h3>
+              <div className="px-6 py-4 border-b border-white">
+                <h3 className="text-lg font-medium text-gray-900">Secondary Review Batches</h3>
+                <p className="text-sm text-gray-600">Awaiting secondary review</p>
               </div>
               
-              <div className="p-6 space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Overdue Samples</span>
-                  <span className="text-lg font-semibold text-red-600">2</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Due Today</span>
-                  <span className="text-lg font-semibold text-orange-600">3</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Batches to Review</span>
-                  <span className="text-lg font-semibold text-blue-600">2</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">QC Deviations</span>
-                  <span className="text-lg font-semibold text-red-600">1</span>
-                </div>
+              <div className="divide-y divide-white">
+                {mockSecondaryBatches.map((batch) => (
+                  <div key={batch.id} className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <button
+                        onClick={() => toggleBatchExpansion(batch.id)}
+                        className="flex items-center text-sm font-medium text-gray-900 hover:text-blue-600"
+                      >
+                        {expandedBatches[batch.id] ? 
+                          <ChevronDown className="w-4 h-4 mr-1" /> : 
+                          <ChevronRight className="w-4 h-4 mr-1" />
+                        }
+                        {batch.id}
+                      </button>
+                      {getQCStatusIcon(batch.qcStatus)}
+                    </div>
+                    
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <p>{batch.type.toUpperCase()} • {batch.sampleCount} samples</p>
+                      <p>Primary: {batch.primaryReviewer}</p>
+                      <p>Analysis: {batch.analysisDate}</p>
+                    </div>
+                    
+                    {expandedBatches[batch.id] && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex space-x-2">
+                          <button className="flex-1 bg-orange-600 text-white px-3 py-2 rounded text-xs font-medium hover:bg-orange-700">
+                            Secondary Review
+                          </button>
+                          <button className="px-3 py-2 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50">
+                            QC Charts
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Control Charts Access */}
             <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200">
+              <div className="px-6 py-4 border-b border-white">
                 <h3 className="text-lg font-medium text-gray-900">QC Monitoring</h3>
               </div>
               
