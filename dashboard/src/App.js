@@ -49,11 +49,12 @@ const App = () => {
   // Mock data representing realistic sample loads
   const mockSamples = {
     cannabinoids: [
+      // Green Valley Farms - 3 samples in one order
       {
         id: 'S001',
         orderId: 'ORD-2024-1156',
         client: 'Green Valley Farms',
-        sampleName: 'GVF-Indica-Batch-45',
+        sampleName: 'GVF-Indica-Batch-45A',
         dueDate: '2025-05-29', // Overdue
         status: 'ready_for_prep',
         priority: 'rush',
@@ -63,6 +64,31 @@ const App = () => {
       },
       {
         id: 'S002',
+        orderId: 'ORD-2024-1156',
+        client: 'Green Valley Farms',
+        sampleName: 'GVF-Indica-Batch-45B',
+        dueDate: '2025-05-29',
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: '2025-05-29',
+        analysisDue: '2025-05-30',
+        reportingDue: '2025-05-31'
+      },
+      {
+        id: 'S003',
+        orderId: 'ORD-2024-1156',
+        client: 'Green Valley Farms',
+        sampleName: 'GVF-Indica-Batch-45C',
+        dueDate: '2025-05-29',
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: '2025-05-29',
+        analysisDue: '2025-05-30',
+        reportingDue: '2025-05-31'
+      },
+      // Mountain Peak Cannabis - 4 samples across 2 orders
+      {
+        id: 'S004',
         orderId: 'ORD-2024-1157',
         client: 'Mountain Peak Cannabis',
         sampleName: 'MPC-Sativa-Mix-12',
@@ -74,60 +100,73 @@ const App = () => {
         reportingDue: '2025-06-02'
       },
       {
-        id: 'S003',
-        orderId: 'ORD-2024-1157', // Same order as S002 but different due date
+        id: 'S005',
+        orderId: 'ORD-2024-1157',
         client: 'Mountain Peak Cannabis',
         sampleName: 'MPC-Sativa-Mix-13',
-        dueDate: '2025-06-01', // Different from S002's date
-        status: 'ready_for_prep',
+        dueDate: '2025-05-30',
+        status: 'analysis',
+        priority: 'standard',
+        prepDue: '2025-05-30',
+        analysisDue: '2025-05-31',
+        reportingDue: '2025-06-02'
+      },
+      {
+        id: 'S006',
+        orderId: 'ORD-2024-1168',
+        client: 'Mountain Peak Cannabis',
+        sampleName: 'MPC-Hybrid-Special-01',
+        dueDate: '2025-06-01',
+        status: 'prep',
         priority: 'standard',
         prepDue: '2025-05-31',
         analysisDue: '2025-06-01',
         reportingDue: '2025-06-02'
       },
       {
-        id: 'T004',
-        orderId: 'ORD-2024-1163',
-        client: 'Alpine Cannabis',
-        sampleName: 'AC-Terp-Profile-X',
-        dueDate: '2025-06-02',
-        status: 'prepped', // Ready for batch assignment
+        id: 'S007',
+        orderId: 'ORD-2024-1168',
+        client: 'Mountain Peak Cannabis',
+        sampleName: 'MPC-Hybrid-Special-02',
+        dueDate: '2025-06-01',
+        status: 'prep',
         priority: 'standard',
-        prepDue: '2025-06-01',
-        analysisDue: '2025-06-02',
-        reportingDue: '2025-06-03'
+        prepDue: '2025-05-31',
+        analysisDue: '2025-06-01',
+        reportingDue: '2025-06-02'
       },
+      // Urban Harvest Co - 3 samples in one order
       {
-        id: 'S004',
+        id: 'S008',
         orderId: 'ORD-2024-1158',
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-8',
-        dueDate: '2025-06-01', // Future
-        status: 'prep',
+        dueDate: '2025-06-01',
+        status: 'prepped',
         priority: 'standard',
         prepDue: '2025-06-01',
         analysisDue: '2025-06-02',
         reportingDue: '2025-06-03'
       },
       {
-        id: 'S006',
-        orderId: 'ORD-2024-1162',
-        client: 'Sunset Valley Labs',
-        sampleName: 'SVL-Full-Spectrum-A1',
-        dueDate: '2025-05-30',
-        status: 'analyzed', // Data ready for export
-        priority: 'standard',
-        prepDue: '2025-05-29',
-        analysisDue: '2025-05-30',
-        reportingDue: '2025-06-01'
-      },
-      {
-        id: 'S005',
-        orderId: 'ORD-2024-1158', // Same order as S004
+        id: 'S009',
+        orderId: 'ORD-2024-1158',
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-9',
         dueDate: '2025-06-01',
-        status: 'prepped', // Changed to show "Ready for Batch" phase
+        status: 'prepped',
+        priority: 'standard',
+        prepDue: '2025-06-01',
+        analysisDue: '2025-06-02',
+        reportingDue: '2025-06-03'
+      },
+      {
+        id: 'S010',
+        orderId: 'ORD-2024-1158',
+        client: 'Urban Harvest Co',
+        sampleName: 'UHC-Hybrid-Premium-10',
+        dueDate: '2025-06-01',
+        status: 'prepped',
         priority: 'standard',
         prepDue: '2025-06-01',
         analysisDue: '2025-06-02',
@@ -135,6 +174,7 @@ const App = () => {
       }
     ],
     terpenes: [
+      // Coastal Cannabis - 2 samples in one order
       {
         id: 'T001',
         orderId: 'ORD-2024-1159',
@@ -149,23 +189,48 @@ const App = () => {
       },
       {
         id: 'T002',
+        orderId: 'ORD-2024-1159',
+        client: 'Coastal Cannabis',
+        sampleName: 'CC-Terpene-Profile-B',
+        dueDate: '2025-05-30',
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: '2025-05-30',
+        analysisDue: '2025-05-31',
+        reportingDue: '2025-06-01'
+      },
+      // Desert Bloom - 3 samples in one order
+      {
+        id: 'T003',
         orderId: 'ORD-2024-1160',
         client: 'Desert Bloom',
         sampleName: 'DB-Myrcene-Study-3',
         dueDate: '2025-06-01',
-        status: 'analyzed',
+        status: 'prep',
         priority: 'standard',
         prepDue: '2025-05-31',
         analysisDue: '2025-06-01',
         reportingDue: '2025-06-02'
       },
       {
-        id: 'T003',
-        orderId: 'ORD-2024-1160', // Same order as T002
+        id: 'T004',
+        orderId: 'ORD-2024-1160',
         client: 'Desert Bloom',
         sampleName: 'DB-Myrcene-Study-4',
         dueDate: '2025-06-01',
-        status: 'ready_for_prep',
+        status: 'prep',
+        priority: 'standard',
+        prepDue: '2025-05-31',
+        analysisDue: '2025-06-01',
+        reportingDue: '2025-06-02'
+      },
+      {
+        id: 'T005',
+        orderId: 'ORD-2024-1160',
+        client: 'Desert Bloom',
+        sampleName: 'DB-Myrcene-Study-5',
+        dueDate: '2025-06-01',
+        status: 'prep',
         priority: 'standard',
         prepDue: '2025-05-31',
         analysisDue: '2025-06-01',
@@ -173,6 +238,7 @@ const App = () => {
       }
     ],
     pesticides: [
+      // Pure Labs Testing - 4 samples across 2 orders
       {
         id: 'P001',
         orderId: 'ORD-2024-1161',
@@ -184,6 +250,42 @@ const App = () => {
         prepDue: '2025-05-29',
         analysisDue: '2025-05-30',
         reportingDue: '2025-05-31'
+      },
+      {
+        id: 'P002',
+        orderId: 'ORD-2024-1161',
+        client: 'Pure Labs Testing',
+        sampleName: 'PLT-Residue-Screen-20',
+        dueDate: '2025-05-29',
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: '2025-05-29',
+        analysisDue: '2025-05-30',
+        reportingDue: '2025-05-31'
+      },
+      {
+        id: 'P003',
+        orderId: 'ORD-2024-1170',
+        client: 'Pure Labs Testing',
+        sampleName: 'PLT-Mycotoxin-Test-01',
+        dueDate: '2025-06-02',
+        status: 'prepped',
+        priority: 'standard',
+        prepDue: '2025-06-01',
+        analysisDue: '2025-06-02',
+        reportingDue: '2025-06-03'
+      },
+      {
+        id: 'P004',
+        orderId: 'ORD-2024-1170',
+        client: 'Pure Labs Testing',
+        sampleName: 'PLT-Mycotoxin-Test-02',
+        dueDate: '2025-06-02',
+        status: 'prepped',
+        priority: 'standard',
+        prepDue: '2025-06-01',
+        analysisDue: '2025-06-02',
+        reportingDue: '2025-06-03'
       }
     ]
   };
@@ -532,7 +634,7 @@ const App = () => {
         {isExpanded && (
           <div className="bg-gray-50 border-t border-gray-200">
             {analyticalBatch.prepBatches.map(prepBatch => (
-              <div key={prepBatch.id} className="p-3 ml-6 border-l-2 border-gray-300">
+              <div key={prepBatch.id} className="p-3 ml-6">
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <p className="text-sm font-medium text-gray-800">
@@ -618,12 +720,8 @@ const App = () => {
             </p>
           </div>
           
-          {/* Status */}
-          <div className="col-span-3 text-center">
-            <span className={`inline-flex px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(sample.status)}`}>
-              {getStatusLabel(sample.status)}
-            </span>
-          </div>
+          {/* Status - Removed */}
+          <div className="col-span-3"></div>
           
           {/* Action */}
           <div className="col-span-1 flex justify-center">
@@ -722,12 +820,8 @@ const App = () => {
             </p>
           </div>
           
-          {/* Column 10-11: Status Chip (fixed width) */}
-          <div className="col-span-2 text-center">
-            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(sample.status)}`}>
-              {getStatusLabel(sample.status)}
-            </span>
-          </div>
+          {/* Column 10-11: Status Chip - Removed */}
+          <div className="col-span-2"></div>
           
           {/* Column 12: Actions (fixed narrow) */}
           <div className="col-span-1 flex justify-center">
@@ -1047,49 +1141,7 @@ const App = () => {
             </div>
           )}
 
-          {/* Ready for Batch Phase */}
-          {samplesByPhase.readyForBatch.length > 0 && (
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Ready for Analysis</h4>
-                  <span className="text-xs text-gray-500">({samplesByPhase.readyForBatch.length})</span>
-                </div>
-              </div>
-              <div className="space-y-1">
-                {(viewMode === 'order' 
-                  ? groupSamplesByOrder(samplesByPhase.readyForBatch) 
-                  : sortSamplesByPriority(samplesByPhase.readyForBatch)
-                ).slice(0, 3).map(item => 
-                  viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
-                )}
-                {samplesByPhase.readyForBatch.length > 3 && (
-                  <div className="text-xs text-gray-500 text-center py-2">
-                    +{samplesByPhase.readyForBatch.length - 3} more samples
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Analytical Batches in Progress */}
-          {analyticalBatches.length > 0 && (
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Analytical Batches - On Instrument</h4>
-                  <span className="text-xs text-gray-500">({analyticalBatches.length})</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                {analyticalBatches.map(batch => renderAnalyticalBatch(batch, allSamples))}
-              </div>
-            </div>
-          )}
-
-          {/* In Progress Phase (for individual samples not in analytical batches) */}
+          {/* Checked Out for Prep Phase (moved to middle of prep group) */}
           {samplesByPhase.inProgress.length > 0 && (
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
@@ -1115,28 +1167,44 @@ const App = () => {
             </div>
           )}
 
-          {/* Data Ready Phase */}
-          {samplesByPhase.dataReady.length > 0 && (
+          {/* Ready for Analysis Phase */}
+          {samplesByPhase.readyForBatch.length > 0 && (
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Awaiting Instrument Results</h4>
-                  <span className="text-xs text-gray-500">({samplesByPhase.dataReady.length})</span>
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">Ready for Analysis</h4>
+                  <span className="text-xs text-gray-500">({samplesByPhase.readyForBatch.length})</span>
                 </div>
               </div>
               <div className="space-y-1">
                 {(viewMode === 'order' 
-                  ? groupSamplesByOrder(samplesByPhase.dataReady) 
-                  : sortSamplesByPriority(samplesByPhase.dataReady)
+                  ? groupSamplesByOrder(samplesByPhase.readyForBatch) 
+                  : sortSamplesByPriority(samplesByPhase.readyForBatch)
                 ).slice(0, 3).map(item => 
                   viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
                 )}
-                {samplesByPhase.dataReady.length > 3 && (
+                {samplesByPhase.readyForBatch.length > 3 && (
                   <div className="text-xs text-gray-500 text-center py-2">
-                    +{samplesByPhase.dataReady.length - 3} more samples
+                    +{samplesByPhase.readyForBatch.length - 3} more samples
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* On Instrument (Analysis section) */}
+          {analyticalBatches.length > 0 && (
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">On Instrument</h4>
+                  <span className="text-xs text-gray-500">({analyticalBatches.length})</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {analyticalBatches.map(batch => renderAnalyticalBatch(batch, allSamples))}
               </div>
             </div>
           )}
@@ -1346,19 +1414,6 @@ const App = () => {
               </div>
             </div>
 
-            {/* Control Charts Access */}
-            <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">QC Monitoring</h3>
-              </div>
-              
-              <div className="p-6">
-                <button className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  View Control Charts
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
