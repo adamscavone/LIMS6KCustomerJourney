@@ -86,6 +86,18 @@ const App = () => {
         reportingDue: '2025-06-02'
       },
       {
+        id: 'T004',
+        orderId: 'ORD-2024-1163',
+        client: 'Alpine Cannabis',
+        sampleName: 'AC-Terp-Profile-X',
+        dueDate: '2025-06-02',
+        status: 'prepped', // Ready for batch assignment
+        priority: 'standard',
+        prepDue: '2025-06-01',
+        analysisDue: '2025-06-02',
+        reportingDue: '2025-06-03'
+      },
+      {
         id: 'S004',
         orderId: 'ORD-2024-1158',
         client: 'Urban Harvest Co',
@@ -98,12 +110,24 @@ const App = () => {
         reportingDue: '2025-06-03'
       },
       {
+        id: 'S006',
+        orderId: 'ORD-2024-1162',
+        client: 'Sunset Valley Labs',
+        sampleName: 'SVL-Full-Spectrum-A1',
+        dueDate: '2025-05-30',
+        status: 'analyzed', // Data ready for export
+        priority: 'standard',
+        prepDue: '2025-05-29',
+        analysisDue: '2025-05-30',
+        reportingDue: '2025-06-01'
+      },
+      {
         id: 'S005',
         orderId: 'ORD-2024-1158', // Same order as S004
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-9',
         dueDate: '2025-06-01',
-        status: 'prepped',
+        status: 'prepped', // Changed to show "Ready for Batch" phase
         priority: 'standard',
         prepDue: '2025-06-01',
         analysisDue: '2025-06-02',
@@ -442,6 +466,126 @@ const App = () => {
     });
   };
 
+  const renderAnalyticalBatch = (analyticalBatch, allSamples) => {
+    const isExpanded = expandedBatches[analyticalBatch.id];
+    const totalSamples = analyticalBatch.prepBatches.reduce((sum, pb) => sum + pb.sampleCount, 0);
+    
+    const getStatusIcon = () => {
+      switch (analyticalBatch.status) {
+        case 'in_progress':
+          return <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>;
+        case 'queued':
+          return <div className="w-2 h-2 bg-orange-500 rounded-full"></div>;
+        default:
+          return <div className="w-2 h-2 bg-gray-400 rounded-full"></div>;
+      }
+    };
+
+    const getTimeDisplay = () => {
+      if (analyticalBatch.status === 'in_progress') {
+        return `Started: ${analyticalBatch.startTime} • Est. Complete: ${analyticalBatch.estimatedCompletion}`;
+      } else if (analyticalBatch.status === 'queued') {
+        return `Queued for: ${analyticalBatch.estimatedStart}`;
+      }
+      return '';
+    };
+    
+    return (
+      <div key={analyticalBatch.id} className="border border-gray-200 rounded">
+        <div className="hover:bg-gray-50">
+          <div className="p-3 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => toggleBatchExpansion(analyticalBatch.id)}
+                className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600"
+              >
+                {isExpanded ? 
+                  <ChevronDown className="w-4 h-4" /> : 
+                  <ChevronRight className="w-4 h-4" />
+                }
+              </button>
+              {getStatusIcon()}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  {analyticalBatch.id}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {analyticalBatch.prepBatches.length} prep batch{analyticalBatch.prepBatches.length !== 1 ? 'es' : ''} • {totalSamples} samples
+                </p>
+                {getTimeDisplay() && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    {getTimeDisplay()}
+                  </p>
+                )}
+              </div>
+            </div>
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              analyticalBatch.status === 'in_progress' 
+                ? 'bg-blue-100 text-blue-800' 
+                : 'bg-orange-100 text-orange-800'
+            }`}>
+              {analyticalBatch.status === 'in_progress' ? 'RUNNING' : 'QUEUED'}
+            </span>
+          </div>
+        </div>
+        
+        {isExpanded && (
+          <div className="bg-gray-50 border-t border-gray-200">
+            {analyticalBatch.prepBatches.map(prepBatch => (
+              <div key={prepBatch.id} className="p-3 ml-6 border-l-2 border-gray-300">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {prepBatch.id}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      Prep by: {prepBatch.prepAnalyst} • {prepBatch.sampleCount} samples
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Show individual samples in this prep batch */}
+                <div className="mt-2 space-y-1">
+                  {prepBatch.samples.map(sampleId => {
+                    const sample = allSamples.find(s => s.id === sampleId);
+                    if (!sample) return null;
+                    
+                    const urgency = getDueDateUrgency(sample.dueDate);
+                    const priorityColor = getPriorityColor(sample.priority);
+                    const priorityLabel = getPriorityLabel(sample.priority);
+                    
+                    return (
+                      <div key={sample.id} className="p-2 bg-white rounded border">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <p className="text-xs font-medium text-gray-800 truncate">
+                              {sample.sampleName}
+                            </p>
+                            {priorityLabel && (
+                              <span className={`inline-flex px-1 py-0.5 text-xs rounded ${priorityColor}`}>
+                                {priorityLabel}
+                              </span>
+                            )}
+                          </div>
+                          <p className={`text-xs ${urgency.color}`}>
+                            {urgency.label}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {sample.client} • {sample.orderId}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderSampleRowCompact = (sample) => {
     const urgency = getDueDateUrgency(sample.dueDate);
     const priorityColor = getPriorityColor(sample.priority);
@@ -778,15 +922,58 @@ const App = () => {
     return mockSamples[assayType].length;
   };
 
+  // Mock analytical batches data
+  const mockAnalyticalBatches = {
+    cannabinoids: [
+      {
+        id: 'AB-CB-240602-001',
+        status: 'in_progress',
+        startTime: '2025-06-01 22:30',
+        estimatedCompletion: '2025-06-02 08:45',
+        prepBatches: [
+          {
+            id: 'PB-CB-240601-A',
+            sampleCount: 12,
+            prepAnalyst: 'Dr. Sarah Chen',
+            samples: ['S002', 'S006'] // Updated to include analyzed sample
+          },
+          {
+            id: 'PB-CB-240601-B', 
+            sampleCount: 8,
+            prepAnalyst: 'Tech Johnson',
+            samples: ['S004'] // Sample currently in prep
+          }
+        ]
+      }
+    ],
+    terpenes: [
+      {
+        id: 'AB-TP-240602-001',
+        status: 'queued',
+        estimatedStart: '2025-06-02 14:00',
+        prepBatches: [
+          {
+            id: 'PB-TP-240602-A',
+            sampleCount: 16,
+            prepAnalyst: 'Dr. Chen',
+            samples: ['T002', 'T004'] // Include both analyzed and prepped terpenes samples
+          }
+        ]
+      }
+    ],
+    pesticides: []
+  };
+
   const renderPipelineSection = (assayType, title, icon) => {
     const allSamples = mockSamples[assayType];
+    const analyticalBatches = mockAnalyticalBatches[assayType] || [];
     
-    // Group samples by workflow phase (action type required)
+    // Group samples by workflow phase
     const samplesByPhase = {
-      actionRequired: allSamples.filter(s => ['ready_for_prep', 'prepped'].includes(s.status)),
+      prepNeeded: allSamples.filter(s => s.status === 'ready_for_prep'),
+      readyForBatch: allSamples.filter(s => s.status === 'prepped'),
       inProgress: allSamples.filter(s => ['prep', 'analysis'].includes(s.status)),
-      dataReady: allSamples.filter(s => s.status === 'analyzed'),
-      review: allSamples.filter(s => ['ready_for_review', 'ready_for_secondary'].includes(s.status))
+      dataReady: allSamples.filter(s => s.status === 'analyzed')
     };
     
     const totalSamples = allSamples.length;
@@ -803,7 +990,7 @@ const App = () => {
               </div>
             </div>
             
-            {/* View Mode Toggle - Order View first */}
+            {/* View Mode Toggle */}
             <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('order')}
@@ -834,40 +1021,84 @@ const App = () => {
         {/* Phase-Based Workflow Sections */}
         <div className="divide-y divide-gray-200">
           
-          {/* Action Required Phase */}
-          {samplesByPhase.actionRequired.length > 0 && (
+          {/* Prep Needed Phase */}
+          {samplesByPhase.prepNeeded.length > 0 && (
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Action Required</h4>
-                  <span className="text-xs text-gray-500">({samplesByPhase.actionRequired.length})</span>
+                  <h4 className="text-sm font-semibold text-gray-900">Prep Needed</h4>
+                  <span className="text-xs text-gray-500">({samplesByPhase.prepNeeded.length})</span>
                 </div>
-                <span className="text-xs text-red-600 font-medium">PREP NEEDED</span>
+                <span className="text-xs text-red-600 font-medium">PREP REQUIRED</span>
               </div>
               <div className="space-y-1">
                 {(viewMode === 'order' 
-                  ? groupSamplesByOrder(samplesByPhase.actionRequired) 
-                  : sortSamplesByPriority(samplesByPhase.actionRequired)
+                  ? groupSamplesByOrder(samplesByPhase.prepNeeded) 
+                  : sortSamplesByPriority(samplesByPhase.prepNeeded)
                 ).slice(0, 3).map(item => 
                   viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
                 )}
-                {samplesByPhase.actionRequired.length > 3 && (
+                {samplesByPhase.prepNeeded.length > 3 && (
                   <div className="text-xs text-gray-500 text-center py-2">
-                    +{samplesByPhase.actionRequired.length - 3} more samples
+                    +{samplesByPhase.prepNeeded.length - 3} more samples
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* In Progress Phase */}
+          {/* Ready for Batch Phase */}
+          {samplesByPhase.readyForBatch.length > 0 && (
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">Ready for Batch</h4>
+                  <span className="text-xs text-gray-500">({samplesByPhase.readyForBatch.length})</span>
+                </div>
+                <span className="text-xs text-orange-600 font-medium">BATCH ASSIGNMENT</span>
+              </div>
+              <div className="space-y-1">
+                {(viewMode === 'order' 
+                  ? groupSamplesByOrder(samplesByPhase.readyForBatch) 
+                  : sortSamplesByPriority(samplesByPhase.readyForBatch)
+                ).slice(0, 3).map(item => 
+                  viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
+                )}
+                {samplesByPhase.readyForBatch.length > 3 && (
+                  <div className="text-xs text-gray-500 text-center py-2">
+                    +{samplesByPhase.readyForBatch.length - 3} more samples
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Analytical Batches in Progress */}
+          {analyticalBatches.length > 0 && (
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">Analytical Batches</h4>
+                  <span className="text-xs text-gray-500">({analyticalBatches.length})</span>
+                </div>
+                <span className="text-xs text-blue-600 font-medium">RUNNING</span>
+              </div>
+              <div className="space-y-2">
+                {analyticalBatches.map(batch => renderAnalyticalBatch(batch, allSamples))}
+              </div>
+            </div>
+          )}
+
+          {/* In Progress Phase (for individual samples not in analytical batches) */}
           {samplesByPhase.inProgress.length > 0 && (
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">In Progress</h4>
+                  <h4 className="text-sm font-semibold text-gray-900">Individual Prep</h4>
                   <span className="text-xs text-gray-500">({samplesByPhase.inProgress.length})</span>
                 </div>
                 <span className="text-xs text-yellow-600 font-medium">ACTIVE</span>
@@ -893,11 +1124,11 @@ const App = () => {
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
                   <h4 className="text-sm font-semibold text-gray-900">Data Ready</h4>
                   <span className="text-xs text-gray-500">({samplesByPhase.dataReady.length})</span>
                 </div>
-                <span className="text-xs text-blue-600 font-medium">EXPORT NEEDED</span>
+                <span className="text-xs text-purple-600 font-medium">EXPORT NEEDED</span>
               </div>
               <div className="space-y-1">
                 {(viewMode === 'order' 
@@ -909,33 +1140,6 @@ const App = () => {
                 {samplesByPhase.dataReady.length > 3 && (
                   <div className="text-xs text-gray-500 text-center py-2">
                     +{samplesByPhase.dataReady.length - 3} more samples
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Review Phase */}
-          {samplesByPhase.review.length > 0 && (
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Ready for Review</h4>
-                  <span className="text-xs text-gray-500">({samplesByPhase.review.length})</span>
-                </div>
-                <span className="text-xs text-green-600 font-medium">REVIEW NEEDED</span>
-              </div>
-              <div className="space-y-1">
-                {(viewMode === 'order' 
-                  ? groupSamplesByOrder(samplesByPhase.review) 
-                  : sortSamplesByPriority(samplesByPhase.review)
-                ).slice(0, 3).map(item => 
-                  viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
-                )}
-                {samplesByPhase.review.length > 3 && (
-                  <div className="text-xs text-gray-500 text-center py-2">
-                    +{samplesByPhase.review.length - 3} more samples
                   </div>
                 )}
               </div>
