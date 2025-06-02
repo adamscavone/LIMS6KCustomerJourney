@@ -13,7 +13,7 @@
 ## Technical Stack Decisions
 
 - **Frontend**: React with functional components and hooks
-- **Styling**: Tailwind CSS for modern, responsive design
+- **Styling**: Tailwind CSS for modern, responsive design with invisible table structures
 - **Icons**: Lucide React for professional iconography
 - **Backend**: Node.js (future implementation)
 - **Development Environment**: Visual Studio Code
@@ -46,6 +46,8 @@
 - **Business Logic**: Eliminates waste by preventing unnecessary chemistry prep for failed samples
 - **Technical Requirement**: Automated workflow triggers based on completion states
 - **Early Warning Function**: Provides chemistry users advance notice of potential upcoming workload
+- **Customer Aggregation**: DPM samples grouped by customer for operational clarity
+- **Due Date Priority Sorting**: DPM customers sorted by Early Start due date urgency (overdue first)
 
 **4. Real-Time Deadline Management**
 - **Principle**: Display deadlines that matter to actual laboratory workflow, not administrative systems
@@ -53,6 +55,14 @@
 - **Business Logic**: Enables proper resource planning and priority management
 - **External Priority**: Reporting due dates are customer-facing commitments and highest priority
 - **Technical Requirement**: Dynamic date calculations based on workflow stage and turnaround commitments
+- **Smart Due Date Logic**: "All Due:" when all samples have same date, "Earliest:" when dates differ
+
+**5. Phase-Based Workflow Organization (Critical UX Innovation)**
+- **Principle**: Pipeline views reflect actual workflow phases requiring different types of actions
+- **Implementation**: Subdivided pipeline containers based on action requirements
+- **Business Logic**: Enables analysts to focus on appropriate work type at right time
+- **Phases**: Prep Needed → Ready for Batch → Analytical Batches → Data Ready → Review
+- **Air Gap Recognition**: Acknowledges instrument-LIMS disconnection with dedicated export phase
 
 ### Anti-Patterns Strictly Avoided
 - **No nested/cascading UI** (current LIMS5000 problem)
@@ -62,15 +72,19 @@
 - **No fragmented information** requiring multiple system lookups
 - **No unclear sample ownership** during workflow progression
 - **No customer-order disconnection** that breaks natural communication patterns
+- **No content shifting** in tabular interfaces - fixed column positions required
+- **No vague action labels** - specific, actionable terminology only
 
 ### Preferred Design Patterns
-- **Flat information architecture** with minimal click depths
+- **Invisible table architecture** using CSS Grid with fixed column positioning
+- **Phase-based information grouping** reflecting actual workflow requirements
 - **Expandable containers** using chevron arrows for hierarchical data
 - **Color-coded urgency** (red: overdue, orange: today, gray: future)
 - **Granular status tracking** with clear workflow progression
 - **Modern typography** (never Times New Roman)
 - **Real-time updates** with automatic refresh capabilities
 - **Customer-first grouping** for operational alignment
+- **Action-oriented labeling** (PREP REQUIRED, BATCH ASSIGNMENT, EXPORT NEEDED)
 
 ## User Context: Senior Chemist (Dr. Sarah Chen)
 
@@ -82,6 +96,8 @@
 - **Quality control oversight** through control chart monitoring
 - **Customer workload management** for capacity planning and communication
 - **Multi-order coordination** for customers with multiple concurrent orders
+- **Analytical batch management** including prep batch organization and instrument coordination
+- **Air gap data management** for export/import cycles between instruments and LIMS
 
 ### Key Operational Patterns
 - **Morning Planning**: Reviews overnight results and plans daily priorities by customer and order
@@ -91,6 +107,8 @@
 - **Quality Decisions**: Makes replication and out-of-spec determinations
 - **Cross-Assay Coordination**: Manages samples requiring multiple parallel tests
 - **Customer Communication**: Provides status updates organized by customer and order
+- **Batch Organization**: Plans prep batches and analytical batch compositions
+- **Data Export Management**: Handles instrument-to-LIMS data transfer processes
 
 ### Workflow Dependencies and Edge Cases
 - **Parallel Processing**: Most samples require multiple assays simultaneously
@@ -99,6 +117,9 @@
 - **Replication Requirements**: Especially critical for cannabinoids out-of-spec results
 - **Cross-Assay Dependencies**: Emerging workflow complexity requiring coordination
 - **Multi-Order Customers**: Frequent customers with overlapping orders and varying due dates
+- **Instrument Air Gaps**: Manual data export/import cycles with no automated connectivity
+- **Overnight Run Management**: Planning for continuous instrument operation
+- **Batch Failure Recovery**: Managing failed analytical runs and sample reprocessing
 
 ## Information Architecture - Welcome Dashboard
 
@@ -106,12 +127,12 @@
 
 **Column 1 (Left): Daily Management**
 - **Today's Overview**: Key metrics and priority alerts including potential DPM sample count
-- **DPM Early Start Pipeline**: Customer-grouped conditional chemistry samples with early warning focus
+- **DPM Early Start Pipeline**: Customer-grouped conditional chemistry samples with due date priority sorting
 
 **Columns 2-3 (Center): Primary Work Areas**
-- **Cannabinoids Pipeline**: Dedicated container with dual-view functionality
-- **Terpenes Pipeline**: Dedicated container with dual-view functionality  
-- **Pesticides/Mycotoxins Pipeline**: Dedicated container with dual-view functionality
+- **Cannabinoids Pipeline**: Phase-based workflow containers with analytical batch hierarchies
+- **Terpenes Pipeline**: Phase-based workflow containers with analytical batch hierarchies
+- **Pesticides/Mycotoxins Pipeline**: Phase-based workflow containers with analytical batch hierarchies
 
 **Column 4 (Right): Review and QC**
 - **Primary Review Batches**: Groups ready for initial review
@@ -133,10 +154,11 @@
 - **Use Case**: Ideal for detailed sample-level workflow management
 - **Technical Focus**: When granular sample status is more important than customer context
 
-### DPM Early Start Pipeline (Customer-Grouped Early Warning)
+### DPM Early Start Pipeline (Customer-Grouped Early Warning with Due Date Priority)
 
 **Customer-Level Display:**
 - **Primary Organization**: Grouped by customer name with aggregate sample counts
+- **Due Date Priority Sorting**: Overdue customers first, then by earliest ES Due date
 - **Early Warning Function**: Shows potential upcoming chemistry workload per customer
 - **ES Due Dates**: "Early Start Due" - when DPM microbial decisions are expected
 - **Expandable Detail**: Click customer to see constituent orders and sample breakdown
@@ -151,27 +173,73 @@
 
 **Business Logic:**
 - Aggregates all samples pending DPM Early Start decision by customer
+- Sorts customers by due date urgency (overdue, today, tomorrow, future)
 - Calculates earliest ES Due date across all samples for that customer
 - Inherits highest priority level from constituent samples
 - Provides "early warning" of potential chemistry workload 2-3 days in advance
 
-### Status Progression System (Granular Tracking)
+### Phase-Based Pipeline Organization (Revolutionary UX Design)
 
-**Sample Lifecycle States:**
-1. **Ready for Prep**: Available for prep team checkout
-2. **Prep**: Checked out by qualified prep team member (shows assignee)
-3. **Prepped**: Prep complete, available for analyst checkout
-4. **Analysis**: Checked out by qualified analyst (shows assignee)
-5. **Analyzed**: Analysis complete, ready for review queue
-6. **Primary Review**: In primary reviewer's queue
-7. **Secondary Review**: In secondary reviewer's queue
-8. **Complete**: All review stages finished
+**Workflow Phase Structure:**
+Each pipeline container is subdivided into workflow phases that reflect actual laboratory operations and action requirements:
 
-**DPM Early Start Specific States:**
-1. **Micro In Progress**: Microbial testing underway
-2. **Micro Primary Review**: Microbial results awaiting primary review
-3. **Micro Secondary Review**: Microbial results awaiting secondary review
-4. **Chemistry Added**: Prerequisites met, chemistry tests automatically assigned
+#### **🔴 Phase 1: Prep Needed**
+- **Samples**: Ready for prep (extraction, weighing, controls)
+- **Action Type**: PREP REQUIRED - immediate human intervention
+- **Business Logic**: Shows samples requiring physical preparation work
+- **Mental Model**: "What do I need to prep right now?"
+
+#### **🟠 Phase 2: Ready for Batch**
+- **Samples**: Prepped but not assigned to analytical batch
+- **Action Type**: BATCH ASSIGNMENT - needs instrument queuing
+- **Business Logic**: Shows samples ready for analytical batch commitment
+- **Mental Model**: "What's ready to be added to the next instrument run?"
+
+#### **🔵 Phase 3: Analytical Batches**
+- **Hierarchical Display**: Analytical batch → Prep batches → Individual samples
+- **Status Indicators**: RUNNING (active) or QUEUED (waiting)
+- **Time Tracking**: Start times, estimated completion
+- **Expandable Structure**: Three-level drill-down for batch management
+- **Business Logic**: Shows instrument status and batch organization
+- **Mental Model**: "What's running on instruments right now?"
+
+#### **🟡 Phase 4: Individual Prep**
+- **Samples**: Being prepped individually (not in batches)
+- **Action Type**: ACTIVE - monitoring individual work
+- **Business Logic**: Shows samples in individual preparation
+- **Mental Model**: "What individual samples am I working on?"
+
+#### **🟣 Phase 5: Data Ready**
+- **Samples**: Analysis complete, needs export from instrument
+- **Action Type**: EXPORT NEEDED - time to close air gap
+- **Business Logic**: Acknowledges instrument-LIMS air gap reality
+- **Mental Model**: "What data do I need to export and import to LIMS?"
+
+### Invisible Table Architecture (Technical Implementation)
+
+**CSS Grid Structure:**
+All sample and order rows use 12-column CSS Grid for consistent alignment:
+
+**Sample View Grid Layout:**
+- **Columns 1-6**: Sample name & client info (flexible)
+- **Column 7**: Priority chip (fixed, can be empty)
+- **Columns 8-9**: Due date info (fixed position)
+- **Columns 10-11**: Status chip (fixed width)
+- **Column 12**: Actions (fixed narrow)
+
+**Order View Grid Layout:**
+- **Column 1**: Expand/collapse button
+- **Columns 2-5**: Order ID & client info
+- **Column 6**: Priority chip (fixed position)
+- **Columns 7-8**: Due date info (always aligned)
+- **Columns 9-11**: Order icon & spacing
+- **Column 12**: Actions (consistent position)
+
+**Key Benefits:**
+- Eliminates content shifting when priority chips appear/disappear
+- Maintains professional table-like feel without visible borders
+- Ensures due date information always appears in same position
+- Provides scannable, columnar information architecture
 
 ## Core Business Logic Rules
 
@@ -228,6 +296,7 @@
 
 **Early Warning Display:**
 - Customer-level aggregation for workload forecasting
+- Due date priority sorting (overdue, today, tomorrow, future)
 - ES Due dates for planning resource allocation
 - Priority inheritance from highest priority constituent sample
 
@@ -235,20 +304,44 @@
 
 **Due Date Hierarchy:**
 1. **Reporting Due**: When final results must be delivered to customer (highest priority, external commitment)
-2. **Analysis Due**: When instrumental analysis must be completed  
+2. **Analysis Due**: When instrumental analysis must be completed
 3. **Prep Due**: When sample preparation must be completed
 
 **Priority Escalation:**
-- **Rush Priority**: Customer-requested expedited processing
+- **Rush Priority**: Customer-requested expedited processing (displayed with red chip)
+- **Standard Priority**: Normal processing (no chip displayed - implied default)
 - **Overdue Status**: Any sample past its current stage deadline
 - **Today Priority**: Samples due for current stage today
-- **Standard Processing**: Samples with future deadlines
 
 **Visual Indicators:**
 - Red: Overdue samples (highest priority)
 - Orange: Due today (second priority)
 - Yellow: Due tomorrow (third priority)
 - Gray: Future due dates (standard priority)
+- Rush chips: Only displayed when priority = rush (no standard chips)
+
+**Smart Due Date Logic:**
+- **"All Due:"** displayed when all samples in order have identical due dates
+- **"Earliest:"** displayed when samples in order have different due dates
+- Provides accurate context for order-level deadline management
+
+### Phase-Based Workflow Rules
+
+**Phase Transition Logic:**
+- Samples automatically move between phases based on status changes
+- Phase membership determines which container section displays the sample
+- Action labels reflect specific work type required for each phase
+
+**Analytical Batch Management:**
+- Prep batches can be committed to analytical batches
+- Analytical batches can contain multiple prep batches
+- Individual samples within prep batches maintain customer context
+- Batch status (RUNNING, QUEUED) reflects instrument state
+
+**Air Gap Management:**
+- "Data Ready" phase acknowledges instrument-LIMS disconnection
+- Manual export/import process required for data transfer
+- Time tracking for data export cycles
 
 ## Technical Implementation Requirements
 
@@ -259,11 +352,14 @@
 App.js (Main Container)
 ├── Header (Welcome, Date, Refresh)
 ├── TodaysOverview (Metrics Component + DPM Total)
-├── DPMEarlyStartCustomers (Customer-Grouped Pipeline Component)
-├── PipelineContainer (Reusable)
+├── DPMEarlyStartCustomers (Customer-Grouped Pipeline Component with Due Date Sorting)
+├── PipelineContainer (Phase-Based Workflow)
 │   ├── PipelineHeader (Title, Count, View Toggle)
-│   ├── OrderView (Expandable Groups)
-│   └── SampleView (Flat List)
+│   ├── PrepNeeded (Phase 1: Prep Required)
+│   ├── ReadyForBatch (Phase 2: Batch Assignment)
+│   ├── AnalyticalBatches (Phase 3: Hierarchical Batch View)
+│   ├── IndividualPrep (Phase 4: Individual Work)
+│   └── DataReady (Phase 5: Export Needed)
 ├── PrimaryReviewBatches (Review Component)
 ├── SecondaryReviewBatches (Review Component)
 └── QCMonitoring (Control Chart Access)
@@ -272,11 +368,18 @@ App.js (Main Container)
 **State Management Requirements:**
 - `viewMode`: Tracks Order/Sample view toggle per pipeline
 - `expandedOrders`: Tracks which orders are expanded in Order view
-- `expandedBatches`: Tracks which review batches are expanded
-- `expandedDPMCustomers`: Tracks which DPM customers are expanded
+- `expandedBatches`: Tracks which review batches and analytical batches are expanded
+- `expandedDPMCustomers`: Tracks which DMP customers are expanded
 - `currentTime`: Real-time clock for "Last Updated" display
-- `mockData`: Sample and batch data (future: API integration)
+- `mockSamples`: Sample data organized by assay type
+- `mockAnalyticalBatches`: Analytical batch data with hierarchical structure
 - `totalDPMSamples`: Calculated aggregate of potential samples across all customers
+
+**CSS Grid Implementation:**
+- All sample/order rows use 12-column grid structure
+- Fixed column positions prevent content shifting
+- Responsive breakpoints maintain alignment
+- Invisible table architecture for professional appearance
 
 **Real-Time Features:**
 - Automatic time updates every minute
@@ -317,21 +420,42 @@ CustomerOrders (
     ReportingDue, Priority, Status
 )
 
--- DPM customer aggregation
+-- DPM customer aggregation with due date priority
 DPMCustomerView (
     CustomerID, CustomerName, TotalSamples, 
-    EarliestESDue, HighestPriority, OrderCount
+    EarliestESDue, HighestPriority, OrderCount,
+    SortPriority -- for due date urgency sorting
+)
+
+-- Analytical batch management
+AnalyticalBatches (
+    BatchID, AssayType, Status, StartTime, 
+    EstimatedCompletion, InstrumentID
+)
+
+-- Prep batch tracking
+PrepBatches (
+    PrepBatchID, AnalyticalBatchID, PrepAnalyst,
+    SampleCount, PrepDate, Status
+)
+
+-- Prep batch sample membership
+PrepBatchSamples (
+    PrepBatchID, SampleID, Position, Status
 )
 ```
 
 **API Endpoints Required:**
-- `GET /api/samples/pipeline/{assayType}` - Pipeline data for specific assay
+- `GET /api/samples/pipeline/{assayType}` - Phase-based pipeline data
 - `POST /api/samples/{sampleID}/checkout` - Check out sample for work
 - `PUT /api/samples/{sampleID}/complete` - Mark current stage complete
 - `GET /api/users/{userID}/qualifications` - User DoC validation
 - `GET /api/batches/review/{reviewType}` - Review batch queues
-- `GET /api/dpm/customers` - DPM Early Start customers with aggregation
+- `GET /api/dmp/customers` - DPM Early Start customers with due date sorting
 - `GET /api/customers/{customerID}/orders` - Customer order breakdown
+- `GET /api/analytical-batches/{assayType}` - Analytical batch hierarchies
+- `POST /api/prep-batches/commit` - Commit prep batches to analytical batch
+- `GET /api/instruments/{instrumentID}/status` - Instrument status (future)
 
 ### Performance and Scalability
 
@@ -341,6 +465,7 @@ DPMCustomerView (
 - Debounced search and filter operations
 - Optimistic UI updates for checkout operations
 - Efficient customer-level aggregation calculations
+- CSS Grid performance for invisible table structures
 
 **Backend Optimization:**
 - Indexed database queries on SampleID, UserID, AssayType, CustomerID
@@ -348,6 +473,7 @@ DPMCustomerView (
 - Real-time notifications via WebSocket for status changes
 - Batch operations for bulk sample updates
 - Pre-calculated customer aggregations for DPM Early Start
+- Optimized due date urgency calculations
 
 ## Terminology Standardization
 
@@ -361,21 +487,32 @@ DPMCustomerView (
 - **Reporting Due**: External customer deadline (highest priority)
 - **Customer-First View**: Organizational approach prioritizing customer → order → sample hierarchy
 - **Early Warning**: DPM function providing advance notice of potential chemistry workload
+- **Invisible Table**: CSS Grid-based layout providing table-like structure without visible borders
+- **Phase-Based Workflow**: Pipeline organization reflecting actual work phases and action requirements
+
+### Action-Oriented Labels
+- **PREP REQUIRED**: Samples needing physical preparation
+- **BATCH ASSIGNMENT**: Samples ready for analytical batch commitment
+- **RUNNING**: Analytical batches currently on instruments
+- **QUEUED**: Analytical batches waiting for instrument time
+- **EXPORT NEEDED**: Data ready for manual export from instruments
+- **REVIEW NEEDED**: Batches awaiting quality control review
 
 ## Multi-Audience System Context
 
 ### Current Focus: Senior Chemists
 - **Primary User**: Dr. Sarah Chen persona
-- **Dashboard**: Welcome Dashboard with full pipeline visibility and customer context
-- **Permissions**: Can check out samples, perform reviews, access QC data
+- **Dashboard**: Welcome Dashboard with phase-based pipeline visibility and customer context
+- **Permissions**: Can check out samples, perform reviews, access QC data, manage analytical batches
 - **Customer Awareness**: Can provide customer-level status updates
+- **Batch Management**: Can organize prep batches and commit to analytical batches
 
 ### Future User Types (Phase 2+)
 
 **Prep Team Members:**
 - **Focus**: Sample preparation workflows with customer context
 - **Dashboard**: Prep-focused view with checkout capabilities
-- **Permissions**: Can check out samples for prep, mark prep complete
+- **Permissions**: Can check out samples for prep, mark prep complete, organize prep batches
 - **Customer Interface**: Basic customer-order visibility for communication
 
 **Sample Management Staff:**
@@ -385,9 +522,9 @@ DPMCustomerView (
 - **Customer Relationship**: Primary customer communication responsibility
 
 **Laboratory Managers:**
-- **Focus**: Resource allocation, performance metrics, compliance
+- **Focus**: Resource allocation, performance metrics, compliance, batch planning
 - **Dashboard**: Management reporting and analytics view with customer metrics
-- **Permissions**: Can view all data, generate reports, modify assignments
+- **Permissions**: Can view all data, generate reports, modify assignments, plan analytical schedules
 - **Customer Oversight**: Customer satisfaction and delivery performance monitoring
 
 **Quality Assurance Staff:**
@@ -403,35 +540,50 @@ DPMCustomerView (
 **Impact**: Reduces cognitive load when managing multiple samples per customer, supports operational discussions
 **Implementation**: Set `viewMode` initial state to 'order', prioritize customer context in all displays
 
-### Decision 2: Customer-Grouped DPM Early Start
-**Rationale**: Chemistry users need "early warning" of potential workload by customer, not detailed microbial progress
+### Decision 2: Customer-Grouped DPM Early Start with Due Date Priority
+**Rationale**: Chemistry users need "early warning" of potential workload by customer, sorted by urgency
 **Impact**: Simplifies decision-making, improves workload forecasting, supports customer communication
-**Implementation**: Aggregate DPM samples by customer with expandable detail
+**Implementation**: Aggregate DPM samples by customer with due date priority sorting (overdue first)
 
 ### Decision 3: ES Due Terminology
 **Rationale**: "Early Start Due" is more concise than "DPM Early Start results due" while maintaining clarity
 **Impact**: Reduces UI clutter, establishes consistent terminology across system
 **Implementation**: Use "ES Due" in all DPM-related displays
 
-### Decision 4: Individual Pipeline Containers vs. Tabbed Interface
-**Rationale**: Separate containers allow simultaneous visibility of all assay types while maintaining customer context
-**Impact**: Eliminates need to switch tabs, improves cross-assay coordination
-**Implementation**: 4-column grid with dedicated containers
+### Decision 4: Phase-Based Pipeline Subdivision
+**Rationale**: Analysts manage samples in different workflow phases requiring different action types
+**Impact**: Transforms pipeline from sample list to workflow management tool
+**Implementation**: Five distinct phases with action-oriented labels and hierarchical analytical batch view
 
-### Decision 5: Real-Time Date/Time Display
+### Decision 5: Invisible Table Structure with CSS Grid
+**Rationale**: Prevents content shifting while maintaining professional table-like appearance
+**Impact**: Consistent alignment regardless of content variations, improved scannability
+**Implementation**: 12-column CSS Grid with fixed column positioning
+
+### Decision 6: Priority Chip Streamlining
+**Rationale**: "Standard" priority is implied default, only "Rush" needs visual indication
+**Impact**: Cleaner interface with better space utilization, reduces visual noise
+**Implementation**: Only display priority chips for rush samples, position inline with names
+
+### Decision 7: Smart Due Date Logic for Orders
+**Rationale**: Different terminology needed when order samples have same vs. different due dates
+**Impact**: Provides accurate context for order-level deadline management
+**Implementation**: "All Due:" vs. "Earliest:" based on due date analysis
+
+### Decision 8: Analytical Batch Hierarchical Structure
+**Rationale**: Reflects real laboratory batch organization and instrument management
+**Impact**: Provides visibility into complex multi-batch analytical runs
+**Implementation**: Three-level hierarchy: Analytical Batch → Prep Batches → Individual Samples
+
+### Decision 9: Air Gap Recognition with Data Ready Phase
+**Rationale**: Acknowledges instrument-LIMS disconnection reality in laboratory operations
+**Impact**: Provides specific action guidance for data export/import cycles
+**Implementation**: Dedicated "Data Ready" phase with "EXPORT NEEDED" action label
+
+### Decision 10: Real-Time Date/Time Display
 **Rationale**: Laboratory work is time-sensitive, users need current temporal context
 **Impact**: Improves decision-making accuracy, reduces confusion about deadlines
 **Implementation**: JavaScript Date() with automatic updates
-
-### Decision 6: Granular Status Progression with Customer Context
-**Rationale**: LIMS5000's vague "In Progress" status causes workflow confusion
-**Impact**: Clear accountability and workflow visibility within customer framework
-**Implementation**: Specific status values with checkout tracking
-
-### Decision 7: Reporting Due Date Priority
-**Rationale**: External customer commitments must take absolute priority over internal operational deadlines
-**Impact**: Aligns system priorities with business priorities, improves customer satisfaction
-**Implementation**: Visual hierarchy and sorting algorithms prioritize reporting deadlines
 
 ## Testing and Validation Framework
 
@@ -442,61 +594,70 @@ DPMCustomerView (
 - Sample checkout process < 15 seconds
 - Customer-to-sample navigation < 10 seconds
 - DPM potential workload assessment < 15 seconds
+- Phase-based workflow navigation < 20 seconds
+- Analytical batch drill-down < 10 seconds
 
 **Information Clarity Tests:**
-- Users can distinguish overdue vs. today vs. future samples immediately
+- Users can distinguish workflow phases immediately
 - Users can identify sample ownership/responsibility < 5 seconds
 - Users can understand DPM Early Start potential by customer without training
 - Users can provide customer status updates within 1 minute
+- Users can assess analytical batch status at a glance
+- Due date information remains consistently positioned
 
 **Customer-First Organization Tests:**
 - Users naturally navigate customer → order → sample hierarchy
 - Multi-order customers are clearly distinguished
 - Customer-level priority assessment is immediate
 - External vs internal deadlines are clearly differentiated
+- Customer context preserved through all workflow phases
 
 **Error Prevention Tests:**
 - System prevents checkout of unqualified samples
 - System prevents chemistry assignment before DPM prerequisites
 - System prevents double-checkout conflicts
 - System prevents customer-order relationship confusion
+- Interface prevents content shifting in tabular views
 
 ### Performance Benchmarks
 
 **Load Time Requirements:**
 - Initial dashboard load < 3 seconds
 - Pipeline data refresh < 1 second
+- Phase-based rendering < 2 seconds
 - Checkout operations < 2 seconds
 - Customer aggregation calculations < 1 second
+- Analytical batch expansion < 1 second
 
 **Responsiveness Requirements:**
 - Works effectively on tablets (iPad resolution)
 - Maintains functionality on smaller desktop screens (1366x768)
 - Touch-friendly interface elements (minimum 44px touch targets)
 - Customer expansion/collapse is smooth and immediate
+- CSS Grid maintains alignment across screen sizes
 
 ## Future Enhancement Roadmap
 
-### Phase 2: Batch Review Interface (Months 2-3)
-**Features**: Full-screen batch review, QC integration, deviation workflows, customer context preservation
-**Technical Requirements**: Advanced data visualization, Excel integration replacement
+### Phase 2: Enhanced Batch Management (Months 2-3)
+**Features**: Full batch planning interface, prep batch composition tools, analytical scheduling
+**Technical Requirements**: Advanced batch algorithms, instrument integration planning
 
-### Phase 3: Control Charts Integration (Months 4-5)
-**Features**: Real-time statistical monitoring, automated alerts, trend analysis, customer impact assessment
-**Technical Requirements**: Statistical calculation engines, charting libraries
+### Phase 3: Instrument Integration Framework (Months 4-5)
+**Features**: Air gap closure automation, file monitoring systems, data parsing engines
+**Technical Requirements**: File system monitoring, automated data processing pipelines
 
-### Phase 4: Multi-User Role Expansion (Months 6+)
-**Features**: Role-based dashboards, permission systems, workflow delegation, customer communication tools
-**Technical Requirements**: Authentication/authorization, role-based data filtering
+### Phase 4: Advanced Analytics and Reporting (Months 6+)
+**Features**: Predictive batch planning, performance analytics, customer delivery metrics
+**Technical Requirements**: Machine learning algorithms, advanced reporting engines
 
-### Phase 5: Customer Communication Integration (Months 9+)
-**Features**: Customer portal integration, automated status updates, customer-specific reporting
-**Technical Requirements**: External API integration, customer notification systems
+### Phase 5: Mobile and Field Extensions (Months 9+)
+**Features**: Mobile prep interfaces, field sample collection, remote monitoring
+**Technical Requirements**: Mobile frameworks, offline capability, data synchronization
 
-### Phase 6: Mobile and Advanced Analytics (Months 12+)
-**Features**: Mobile app, predictive analytics, machine learning insights, customer behavior analysis
-**Technical Requirements**: Mobile frameworks, data science infrastructure
+### Phase 6: Customer Portal Integration (Months 12+)
+**Features**: Customer self-service portals, automated notifications, real-time status sharing
+**Technical Requirements**: External API development, customer authentication systems
 
 ---
 
-*This design plan serves as the definitive reference for LIMS6000 development. All design decisions, business logic, and technical requirements are documented here for current and future development teams. The customer-first organizational hierarchy is fundamental to the system and must be preserved throughout all development phases.*
+*This design plan serves as the definitive reference for LIMS6000 development. All design decisions, business logic, and technical requirements are documented here for current and future development teams. The customer-first organizational hierarchy and phase-based workflow organization are fundamental to the system and must be preserved throughout all development phases.*
