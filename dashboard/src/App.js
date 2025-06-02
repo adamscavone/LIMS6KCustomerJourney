@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package, Flask } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package, FlaskConical } from 'lucide-react';
 
 const App = () => {
   const [expandedBatches, setExpandedBatches] = useState({});
@@ -701,7 +701,7 @@ const App = () => {
               <div className="border-b border-white">
                 <div className="px-6 py-4">
                   <div className="flex items-center space-x-3">
-                    <Flask className="w-5 h-5 text-purple-600" />
+                    <FlaskConical className="w-5 h-5 text-purple-600" />
                     <div>
                       <h3 className="text-lg font-medium text-gray-900">DPM Early Start</h3>
                       <p className="text-sm text-gray-600">{mockDPMEarlyStart.length} samples pending microbial</p>
@@ -715,7 +715,7 @@ const App = () => {
                 
                 {mockDPMEarlyStart.length === 0 && (
                   <div className="p-8 text-center text-gray-500">
-                    <Flask className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <FlaskConical className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                     <p>No DPM Early Start samples</p>
                   </div>
                 )}
