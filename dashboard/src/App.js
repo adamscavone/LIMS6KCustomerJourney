@@ -1,10 +1,38 @@
-import React, { useState } from 'react';
-import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package, Flask } from 'lucide-react';
 
 const App = () => {
   const [expandedBatches, setExpandedBatches] = useState({});
   const [expandedOrders, setExpandedOrders] = useState({});
   const [viewMode, setViewMode] = useState('order'); // Default to 'order' view
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update time every minute for "Last Updated"
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+    return () => clearInterval(timer);
+  }, []);
+
+  const getCurrentDate = () => {
+    const today = new Date();
+    const options = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    return today.toLocaleDateString('en-US', options);
+  };
+
+  const getCurrentTime = () => {
+    return currentTime.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
 
   // Mock data representing realistic sample loads
   const mockSamples = {
@@ -27,7 +55,7 @@ const App = () => {
         client: 'Mountain Peak Cannabis',
         sampleName: 'MPC-Sativa-Mix-12',
         dueDate: '2025-05-30', // Today
-        status: 'in_progress',
+        status: 'analysis',
         priority: 'standard',
         prepDue: '2025-05-30',
         analysisDue: '2025-05-31',
@@ -51,7 +79,7 @@ const App = () => {
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-8',
         dueDate: '2025-06-01', // Future
-        status: 'pending_microbial',
+        status: 'prep',
         priority: 'standard',
         prepDue: '2025-06-01',
         analysisDue: '2025-06-02',
@@ -63,7 +91,7 @@ const App = () => {
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-9',
         dueDate: '2025-06-01',
-        status: 'pending_microbial',
+        status: 'prepped',
         priority: 'standard',
         prepDue: '2025-06-01',
         analysisDue: '2025-06-02',
@@ -89,7 +117,7 @@ const App = () => {
         client: 'Desert Bloom',
         sampleName: 'DB-Myrcene-Study-3',
         dueDate: '2025-06-01',
-        status: 'in_progress',
+        status: 'analyzed',
         priority: 'standard',
         prepDue: '2025-05-31',
         analysisDue: '2025-06-01',
@@ -123,6 +151,52 @@ const App = () => {
       }
     ]
   };
+
+  // Mock DPM Early Start data
+  const mockDPMEarlyStart = [
+    {
+      id: 'DPM001',
+      orderId: 'ORD-2024-1200',
+      client: 'Pacific Northwest Cannabis',
+      sampleName: 'PNW-Early-Test-1',
+      dueDate: '2025-05-31',
+      status: 'micro_in_progress',
+      priority: 'standard',
+      microbialTests: {
+        completed: 4,
+        total: 6,
+        remaining: ['STEC', 'Salmonella']
+      }
+    },
+    {
+      id: 'DPM002',
+      orderId: 'ORD-2024-1201',
+      client: 'Northern Lights Labs',
+      sampleName: 'NLL-Conditional-2',
+      dueDate: '2025-06-01',
+      status: 'micro_primary_review',
+      priority: 'rush',
+      microbialTests: {
+        completed: 6,
+        total: 6,
+        remaining: []
+      }
+    },
+    {
+      id: 'DPM003',
+      orderId: 'ORD-2024-1202',
+      client: 'Cascade Cannabis Co',
+      sampleName: 'CCC-DPM-Sample-A',
+      dueDate: '2025-06-02',
+      status: 'micro_secondary_review',
+      priority: 'standard',
+      microbialTests: {
+        completed: 6,
+        total: 6,
+        remaining: []
+      }
+    }
+  ];
 
   const mockPrimaryBatches = [
     {
@@ -175,11 +249,32 @@ const App = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'ready_for_prep': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
-      case 'pending_microbial': return 'bg-purple-100 text-purple-800';
+      case 'prep': return 'bg-indigo-100 text-indigo-800';
+      case 'prepped': return 'bg-purple-100 text-purple-800';
+      case 'analysis': return 'bg-yellow-100 text-yellow-800';
+      case 'analyzed': return 'bg-green-100 text-green-800';
       case 'ready_for_review': return 'bg-green-100 text-green-800';
       case 'ready_for_secondary': return 'bg-orange-100 text-orange-800';
+      case 'micro_in_progress': return 'bg-pink-100 text-pink-800';
+      case 'micro_primary_review': return 'bg-teal-100 text-teal-800';
+      case 'micro_secondary_review': return 'bg-cyan-100 text-cyan-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'ready_for_prep': return 'Ready for Prep';
+      case 'prep': return 'Prep';
+      case 'prepped': return 'Prepped';
+      case 'analysis': return 'Analysis';
+      case 'analyzed': return 'Analyzed';
+      case 'ready_for_review': return 'Ready for Review';
+      case 'ready_for_secondary': return 'Ready for Secondary';
+      case 'micro_in_progress': return 'Micro In Progress';
+      case 'micro_primary_review': return 'Micro Primary Review';
+      case 'micro_secondary_review': return 'Micro Secondary Review';
+      default: return status.replace('_', ' ').toUpperCase();
     }
   };
 
@@ -188,7 +283,7 @@ const App = () => {
   };
 
   const getDueDateUrgency = (dueDate) => {
-    const today = new Date('2025-05-30');
+    const today = new Date();
     const due = new Date(dueDate);
     const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
     
@@ -320,7 +415,7 @@ const App = () => {
             
             <div className="text-center">
               <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(sample.status)}`}>
-                {sample.status.replace('_', ' ').toUpperCase()}
+                {getStatusLabel(sample.status)}
               </span>
             </div>
             
@@ -342,6 +437,60 @@ const App = () => {
             </div>
           </div>
         )}
+      </div>
+    );
+  };
+
+  const renderDPMSampleRow = (sample) => {
+    const urgency = getDueDateUrgency(sample.dueDate);
+    
+    return (
+      <div key={sample.id} className="hover:bg-gray-50">
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(sample.priority)}`}>
+                  {sample.priority.toUpperCase()}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {sample.sampleName}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {sample.client} • {sample.orderId}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Microbial: {sample.microbialTests.completed}/{sample.microbialTests.total} complete
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="text-right">
+              <p className={`text-sm ${urgency.color}`}>
+                {urgency.label}
+              </p>
+              <p className="text-xs text-gray-500">
+                Due: {sample.dueDate}
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(sample.status)}`}>
+                {getStatusLabel(sample.status)}
+              </span>
+            </div>
+            
+            <div className="flex space-x-2">
+              <button className="p-2 text-gray-400 hover:text-gray-600">
+                <Eye className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -444,19 +593,8 @@ const App = () => {
               </div>
             </div>
             
-            {/* View Mode Toggle */}
+            {/* View Mode Toggle - Order View first */}
             <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode('sample')}
-                className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                  viewMode === 'sample'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <List className="w-4 h-4 mr-1.5" />
-                Sample View
-              </button>
               <button
                 onClick={() => setViewMode('order')}
                 className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
@@ -468,6 +606,17 @@ const App = () => {
                 <Package className="w-4 h-4 mr-1.5" />
                 Order View
               </button>
+              <button
+                onClick={() => setViewMode('sample')}
+                className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  viewMode === 'sample'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <List className="w-4 h-4 mr-1.5" />
+                Sample View
+              </button>
             </div>
           </div>
         </div>
@@ -475,8 +624,10 @@ const App = () => {
         {/* Content List */}
         <div className="divide-y divide-white">
           {viewMode === 'sample' ? (
-            sortSamplesByPriority(mockSamples[assayType]).map(renderSampleRow)
+            // In Sample View: show all samples individually without nesting
+            sortSamplesByPriority(mockSamples[assayType]).map(sample => renderSampleRow(sample, false))
           ) : (
+            // In Order View: show grouped by orders with nesting
             groupSamplesByOrder(mockSamples[assayType]).map(renderOrderRow)
           )}
           
@@ -498,13 +649,13 @@ const App = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Senior Chemist Dashboard</h1>
-              <p className="text-sm text-gray-600">Dr. Sarah Chen • Friday, May 30, 2025</p>
+              <h1 className="text-2xl font-semibold text-gray-900">Welcome</h1>
+              <p className="text-sm text-gray-600">Dr. Sarah Chen • {getCurrentDate()}</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center text-sm text-gray-600">
                 <Clock className="w-4 h-4 mr-1" />
-                Last updated: 8:15 AM
+                Last updated: {getCurrentTime()}
               </div>
               <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
                 Refresh Data
@@ -517,8 +668,9 @@ const App = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
-          {/* Today's Overview - Top Left */}
-          <div className="lg:col-span-1">
+          {/* Left Column: Today's Overview + DPM Early Start */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Today's Overview */}
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-white">
                 <h3 className="text-lg font-medium text-gray-900">Today's Overview</h3>
@@ -541,6 +693,32 @@ const App = () => {
                   <span className="text-sm text-gray-600">QC Deviations</span>
                   <span className="text-lg font-semibold text-red-600">1</span>
                 </div>
+              </div>
+            </div>
+
+            {/* DPM Early Start Pipeline */}
+            <div className="bg-white rounded-lg shadow">
+              <div className="border-b border-white">
+                <div className="px-6 py-4">
+                  <div className="flex items-center space-x-3">
+                    <Flask className="w-5 h-5 text-purple-600" />
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">DPM Early Start</h3>
+                      <p className="text-sm text-gray-600">{mockDPMEarlyStart.length} samples pending microbial</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="divide-y divide-white">
+                {mockDPMEarlyStart.map(renderDPMSampleRow)}
+                
+                {mockDPMEarlyStart.length === 0 && (
+                  <div className="p-8 text-center text-gray-500">
+                    <Flask className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No DPM Early Start samples</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
