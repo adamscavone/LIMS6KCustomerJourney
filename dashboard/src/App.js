@@ -37,8 +37,11 @@ const App = () => {
 
   const getDueDateUrgency = (dueDate) => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const due = new Date(dueDate);
-    const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+    due.setHours(0, 0, 0, 0);
+    const diffTime = due - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays < 0) return { color: 'text-red-600 font-bold', label: 'OVERDUE' };
     if (diffDays === 0) return { color: 'text-orange-600 font-semibold', label: 'TODAY' };
@@ -46,45 +49,89 @@ const App = () => {
     return { color: 'text-gray-600', label: `${diffDays} days` };
   };
 
+  // Helper function to get business days in the past
+  const getBusinessDaysAgo = (daysAgo) => {
+    const date = new Date();
+    let businessDaysCount = 0;
+    
+    while (businessDaysCount < daysAgo) {
+      date.setDate(date.getDate() - 1);
+      const dayOfWeek = date.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip weekends
+        businessDaysCount++;
+      }
+    }
+    
+    return date.toISOString().split('T')[0];
+  };
+
+  // Helper function to get future business days
+  const getBusinessDaysFromNow = (daysFromNow) => {
+    const date = new Date();
+    let businessDaysCount = 0;
+    
+    while (businessDaysCount < daysFromNow) {
+      date.setDate(date.getDate() + 1);
+      const dayOfWeek = date.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip weekends
+        businessDaysCount++;
+      }
+    }
+    
+    return date.toISOString().split('T')[0];
+  };
+
+  // Get various dates for mock data
+  const today = getCurrentDate();
+  const yesterday = getBusinessDaysAgo(1);
+  const twoDaysAgo = getBusinessDaysAgo(2);
+  const threeDaysAgo = getBusinessDaysAgo(3);
+  const tomorrow = getBusinessDaysFromNow(1);
+  const twoDaysFromNow = getBusinessDaysFromNow(2);
+  const threeDaysFromNow = getBusinessDaysFromNow(3);
+
   // Mock data representing realistic sample loads
   const mockSamples = {
     cannabinoids: [
-      // Green Valley Farms - 3 samples in one order
+      // Green Valley Farms - 3 samples in one order (OVERDUE)
       {
         id: 'S001',
         orderId: 'ORD-2024-1156',
         client: 'Green Valley Farms',
         sampleName: 'GVF-Indica-Batch-45A',
-        dueDate: '2025-05-29', // Overdue
+        receivedOn: threeDaysAgo,
+        dueDate: yesterday, // Overdue
         status: 'ready_for_prep',
         priority: 'rush',
-        prepDue: '2025-05-29',
-        analysisDue: '2025-05-30',
-        reportingDue: '2025-05-31'
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
       },
       {
         id: 'S002',
         orderId: 'ORD-2024-1156',
         client: 'Green Valley Farms',
         sampleName: 'GVF-Indica-Batch-45B',
-        dueDate: '2025-05-29',
+        receivedOn: threeDaysAgo,
+        dueDate: yesterday,
         status: 'ready_for_prep',
         priority: 'rush',
-        prepDue: '2025-05-29',
-        analysisDue: '2025-05-30',
-        reportingDue: '2025-05-31'
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
       },
       {
         id: 'S003',
         orderId: 'ORD-2024-1156',
         client: 'Green Valley Farms',
         sampleName: 'GVF-Indica-Batch-45C',
-        dueDate: '2025-05-29',
+        receivedOn: threeDaysAgo,
+        dueDate: yesterday,
         status: 'ready_for_prep',
         priority: 'rush',
-        prepDue: '2025-05-29',
-        analysisDue: '2025-05-30',
-        reportingDue: '2025-05-31'
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
       },
       // Mountain Peak Cannabis - 4 samples across 2 orders
       {
@@ -92,48 +139,52 @@ const App = () => {
         orderId: 'ORD-2024-1157',
         client: 'Mountain Peak Cannabis',
         sampleName: 'MPC-Sativa-Mix-12',
-        dueDate: '2025-05-30', // Today
+        receivedOn: twoDaysAgo,
+        dueDate: today, // Due Today
         status: 'analysis',
         priority: 'standard',
-        prepDue: '2025-05-30',
-        analysisDue: '2025-05-31',
-        reportingDue: '2025-06-02'
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
       },
       {
         id: 'S005',
         orderId: 'ORD-2024-1157',
         client: 'Mountain Peak Cannabis',
         sampleName: 'MPC-Sativa-Mix-13',
-        dueDate: '2025-05-30',
+        receivedOn: twoDaysAgo,
+        dueDate: today,
         status: 'analysis',
         priority: 'standard',
-        prepDue: '2025-05-30',
-        analysisDue: '2025-05-31',
-        reportingDue: '2025-06-02'
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
       },
       {
         id: 'S006',
         orderId: 'ORD-2024-1168',
         client: 'Mountain Peak Cannabis',
         sampleName: 'MPC-Hybrid-Special-01',
-        dueDate: '2025-06-01',
+        receivedOn: today,
+        dueDate: threeDaysFromNow,
         status: 'prep',
         priority: 'standard',
-        prepDue: '2025-05-31',
-        analysisDue: '2025-06-01',
-        reportingDue: '2025-06-02'
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
       },
       {
         id: 'S007',
         orderId: 'ORD-2024-1168',
         client: 'Mountain Peak Cannabis',
         sampleName: 'MPC-Hybrid-Special-02',
-        dueDate: '2025-06-01',
+        receivedOn: today,
+        dueDate: threeDaysFromNow,
         status: 'prep',
         priority: 'standard',
-        prepDue: '2025-05-31',
-        analysisDue: '2025-06-01',
-        reportingDue: '2025-06-02'
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
       },
       // Urban Harvest Co - 3 samples in one order
       {
@@ -141,63 +192,68 @@ const App = () => {
         orderId: 'ORD-2024-1158',
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-8',
-        dueDate: '2025-06-01',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
         status: 'prepped',
         priority: 'standard',
-        prepDue: '2025-06-01',
-        analysisDue: '2025-06-02',
-        reportingDue: '2025-06-03'
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
       },
       {
         id: 'S009',
         orderId: 'ORD-2024-1158',
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-9',
-        dueDate: '2025-06-01',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
         status: 'prepped',
         priority: 'standard',
-        prepDue: '2025-06-01',
-        analysisDue: '2025-06-02',
-        reportingDue: '2025-06-03'
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
       },
       {
         id: 'S010',
         orderId: 'ORD-2024-1158',
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-10',
-        dueDate: '2025-06-01',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
         status: 'prepped',
         priority: 'standard',
-        prepDue: '2025-06-01',
-        analysisDue: '2025-06-02',
-        reportingDue: '2025-06-03'
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
       }
     ],
     terpenes: [
-      // Coastal Cannabis - 2 samples in one order
+      // Coastal Cannabis - 2 samples in one order (Due Today)
       {
         id: 'T001',
         orderId: 'ORD-2024-1159',
         client: 'Coastal Cannabis',
         sampleName: 'CC-Terpene-Profile-A',
-        dueDate: '2025-05-30',
+        receivedOn: yesterday,
+        dueDate: today,
         status: 'ready_for_prep',
         priority: 'standard',
-        prepDue: '2025-05-30',
-        analysisDue: '2025-05-31',
-        reportingDue: '2025-06-01'
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
       },
       {
         id: 'T002',
         orderId: 'ORD-2024-1159',
         client: 'Coastal Cannabis',
         sampleName: 'CC-Terpene-Profile-B',
-        dueDate: '2025-05-30',
+        receivedOn: yesterday,
+        dueDate: today,
         status: 'ready_for_prep',
         priority: 'standard',
-        prepDue: '2025-05-30',
-        analysisDue: '2025-05-31',
-        reportingDue: '2025-06-01'
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
       },
       // Desert Bloom - 3 samples in one order
       {
@@ -205,36 +261,39 @@ const App = () => {
         orderId: 'ORD-2024-1160',
         client: 'Desert Bloom',
         sampleName: 'DB-Myrcene-Study-3',
-        dueDate: '2025-06-01',
+        receivedOn: today,
+        dueDate: twoDaysFromNow,
         status: 'prep',
         priority: 'standard',
-        prepDue: '2025-05-31',
-        analysisDue: '2025-06-01',
-        reportingDue: '2025-06-02'
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
       },
       {
         id: 'T004',
         orderId: 'ORD-2024-1160',
         client: 'Desert Bloom',
         sampleName: 'DB-Myrcene-Study-4',
-        dueDate: '2025-06-01',
+        receivedOn: today,
+        dueDate: twoDaysFromNow,
         status: 'prep',
         priority: 'standard',
-        prepDue: '2025-05-31',
-        analysisDue: '2025-06-01',
-        reportingDue: '2025-06-02'
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
       },
       {
         id: 'T005',
         orderId: 'ORD-2024-1160',
         client: 'Desert Bloom',
         sampleName: 'DB-Myrcene-Study-5',
-        dueDate: '2025-06-01',
+        receivedOn: today,
+        dueDate: twoDaysFromNow,
         status: 'prep',
         priority: 'standard',
-        prepDue: '2025-05-31',
-        analysisDue: '2025-06-01',
-        reportingDue: '2025-06-02'
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
       }
     ],
     pesticides: [
@@ -244,48 +303,52 @@ const App = () => {
         orderId: 'ORD-2024-1161',
         client: 'Pure Labs Testing',
         sampleName: 'PLT-Residue-Screen-19',
-        dueDate: '2025-05-29', // Overdue
+        receivedOn: threeDaysAgo,
+        dueDate: yesterday, // Overdue
         status: 'ready_for_prep',
         priority: 'rush',
-        prepDue: '2025-05-29',
-        analysisDue: '2025-05-30',
-        reportingDue: '2025-05-31'
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
       },
       {
         id: 'P002',
         orderId: 'ORD-2024-1161',
         client: 'Pure Labs Testing',
         sampleName: 'PLT-Residue-Screen-20',
-        dueDate: '2025-05-29',
+        receivedOn: threeDaysAgo,
+        dueDate: yesterday,
         status: 'ready_for_prep',
         priority: 'rush',
-        prepDue: '2025-05-29',
-        analysisDue: '2025-05-30',
-        reportingDue: '2025-05-31'
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
       },
       {
         id: 'P003',
         orderId: 'ORD-2024-1170',
         client: 'Pure Labs Testing',
         sampleName: 'PLT-Mycotoxin-Test-01',
-        dueDate: '2025-06-02',
+        receivedOn: twoDaysAgo,
+        dueDate: tomorrow,
         status: 'prepped',
         priority: 'standard',
-        prepDue: '2025-06-01',
-        analysisDue: '2025-06-02',
-        reportingDue: '2025-06-03'
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
       },
       {
         id: 'P004',
         orderId: 'ORD-2024-1170',
         client: 'Pure Labs Testing',
         sampleName: 'PLT-Mycotoxin-Test-02',
-        dueDate: '2025-06-02',
+        receivedOn: twoDaysAgo,
+        dueDate: tomorrow,
         status: 'prepped',
         priority: 'standard',
-        prepDue: '2025-06-01',
-        analysisDue: '2025-06-02',
-        reportingDue: '2025-06-03'
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
       }
     ]
   };
@@ -535,7 +598,8 @@ const App = () => {
           samples: [],
           earliestDueDate: sample.dueDate,
           highestPriority: sample.priority,
-          overallStatus: sample.status
+          overallStatus: sample.status,
+          receivedOn: sample.receivedOn
         };
       }
       acc[sample.orderId].samples.push(sample);
@@ -546,6 +610,10 @@ const App = () => {
       }
       if (sample.priority === 'rush') {
         acc[sample.orderId].highestPriority = 'rush';
+      }
+      // Use earliest receivedOn date for the order
+      if (new Date(sample.receivedOn) < new Date(acc[sample.orderId].receivedOn)) {
+        acc[sample.orderId].receivedOn = sample.receivedOn;
       }
       
       return acc;
@@ -770,7 +838,7 @@ const App = () => {
                 )}
               </div>
               <p className="text-xs text-gray-500 truncate">
-                {order.client} • {order.samples.length} samples
+                {order.client} • {order.samples.length} samples • Received: {new Date(order.receivedOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </p>
             </div>
             
