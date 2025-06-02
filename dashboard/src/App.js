@@ -294,6 +294,33 @@ const App = () => {
         prepDue: tomorrow,
         analysisDue: twoDaysFromNow,
         reportingDue: threeDaysFromNow
+      },
+      // Alpine Terps - 2 samples (Due Tomorrow)
+      {
+        id: 'T006',
+        orderId: 'ORD-2024-1165',
+        client: 'Alpine Terps Co',
+        sampleName: 'ATC-Limonene-Test-01',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      {
+        id: 'T007',
+        orderId: 'ORD-2024-1165',
+        client: 'Alpine Terps Co',
+        sampleName: 'ATC-Limonene-Test-02',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
       }
     ],
     pesticides: [
@@ -349,6 +376,20 @@ const App = () => {
         prepDue: today,
         analysisDue: tomorrow,
         reportingDue: twoDaysFromNow
+      },
+      // Valley Testing - 1 sample (Due business day after tomorrow)
+      {
+        id: 'P005',
+        orderId: 'ORD-2024-1172',
+        client: 'Valley Testing Lab',
+        sampleName: 'VTL-Heavy-Metals-01',
+        receivedOn: today,
+        dueDate: twoDaysFromNow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
       }
     ]
   };
@@ -844,9 +885,11 @@ const App = () => {
             
             {/* Due Date */}
             <div className="col-span-3 text-right">
-              <p className={`text-xs ${urgency.color}`}>
-                {urgency.label}
-              </p>
+              {urgency.label !== 'TODAY' && (
+                <p className={`text-xs ${urgency.color}`}>
+                  {urgency.label}
+                </p>
+              )}
             </div>
             
             {/* Order Icon */}
@@ -1327,13 +1370,13 @@ const App = () => {
           ) : (
             // Phase-based grouping for Sample View
             <>
-              {/* Prep Needed Phase */}
+              {/* Awaiting Prep Phase */}
               {samplesByPhase.prepNeeded.length > 0 && (
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <h4 className="text-sm font-semibold text-gray-900">Prep Needed</h4>
+                      <h4 className="text-sm font-semibold text-gray-900">Awaiting Prep</h4>
                       <span className="text-xs text-gray-500">({samplesByPhase.prepNeeded.length})</span>
                     </div>
                   </div>
