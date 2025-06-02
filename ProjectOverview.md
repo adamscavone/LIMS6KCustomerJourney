@@ -2,7 +2,7 @@
 
 **Document Purpose:** Complete development record for a prototype web application replacing an outdated laboratory management system. This document assumes no prior knowledge of the project.
 
-**Last Updated:** May 30, 2025  
+**Last Updated:** June 2, 2025  
 **Repository:** https://github.com/adamscavone/LIMS6KCustomerJourney  
 **Local Path:** `c:\000repo\LIMS6KCustomerJourney`
 
@@ -17,9 +17,10 @@ Our cannabis testing laboratory currently uses **LIMS5000**, an outdated system 
 - Critical sample prep data lives in Excel spreadsheets outside the main system
 - Due dates are misleading and don't reflect actual laboratory deadlines
 - The user interface is confusing and slow
+- No clear "ownership" or checkout system for samples in progress
 
 ### The Solution
-Build **LIMS6000** - a modern, web-based replacement focused on how scientists actually work.
+Build **LIMS6000** - a modern, web-based replacement focused on how scientists actually work, with clear workflow ownership and realistic deadline management.
 
 ## 🎯 Phase 1 Objective
 
@@ -49,6 +50,7 @@ Build **LIMS6000** - a modern, web-based replacement focused on how scientists a
 3. **Poor Quality Control:** Can't easily trace problems across related samples
 4. **Rush Sample Chaos:** Everything shows the same deadline, making priorities unclear
 5. **Workflow Confusion:** Can't tell the difference between initial tests and repeat tests
+6. **No Sample Ownership:** Can't tell who is responsible for samples in progress
 
 ### Her Success Criteria
 If LIMS6000 works well, Dr. Chen should be able to:
@@ -56,34 +58,51 @@ If LIMS6000 works well, Dr. Chen should be able to:
 - Understand real deadlines that matter to her workflow
 - Quickly review test batches for quality control
 - Identify and resolve testing problems efficiently
+- Know who is responsible for each sample at any given time
 
-## 🖥️ What We Built: Senior Chemist Dashboard
+## 🖥️ What We Built: Welcome Dashboard
 
 ### The Prototype Explained
-We created a web application (like a webpage) that shows Dr. Chen's daily work in an organized, easy-to-use interface.
+We created a web application (like a webpage) that shows Dr. Chen's daily work in an organized, easy-to-use interface with clear workflow ownership.
 
 ### Main Features
 
-**1. Sample Pipeline (Left Side of Screen):**
-- **Tabs for Different Tests:** Cannabinoids, Terpenes, Pesticides/Mycotoxins
+**1. Today's Overview (Top Left):**
+- **Key Numbers:** How many samples are overdue, due today, need review
+- **Quick Stats:** Shows problems that need immediate attention
+- **At-a-Glance Priority:** Immediate visibility to daily priorities
+
+**2. Individual Pipeline Containers (Center):**
+- **Cannabinoids Pipeline:** Dedicated container with order/sample toggle
+- **Terpenes Pipeline:** Dedicated container with order/sample toggle
+- **Pesticides/Mycotoxins Pipeline:** Dedicated container with order/sample toggle
 - **Smart Sorting:** Shows overdue samples first, then today's work, then future work
 - **Clear Priorities:** Rush samples are clearly marked in red
 - **Real Deadlines:** Shows when prep is due, when analysis is due, and when reports are due
+- **View Modes:** Toggle between Order View (grouped by customer orders) and Sample View (individual samples)
 
-**2. Batch Review Section (Right Side of Screen):**
-- **Completed Test Batches:** Groups of samples that were tested together
+**3. DPM Early Start Pipeline (Left Column):**
+- **Conditional Chemistry:** Samples awaiting microbial completion before chemistry tests are added
+- **Microbial Progress:** Shows completion status of required microbial assays
+- **Workflow Gates:** Only samples passing ALL microbial tests AND completing primary/secondary review move to chemistry pipelines
+
+**4. Batch Review Sections (Right Sidebar):**
+- **Primary Review Batches:** Groups of samples ready for Dr. Chen's initial review
+- **Secondary Review Batches:** Batches awaiting secondary review after primary completion
 - **Quality Control Status:** Green checkmarks for good results, red X for problems
 - **One-Click Actions:** Easy buttons to review results or view quality control charts
 
-**3. Daily Overview:**
-- **Key Numbers:** How many samples are overdue, due today, need review
-- **Quick Stats:** Shows problems that need immediate attention
+**5. Sample Checkout System:**
+- **Granular Status Tracking:** Clear progression through workflow stages
+- **Ownership Visibility:** Know who has "checked out" samples for work
+- **Status Stages:** Ready for Prep → Prep → Prepped → Analysis → Analyzed → Review
 
 ### Visual Design Principles
 - **Clean and Modern:** No cluttered interface like LIMS5000
 - **Flat Design:** Information is easy to scan without excessive nesting
 - **Color-Coded Urgency:** Red for overdue, orange for today, gray for future
 - **Minimal Clicks:** Common actions are easy to find and use
+- **Real-Time Updates:** Live date/time display and automatic refreshes
 
 ## 🔧 Technical Implementation
 
@@ -119,16 +138,48 @@ The prototype includes realistic fake data:
 - **Sample Names:** "GVF-Indica-Batch-45", "MPC-Sativa-Mix-12"
 - **Clients:** "Green Valley Farms", "Mountain Peak Cannabis"
 - **Due Dates:** Mix of overdue, today, and future dates
-- **Status Indicators:** Various stages of testing workflow
+- **Status Indicators:** Granular workflow stages with ownership tracking
 - **Rush Flags:** Some samples marked as high priority
+- **DPM Early Start:** Samples with conditional chemistry needs
+
+## 🔄 Key Workflow Innovations
+
+### Sample Checkout System
+**Core Principle:** Samples are "checked out" by qualified users, reflecting real-world operations where team members take responsibility for timely processing.
+
+**How It Works:**
+- Users with qualifying Demonstrations of Capability (DoCs) can "check out" samples
+- Checked out samples show clear ownership and responsibility
+- Status progression: Ready for Prep → Prep (checked out) → Prepped → Analysis (checked out) → Analyzed
+- Ensures samples are processed to meet ReportingNeededBy deadlines
+
+### DPM Early Start Logic
+**Conditional Chemistry:** Samples only receive chemistry test assignments after:
+1. **Passing ALL microbial assays:** Bile-Tolerant Gram Negative Bacteria, Total Yeast & Mold, Total Aerobic Bacteria, STEC, Salmonella, Total Coliforms
+2. **Completing microbial primary review:** Marked as complete
+3. **Completing microbial secondary review:** Marked as complete
+
+**Result:** Qualified samples automatically have required chemistry tests added and appear in analysts' pipelines as "Ready for Prep"
+
+### Workflow Status Granularity
+**Enhanced Status Tracking:**
+- **Ready for Prep:** Available for checkout by prep team
+- **Prep:** Checked out by prep team member (shows who)
+- **Prepped:** Prep complete, ready for analysis checkout
+- **Analysis:** Checked out by qualified analyst (shows who)
+- **Analyzed:** Analysis complete, ready for review
+- **Primary Review:** Awaiting primary reviewer
+- **Secondary Review:** Awaiting secondary reviewer
 
 ## 📋 Current Development Status
 
 ### ✅ What's Complete
 - **User Research:** Deep understanding of Dr. Sarah Chen's workflow
-- **Prototype Design:** Complete functional web application
+- **Prototype Design:** Complete functional web application with enhanced features
 - **Technical Setup:** Git repository, Azure deployment configuration
-- **Mock Data:** Realistic test data for demonstration
+- **Mock Data:** Realistic test data including DPM Early Start scenarios
+- **Workflow Innovation:** Sample checkout system design and implementation
+- **Real-Time Features:** Live date/time updates and automatic refresh capability
 
 ### 🔄 What's Ready to Deploy
 - **Repository Organization:** Structure files properly in GitHub
@@ -171,6 +222,8 @@ npm install lucide-react
 - **Information Clarity:** Are deadlines and priorities clear?
 - **Visual Design:** Does the interface feel modern and professional?
 - **Missing Features:** What critical functions are missing?
+- **Checkout System:** Does the sample ownership model make sense?
+- **DPM Logic:** Does the conditional chemistry workflow work intuitively?
 
 ### Feedback Collection
 - **User Interviews:** Watch scientists use the prototype
@@ -187,6 +240,7 @@ npm install lucide-react
 - Integration with quality control data (eliminating Excel dependency)
 - Tools for investigating testing problems
 - Workflow for approving or rejecting test results
+- Enhanced checkout system for batch-level work
 
 ### Phase 3: Control Charts Integration (Months 4-5)
 **Goal:** Add statistical monitoring tools for quality control.
@@ -201,10 +255,11 @@ npm install lucide-react
 **Goal:** Expand beyond senior chemists to other laboratory roles.
 
 **Key Features:**
-- Prep team member interfaces
+- Prep team member interfaces with checkout capabilities
 - Sample management workflows
 - Customer service integration
 - Laboratory manager reporting
+- Role-based permissions for checkout system
 
 ## 📊 Success Measurements
 
@@ -213,18 +268,21 @@ npm install lucide-react
 - **Context Switching:** 80% reduction in switching between systems
 - **Error Reduction:** Zero missed quality control failures
 - **User Satisfaction:** 90% prefer LIMS6000 over LIMS5000
+- **Workflow Clarity:** Clear sample ownership at all times
 
 ### Technical Metrics
 - **Page Load Speed:** Less than 3 seconds
 - **System Uptime:** 99.9% availability
 - **Mobile Compatibility:** Works on tablets and phones
 - **Browser Support:** Chrome, Firefox, Safari, Edge
+- **Real-Time Updates:** Live data refresh without manual intervention
 
 ### Business Metrics
 - **Laboratory Throughput:** Increase sample processing capacity
 - **Quality Incidents:** Reduce testing errors and customer complaints
 - **Training Time:** Reduce time to train new scientists
 - **System Maintenance:** Lower IT support requirements
+- **Sample Accountability:** Eliminate lost or forgotten samples
 
 ## 🔧 Development Environment Setup
 
@@ -257,6 +315,7 @@ npm run build            # Create production version
 - **Times New Roman Font:** Outdated typography
 - **Misleading Dates:** Administrative deadlines instead of lab deadlines
 - **Fragmented Data:** Information scattered across multiple systems
+- **Unclear Ownership:** No way to know who is responsible for samples
 
 ### What We Prioritized
 - **Single Source of Truth:** All information in one place
@@ -264,6 +323,15 @@ npm run build            # Create production version
 - **Visual Hierarchy:** Important information stands out
 - **Fast Navigation:** Common tasks require minimal clicks
 - **Modern Appearance:** Professional, clean design
+- **Clear Ownership:** Sample checkout system with accountability
+- **Conditional Workflows:** DPM Early Start logic prevents unnecessary work
+
+### Core Workflow Principle: Sample Checkout
+**The central innovation:** Users with qualifying DoCs can "check out" samples for prep or analysis work, ensuring:
+- Clear accountability for sample processing
+- Visible workflow ownership
+- Timely processing to meet ReportingNeededBy deadlines
+- Elimination of samples "falling through the cracks"
 
 ## 📞 Next Steps and Decision Points
 
@@ -271,10 +339,12 @@ npm run build            # Create production version
 - [ ] Deploy prototype to live website
 - [ ] Share URL with Dr. Sarah Chen for initial feedback
 - [ ] Document first impressions and obvious problems
+- [ ] Test checkout system workflow with users
 
 ### Short-term (Weeks 2-4)
 - [ ] Conduct user testing sessions with multiple scientists
 - [ ] Analyze feedback themes and prioritize improvements
+- [ ] Validate DPM Early Start logic with laboratory operations
 - [ ] Make high-impact refinements to prototype
 - [ ] Begin planning Phase 2 detailed design
 
@@ -282,6 +352,7 @@ npm run build            # Create production version
 - [ ] Develop Phase 2 batch review interface
 - [ ] Plan backend database integration
 - [ ] Define real data migration strategy from LIMS5000
+- [ ] Implement checkout system in backend architecture
 - [ ] Begin Phase 3 control chart integration planning
 
 ## 📚 Key Documents and Resources
@@ -289,7 +360,7 @@ npm run build            # Create production version
 ### Primary Documents
 - **User Profile:** `docs/README.md` - Detailed description of Dr. Sarah Chen
 - **Design Specifications:** `docs/CustJourneyDesignPlan.md` - Technical requirements
-- **This Document:** `Phase1Implementation.md` - Current status and next steps
+- **This Document:** `ProjectOverview.md` - Current status and next steps
 
 ### Code Repository
 - **GitHub:** https://github.com/adamscavone/LIMS6KCustomerJourney
@@ -303,6 +374,6 @@ npm run build            # Create production version
 
 ---
 
-**Project Status:** Phase 1 prototype complete, ready for deployment and user testing  
-**Next Milestone:** Live website deployment and initial stakeholder feedback  
+**Project Status:** Phase 1 prototype complete with enhanced workflow features, ready for deployment and user testing  
+**Next Milestone:** Live website deployment and initial stakeholder feedback on checkout system and DPM Early Start logic  
 **Timeline:** Phase 1 testing (1 month), Phase 2 development (2-3 months)
