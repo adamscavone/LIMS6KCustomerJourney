@@ -35,6 +35,17 @@ const App = () => {
     });
   };
 
+  const getDueDateUrgency = (dueDate) => {
+    const today = new Date();
+    const due = new Date(dueDate);
+    const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return { color: 'text-red-600 font-bold', label: 'OVERDUE' };
+    if (diffDays === 0) return { color: 'text-orange-600 font-semibold', label: 'TODAY' };
+    if (diffDays === 1) return { color: 'text-yellow-600', label: 'TOMORROW' };
+    return { color: 'text-gray-600', label: `${diffDays} days` };
+  };
+
   // Mock data representing realistic sample loads
   const mockSamples = {
     cannabinoids: [
@@ -339,17 +350,6 @@ const App = () => {
     return priority === 'rush' ? 'RUSH' : null;
   };
 
-  const getDueDateUrgency = (dueDate) => {
-    const today = new Date();
-    const due = new Date(dueDate);
-    const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return { color: 'text-red-600 font-bold', label: 'OVERDUE' };
-    if (diffDays === 0) return { color: 'text-orange-600 font-semibold', label: 'TODAY' };
-    if (diffDays === 1) return { color: 'text-yellow-600', label: 'TOMORROW' };
-    return { color: 'text-gray-600', label: `${diffDays} days` };
-  };
-
   const getQCStatusIcon = (status) => {
     switch (status) {
       case 'pass': return <CheckCircle className="w-4 h-4 text-green-600" />;
@@ -450,48 +450,48 @@ const App = () => {
     
     return (
       <div key={sample.id} className={`hover:bg-gray-50 ${indentClass}`}>
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex-1 min-w-0 pr-4">
-            <div className="flex items-center space-x-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center space-x-2">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {sample.sampleName}
-                  </p>
-                  {priorityLabel && (
-                    <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded-full ${priorityColor}`}>
-                      {priorityLabel}
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-500">
-                  {sample.client} • {sample.orderId}
-                </p>
-              </div>
-            </div>
+        <div className="p-4 grid grid-cols-12 gap-4 items-center">
+          {/* Column 1-6: Sample Name and Client (flexible) */}
+          <div className="col-span-6 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {sample.sampleName}
+            </p>
+            <p className="text-sm text-gray-500 truncate">
+              {sample.client} • {sample.orderId}
+            </p>
           </div>
           
-          <div className="flex items-center space-x-6">
-            <div className="text-right min-w-0 flex-shrink-0">
-              <p className={`text-sm ${urgency.color}`}>
-                {urgency.label}
-              </p>
-              <p className="text-xs text-gray-500">
-                Due: {sample.dueDate}
-              </p>
-            </div>
-            
-            <div className="text-center flex-shrink-0">
-              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(sample.status)}`}>
-                {getStatusLabel(sample.status)}
+          {/* Column 7: Priority Chip (fixed narrow column) */}
+          <div className="col-span-1 flex justify-center">
+            {priorityLabel && (
+              <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded-full ${priorityColor}`}>
+                {priorityLabel}
               </span>
-            </div>
-            
-            <div className="flex space-x-2 flex-shrink-0">
-              <button className="p-2 text-gray-400 hover:text-gray-600">
-                <Eye className="w-4 h-4" />
-              </button>
-            </div>
+            )}
+          </div>
+          
+          {/* Column 8-9: Due Date Info (fixed width) */}
+          <div className="col-span-2 text-right">
+            <p className={`text-sm ${urgency.color}`}>
+              {urgency.label}
+            </p>
+            <p className="text-xs text-gray-500">
+              Due: {sample.dueDate}
+            </p>
+          </div>
+          
+          {/* Column 10-11: Status Chip (fixed width) */}
+          <div className="col-span-2 text-center">
+            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(sample.status)}`}>
+              {getStatusLabel(sample.status)}
+            </span>
+          </div>
+          
+          {/* Column 12: Actions (fixed narrow) */}
+          <div className="col-span-1 flex justify-center">
+            <button className="p-2 text-gray-400 hover:text-gray-600">
+              <Eye className="w-4 h-4" />
+            </button>
           </div>
         </div>
         
@@ -599,55 +599,59 @@ const App = () => {
     return (
       <div key={order.orderId}>
         <div className="hover:bg-gray-50">
-          <div className="p-4 flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => toggleOrderExpansion(order.orderId)}
-                  className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600"
-                >
-                  {isExpanded ? 
-                    <ChevronDown className="w-4 h-4" /> : 
-                    <ChevronRight className="w-4 h-4" />
-                  }
-                </button>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {order.orderId}
-                    </p>
-                    {priorityLabel && (
-                      <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded-full ${priorityColor}`}>
-                        {priorityLabel}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    {order.client} • {order.samples.length} sample{order.samples.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
-              </div>
+          <div className="p-4 grid grid-cols-12 gap-4 items-center">
+            {/* Column 1: Expand Button */}
+            <div className="col-span-1 flex justify-center">
+              <button
+                onClick={() => toggleOrderExpansion(order.orderId)}
+                className="p-1 text-gray-400 hover:text-gray-600"
+              >
+                {isExpanded ? 
+                  <ChevronDown className="w-4 h-4" /> : 
+                  <ChevronRight className="w-4 h-4" />
+                }
+              </button>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className={`text-sm ${urgency.color}`}>
-                  {urgency.label}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {dueDateLabel} {order.earliestDueDate}
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <Package className="w-4 h-4 text-gray-400" />
-              </div>
-              
-              <div className="flex space-x-2">
-                <button className="p-2 text-gray-400 hover:text-gray-600">
-                  <Eye className="w-4 h-4" />
-                </button>
-              </div>
+            {/* Column 2-5: Order Info */}
+            <div className="col-span-4 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {order.orderId}
+              </p>
+              <p className="text-sm text-gray-500 truncate">
+                {order.client} • {order.samples.length} sample{order.samples.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            
+            {/* Column 6: Priority Chip */}
+            <div className="col-span-1 flex justify-center">
+              {priorityLabel && (
+                <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded-full ${priorityColor}`}>
+                  {priorityLabel}
+                </span>
+              )}
+            </div>
+            
+            {/* Column 7-8: Due Date Info */}
+            <div className="col-span-2 text-right">
+              <p className={`text-sm ${urgency.color}`}>
+                {urgency.label}
+              </p>
+              <p className="text-xs text-gray-500">
+                {dueDateLabel} {order.earliestDueDate}
+              </p>
+            </div>
+            
+            {/* Column 9-11: Order Icon and Space */}
+            <div className="col-span-2 text-center">
+              <Package className="w-4 h-4 text-gray-400 mx-auto" />
+            </div>
+            
+            {/* Column 12: Actions */}
+            <div className="col-span-1 flex justify-center">
+              <button className="p-2 text-gray-400 hover:text-gray-600">
+                <Eye className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
