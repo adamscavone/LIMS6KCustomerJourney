@@ -442,6 +442,104 @@ const App = () => {
     });
   };
 
+  const renderSampleRowCompact = (sample) => {
+    const urgency = getDueDateUrgency(sample.dueDate);
+    const priorityColor = getPriorityColor(sample.priority);
+    const priorityLabel = getPriorityLabel(sample.priority);
+    
+    return (
+      <div key={sample.id} className="hover:bg-gray-50 rounded">
+        <div className="p-2 grid grid-cols-12 gap-2 items-center text-sm">
+          {/* Sample Name & Client */}
+          <div className="col-span-5 min-w-0">
+            <div className="flex items-center space-x-1">
+              <p className="font-medium text-gray-900 truncate text-xs">
+                {sample.sampleName}
+              </p>
+              {priorityLabel && (
+                <span className={`inline-flex px-1 py-0.5 text-xs font-medium rounded ${priorityColor}`}>
+                  {priorityLabel}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 truncate">
+              {sample.client}
+            </p>
+          </div>
+          
+          {/* Due Date */}
+          <div className="col-span-3 text-right">
+            <p className={`text-xs ${urgency.color}`}>
+              {urgency.label}
+            </p>
+          </div>
+          
+          {/* Status */}
+          <div className="col-span-3 text-center">
+            <span className={`inline-flex px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(sample.status)}`}>
+              {getStatusLabel(sample.status)}
+            </span>
+          </div>
+          
+          {/* Action */}
+          <div className="col-span-1 flex justify-center">
+            <button className="p-1 text-gray-400 hover:text-gray-600">
+              <Eye className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderOrderRowCompact = (order) => {
+    const urgency = getDueDateUrgency(order.earliestDueDate);
+    const priorityColor = getPriorityColor(order.highestPriority);
+    const priorityLabel = getPriorityLabel(order.highestPriority);
+    
+    return (
+      <div key={order.orderId} className="hover:bg-gray-50 rounded">
+        <div className="p-2 grid grid-cols-12 gap-2 items-center text-sm">
+          {/* Order Info */}
+          <div className="col-span-5 min-w-0">
+            <div className="flex items-center space-x-1">
+              <p className="font-medium text-gray-900 truncate text-xs">
+                {order.orderId}
+              </p>
+              {priorityLabel && (
+                <span className={`inline-flex px-1 py-0.5 text-xs font-medium rounded ${priorityColor}`}>
+                  {priorityLabel}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 truncate">
+              {order.client} • {order.samples.length} samples
+            </p>
+          </div>
+          
+          {/* Due Date */}
+          <div className="col-span-3 text-right">
+            <p className={`text-xs ${urgency.color}`}>
+              {urgency.label}
+            </p>
+          </div>
+          
+          {/* Order Icon */}
+          <div className="col-span-3 text-center">
+            <Package className="w-3 h-3 text-gray-400 mx-auto" />
+          </div>
+          
+          {/* Action */}
+          <div className="col-span-1 flex justify-center">
+            <button className="p-1 text-gray-400 hover:text-gray-600">
+              <Eye className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderSampleRow = (sample, isNested = false) => {
     const urgency = getDueDateUrgency(sample.dueDate);
     const indentClass = isNested ? 'ml-6 border-l-2 border-gray-200 pl-4' : '';
@@ -681,8 +779,17 @@ const App = () => {
   };
 
   const renderPipelineSection = (assayType, title, icon) => {
-    const data = getCurrentData(assayType);
-    const count = getCount(assayType);
+    const allSamples = mockSamples[assayType];
+    
+    // Group samples by workflow phase (action type required)
+    const samplesByPhase = {
+      actionRequired: allSamples.filter(s => ['ready_for_prep', 'prepped'].includes(s.status)),
+      inProgress: allSamples.filter(s => ['prep', 'analysis'].includes(s.status)),
+      dataReady: allSamples.filter(s => s.status === 'analyzed'),
+      review: allSamples.filter(s => ['ready_for_review', 'ready_for_secondary'].includes(s.status))
+    };
+    
+    const totalSamples = allSamples.length;
     
     return (
       <div className="bg-white rounded-lg shadow">
@@ -692,7 +799,7 @@ const App = () => {
               {React.createElement(icon, { className: "w-5 h-5 text-blue-600" })}
               <div>
                 <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-                <p className="text-sm text-gray-600">{count} {viewMode === 'order' ? 'orders' : 'samples'}</p>
+                <p className="text-sm text-gray-600">{totalSamples} total samples</p>
               </div>
             </div>
             
@@ -724,20 +831,121 @@ const App = () => {
           </div>
         </div>
 
-        {/* Content List */}
-        <div className="divide-y divide-gray-100">
-          {viewMode === 'sample' ? (
-            // In Sample View: show all samples individually without nesting
-            sortSamplesByPriority(mockSamples[assayType]).map(sample => renderSampleRow(sample, false))
-          ) : (
-            // In Order View: show grouped by orders with nesting
-            groupSamplesByOrder(mockSamples[assayType]).map(renderOrderRow)
+        {/* Phase-Based Workflow Sections */}
+        <div className="divide-y divide-gray-200">
+          
+          {/* Action Required Phase */}
+          {samplesByPhase.actionRequired.length > 0 && (
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">Action Required</h4>
+                  <span className="text-xs text-gray-500">({samplesByPhase.actionRequired.length})</span>
+                </div>
+                <span className="text-xs text-red-600 font-medium">PREP NEEDED</span>
+              </div>
+              <div className="space-y-1">
+                {(viewMode === 'order' 
+                  ? groupSamplesByOrder(samplesByPhase.actionRequired) 
+                  : sortSamplesByPriority(samplesByPhase.actionRequired)
+                ).slice(0, 3).map(item => 
+                  viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
+                )}
+                {samplesByPhase.actionRequired.length > 3 && (
+                  <div className="text-xs text-gray-500 text-center py-2">
+                    +{samplesByPhase.actionRequired.length - 3} more samples
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* In Progress Phase */}
+          {samplesByPhase.inProgress.length > 0 && (
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">In Progress</h4>
+                  <span className="text-xs text-gray-500">({samplesByPhase.inProgress.length})</span>
+                </div>
+                <span className="text-xs text-yellow-600 font-medium">ACTIVE</span>
+              </div>
+              <div className="space-y-1">
+                {(viewMode === 'order' 
+                  ? groupSamplesByOrder(samplesByPhase.inProgress) 
+                  : sortSamplesByPriority(samplesByPhase.inProgress)
+                ).slice(0, 3).map(item => 
+                  viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
+                )}
+                {samplesByPhase.inProgress.length > 3 && (
+                  <div className="text-xs text-gray-500 text-center py-2">
+                    +{samplesByPhase.inProgress.length - 3} more samples
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Data Ready Phase */}
+          {samplesByPhase.dataReady.length > 0 && (
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">Data Ready</h4>
+                  <span className="text-xs text-gray-500">({samplesByPhase.dataReady.length})</span>
+                </div>
+                <span className="text-xs text-blue-600 font-medium">EXPORT NEEDED</span>
+              </div>
+              <div className="space-y-1">
+                {(viewMode === 'order' 
+                  ? groupSamplesByOrder(samplesByPhase.dataReady) 
+                  : sortSamplesByPriority(samplesByPhase.dataReady)
+                ).slice(0, 3).map(item => 
+                  viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
+                )}
+                {samplesByPhase.dataReady.length > 3 && (
+                  <div className="text-xs text-gray-500 text-center py-2">
+                    +{samplesByPhase.dataReady.length - 3} more samples
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Review Phase */}
+          {samplesByPhase.review.length > 0 && (
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">Ready for Review</h4>
+                  <span className="text-xs text-gray-500">({samplesByPhase.review.length})</span>
+                </div>
+                <span className="text-xs text-green-600 font-medium">REVIEW NEEDED</span>
+              </div>
+              <div className="space-y-1">
+                {(viewMode === 'order' 
+                  ? groupSamplesByOrder(samplesByPhase.review) 
+                  : sortSamplesByPriority(samplesByPhase.review)
+                ).slice(0, 3).map(item => 
+                  viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
+                )}
+                {samplesByPhase.review.length > 3 && (
+                  <div className="text-xs text-gray-500 text-center py-2">
+                    +{samplesByPhase.review.length - 3} more samples
+                  </div>
+                )}
+              </div>
+            </div>
           )}
           
-          {mockSamples[assayType].length === 0 && (
+          {totalSamples === 0 && (
             <div className="p-8 text-center text-gray-500">
               <Beaker className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>No {viewMode === 'order' ? 'orders' : 'samples'} in queue for {title.toLowerCase()}</p>
+              <p>No samples in queue for {title.toLowerCase()}</p>
             </div>
           )}
         </div>
