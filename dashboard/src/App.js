@@ -64,14 +64,14 @@ const App = () => {
       },
       {
         id: 'S003',
-        orderId: 'ORD-2024-1157', // Same order as S002
+        orderId: 'ORD-2024-1157', // Same order as S002 but different due date
         client: 'Mountain Peak Cannabis',
         sampleName: 'MPC-Sativa-Mix-13',
-        dueDate: '2025-05-30',
+        dueDate: '2025-06-01', // Different from S002's date
         status: 'ready_for_prep',
         priority: 'standard',
-        prepDue: '2025-05-30',
-        analysisDue: '2025-05-31',
+        prepDue: '2025-05-31',
+        analysisDue: '2025-06-01',
         reportingDue: '2025-06-02'
       },
       {
@@ -153,12 +153,30 @@ const App = () => {
     ]
   };
 
-  // Updated DPM Early Start data - grouped by customer
-  const mockDPMByCustomer = [
+  // Updated DPM Early Start data - grouped by customer, sorted by due date priority
+  const rawDPMByCustomer = [
+    {
+      customer: 'Mountain Ridge Testing',
+      sampleCount: 6,
+      esDue: '2025-05-29', // Overdue
+      priority: 'rush',
+      orders: [
+        { orderId: 'ORD-2024-1199', sampleCount: 6 }
+      ],
+      samples: [
+        {
+          id: 'DPM005',
+          orderId: 'ORD-2024-1199',
+          sampleName: 'MRT-Overdue-1',
+          status: 'micro_secondary_review',
+          microbialTests: { completed: 6, total: 6, remaining: [] }
+        }
+      ]
+    },
     {
       customer: 'Pacific Northwest Cannabis',
       sampleCount: 8,
-      esDue: '2025-05-31',
+      esDue: '2025-05-30', // Today
       priority: 'standard',
       orders: [
         { orderId: 'ORD-2024-1200', sampleCount: 5 },
@@ -179,13 +197,12 @@ const App = () => {
           status: 'micro_primary_review',
           microbialTests: { completed: 6, total: 6, remaining: [] }
         }
-        // ... more samples
       ]
     },
     {
       customer: 'Northern Lights Labs',
       sampleCount: 12,
-      esDue: '2025-06-01',
+      esDue: '2025-06-01', // Tomorrow
       priority: 'rush',
       orders: [
         { orderId: 'ORD-2024-1201', sampleCount: 12 }
@@ -198,13 +215,12 @@ const App = () => {
           status: 'micro_primary_review',
           microbialTests: { completed: 6, total: 6, remaining: [] }
         }
-        // ... more samples
       ]
     },
     {
       customer: 'Cascade Cannabis Co',
       sampleCount: 4,
-      esDue: '2025-06-02',
+      esDue: '2025-06-03', // Future
       priority: 'standard',
       orders: [
         { orderId: 'ORD-2024-1202', sampleCount: 4 }
@@ -217,10 +233,23 @@ const App = () => {
           status: 'micro_secondary_review',
           microbialTests: { completed: 6, total: 6, remaining: [] }
         }
-        // ... more samples
       ]
     }
   ];
+
+  // Sort DPM customers by due date priority (overdue first, then by date)
+  const mockDPMByCustomer = [...rawDPMByCustomer].sort((a, b) => {
+    const urgencyA = getDueDateUrgency(a.esDue);
+    const urgencyB = getDueDateUrgency(b.esDue);
+    
+    if (urgencyA.label === 'OVERDUE' && urgencyB.label !== 'OVERDUE') return -1;
+    if (urgencyB.label === 'OVERDUE' && urgencyA.label !== 'OVERDUE') return 1;
+    if (urgencyA.label === 'TODAY' && urgencyB.label !== 'TODAY' && urgencyB.label !== 'OVERDUE') return -1;
+    if (urgencyB.label === 'TODAY' && urgencyA.label !== 'TODAY' && urgencyA.label !== 'OVERDUE') return 1;
+    
+    // Then by actual date
+    return new Date(a.esDue) - new Date(b.esDue);
+  });
 
   const mockPrimaryBatches = [
     {
@@ -303,7 +332,11 @@ const App = () => {
   };
 
   const getPriorityColor = (priority) => {
-    return priority === 'rush' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600';
+    return priority === 'rush' ? 'bg-red-100 text-red-800' : null;
+  };
+
+  const getPriorityLabel = (priority) => {
+    return priority === 'rush' ? 'RUSH' : null;
   };
 
   const getDueDateUrgency = (dueDate) => {
@@ -412,21 +445,25 @@ const App = () => {
   const renderSampleRow = (sample, isNested = false) => {
     const urgency = getDueDateUrgency(sample.dueDate);
     const indentClass = isNested ? 'ml-6 border-l-2 border-gray-200 pl-4' : '';
+    const priorityColor = getPriorityColor(sample.priority);
+    const priorityLabel = getPriorityLabel(sample.priority);
     
     return (
       <div key={sample.id} className={`hover:bg-gray-50 ${indentClass}`}>
         <div className="p-4 flex items-center justify-between">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pr-4">
             <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0">
-                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(sample.priority)}`}>
-                  {sample.priority.toUpperCase()}
-                </span>
-              </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {sample.sampleName}
-                </p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {sample.sampleName}
+                  </p>
+                  {priorityLabel && (
+                    <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded-full ${priorityColor}`}>
+                      {priorityLabel}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-gray-500">
                   {sample.client} • {sample.orderId}
                 </p>
@@ -434,8 +471,8 @@ const App = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
+          <div className="flex items-center space-x-6">
+            <div className="text-right min-w-0 flex-shrink-0">
               <p className={`text-sm ${urgency.color}`}>
                 {urgency.label}
               </p>
@@ -444,13 +481,13 @@ const App = () => {
               </p>
             </div>
             
-            <div className="text-center">
+            <div className="text-center flex-shrink-0">
               <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(sample.status)}`}>
                 {getStatusLabel(sample.status)}
               </span>
             </div>
             
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 flex-shrink-0">
               <button className="p-2 text-gray-400 hover:text-gray-600">
                 <Eye className="w-4 h-4" />
               </button>
@@ -475,6 +512,8 @@ const App = () => {
   const renderDPMCustomerRow = (customerData) => {
     const urgency = getDueDateUrgency(customerData.esDue);
     const isExpanded = expandedDPMCustomers[customerData.customer];
+    const priorityColor = getPriorityColor(customerData.priority);
+    const priorityLabel = getPriorityLabel(customerData.priority);
     
     return (
       <div key={customerData.customer}>
@@ -493,12 +532,16 @@ const App = () => {
                 </button>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {customerData.customer}
-                    </p>
-                    <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded ${getPriorityColor(customerData.priority)}`}>
-                      {customerData.priority === 'rush' ? 'RUSH' : 'STD'}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {customerData.customer}
+                      </p>
+                      {priorityLabel && (
+                        <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded ${priorityColor}`}>
+                          {priorityLabel}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>{customerData.sampleCount} samples</span>
@@ -544,6 +587,14 @@ const App = () => {
   const renderOrderRow = (order) => {
     const urgency = getDueDateUrgency(order.earliestDueDate);
     const isExpanded = expandedOrders[order.orderId];
+    const priorityColor = getPriorityColor(order.highestPriority);
+    const priorityLabel = getPriorityLabel(order.highestPriority);
+    
+    // Check if all samples have the same due date
+    const allDueDates = order.samples.map(sample => sample.dueDate);
+    const uniqueDueDates = [...new Set(allDueDates)];
+    const allSameSameDate = uniqueDueDates.length === 1;
+    const dueDateLabel = allSameSameDate ? 'All Due:' : 'Earliest:';
     
     return (
       <div key={order.orderId}>
@@ -560,15 +611,17 @@ const App = () => {
                     <ChevronRight className="w-4 h-4" />
                   }
                 </button>
-                <div className="flex-shrink-0">
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(order.highestPriority)}`}>
-                    {order.highestPriority.toUpperCase()}
-                  </span>
-                </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {order.orderId}
-                  </p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {order.orderId}
+                    </p>
+                    {priorityLabel && (
+                      <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded-full ${priorityColor}`}>
+                        {priorityLabel}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-500">
                     {order.client} • {order.samples.length} sample{order.samples.length !== 1 ? 's' : ''}
                   </p>
@@ -582,7 +635,7 @@ const App = () => {
                   {urgency.label}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Earliest: {order.earliestDueDate}
+                  {dueDateLabel} {order.earliestDueDate}
                 </p>
               </div>
               
