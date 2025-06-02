@@ -411,7 +411,7 @@ const App = () => {
 
   const renderSampleRow = (sample, isNested = false) => {
     const urgency = getDueDateUrgency(sample.dueDate);
-    const indentClass = isNested ? 'ml-6 border-l-2 border-white pl-4' : '';
+    const indentClass = isNested ? 'ml-6 border-l-2 border-gray-200 pl-4' : '';
     
     return (
       <div key={sample.id} className={`hover:bg-gray-50 ${indentClass}`}>
@@ -479,88 +479,60 @@ const App = () => {
     return (
       <div key={customerData.customer}>
         <div className="hover:bg-gray-50">
-          <div className="p-4 flex items-center justify-between">
+          <div className="p-3 flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={() => toggleDPMCustomerExpansion(customerData.customer)}
                   className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600"
                 >
                   {isExpanded ? 
-                    <ChevronDown className="w-4 h-4" /> : 
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronDown className="w-3 h-3" /> : 
+                    <ChevronRight className="w-3 h-3" />
                   }
                 </button>
-                <div className="flex-shrink-0">
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(customerData.priority)}`}>
-                    {customerData.priority.toUpperCase()}
-                  </span>
-                </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {customerData.customer}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {customerData.sampleCount} samples • {customerData.orders.length} order{customerData.orders.length !== 1 ? 's' : ''}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {customerData.customer}
+                    </p>
+                    <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded ${getPriorityColor(customerData.priority)}`}>
+                      {customerData.priority === 'rush' ? 'RUSH' : 'STD'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>{customerData.sampleCount} samples</span>
+                    <span className={urgency.color}>ES Due: {customerData.esDue}</span>
+                  </div>
                 </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className={`text-sm ${urgency.color}`}>
-                  {urgency.label}
-                </p>
-                <p className="text-xs text-gray-500">
-                  ES Due: {customerData.esDue}
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <Building2 className="w-4 h-4 text-gray-400" />
-              </div>
-              
-              <div className="flex space-x-2">
-                <button className="p-2 text-gray-400 hover:text-gray-600">
-                  <Eye className="w-4 h-4" />
-                </button>
               </div>
             </div>
           </div>
         </div>
         
         {isExpanded && (
-          <div className="bg-gray-50">
-            <div className="px-8 py-2 border-b border-gray-200">
+          <div className="bg-gray-50 border-t border-gray-100">
+            <div className="px-6 py-2">
               <div className="text-xs text-gray-600 space-y-1">
                 {customerData.orders.map(order => (
                   <div key={order.orderId} className="flex justify-between">
-                    <span>{order.orderId}</span>
+                    <span className="font-medium">{order.orderId}</span>
                     <span>{order.sampleCount} samples</span>
                   </div>
                 ))}
               </div>
             </div>
-            {customerData.samples.slice(0, 3).map(sample => (
-              <div key={sample.id} className="px-8 py-2 text-xs text-gray-600 border-b border-gray-100">
+            {customerData.samples.slice(0, 2).map(sample => (
+              <div key={sample.id} className="px-6 py-1 text-xs text-gray-500 border-t border-gray-100">
                 <div className="flex justify-between items-center">
-                  <span>{sample.sampleName}</span>
-                  <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(sample.status)}`}>
-                    {getStatusLabel(sample.status)}
-                  </span>
-                </div>
-                <div className="text-gray-500 mt-1">
-                  Microbial: {sample.microbialTests.completed}/{sample.microbialTests.total} complete
-                  {sample.microbialTests.remaining.length > 0 && 
-                    ` • Pending: ${sample.microbialTests.remaining.join(', ')}`
-                  }
+                  <span className="truncate">{sample.sampleName}</span>
+                  <span>Micro: {sample.microbialTests.completed}/{sample.microbialTests.total}</span>
                 </div>
               </div>
             ))}
-            {customerData.samples.length > 3 && (
-              <div className="px-8 py-2 text-xs text-gray-500 text-center">
-                +{customerData.samples.length - 3} more samples
+            {customerData.samples.length > 2 && (
+              <div className="px-6 py-1 text-xs text-gray-400 text-center border-t border-gray-100">
+                +{customerData.samples.length - 2} more samples
               </div>
             )}
           </div>
@@ -657,7 +629,7 @@ const App = () => {
     
     return (
       <div className="bg-white rounded-lg shadow">
-        <div className="border-b border-white">
+        <div className="border-b border-gray-200">
           <div className="px-6 py-4 flex justify-between items-center">
             <div className="flex items-center space-x-3">
               {React.createElement(icon, { className: "w-5 h-5 text-blue-600" })}
@@ -696,7 +668,7 @@ const App = () => {
         </div>
 
         {/* Content List */}
-        <div className="divide-y divide-white">
+        <div className="divide-y divide-gray-100">
           {viewMode === 'sample' ? (
             // In Sample View: show all samples individually without nesting
             sortSamplesByPriority(mockSamples[assayType]).map(sample => renderSampleRow(sample, false))
@@ -722,7 +694,7 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-white">
+      <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
@@ -743,17 +715,17 @@ const App = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Left Column: Today's Overview + DPM Early Start */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             {/* Today's Overview */}
             <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-white">
+              <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-lg font-medium text-gray-900">Today's Overview</h3>
               </div>
               
-              <div className="p-6 space-y-4">
+              <div className="p-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Overdue Samples</span>
                   <span className="text-lg font-semibold text-red-600">2</span>
@@ -770,7 +742,7 @@ const App = () => {
                   <span className="text-sm text-gray-600">QC Deviations</span>
                   <span className="text-lg font-semibold text-red-600">1</span>
                 </div>
-                <div className="border-t pt-4">
+                <div className="border-t pt-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Potential DPM</span>
                     <span className="text-lg font-semibold text-purple-600">{totalDPMSamples}</span>
@@ -781,7 +753,7 @@ const App = () => {
 
             {/* DPM Early Start Pipeline - Customer Grouped */}
             <div className="bg-white rounded-lg shadow">
-              <div className="border-b border-white">
+              <div className="border-b border-gray-200">
                 <div className="px-6 py-4">
                   <div className="flex items-center space-x-3">
                     <FlaskConical className="w-5 h-5 text-purple-600" />
@@ -793,7 +765,7 @@ const App = () => {
                 </div>
               </div>
 
-              <div className="divide-y divide-white">
+              <div className="divide-y divide-gray-100">
                 {mockDPMByCustomer.map(renderDPMCustomerRow)}
                 
                 {mockDPMByCustomer.length === 0 && (
@@ -807,23 +779,23 @@ const App = () => {
           </div>
 
           {/* Pipeline Sections - Main Area */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-6 space-y-6">
             {renderPipelineSection('cannabinoids', 'Cannabinoids Pipeline', Beaker)}
             {renderPipelineSection('terpenes', 'Terpenes Pipeline', Beaker)}
             {renderPipelineSection('pesticides', 'Pesticides/Mycotoxins Pipeline', Beaker)}
           </div>
 
           {/* Right Sidebar */}
-          <div className="space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             
             {/* Primary Review Batches */}
             <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-white">
+              <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-lg font-medium text-gray-900">Primary Review Batches</h3>
                 <p className="text-sm text-gray-600">Ready for your review</p>
               </div>
               
-              <div className="divide-y divide-white">
+              <div className="divide-y divide-gray-100">
                 {mockPrimaryBatches.map((batch) => (
                   <div key={batch.id} className="p-4">
                     <div className="flex items-center justify-between mb-2">
@@ -865,12 +837,12 @@ const App = () => {
 
             {/* Secondary Review Batches */}
             <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-white">
+              <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-lg font-medium text-gray-900">Secondary Review Batches</h3>
                 <p className="text-sm text-gray-600">Awaiting secondary review</p>
               </div>
               
-              <div className="divide-y divide-white">
+              <div className="divide-y divide-gray-100">
                 {mockSecondaryBatches.map((batch) => (
                   <div key={batch.id} className="p-4">
                     <div className="flex items-center justify-between mb-2">
@@ -912,7 +884,7 @@ const App = () => {
 
             {/* Control Charts Access */}
             <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-white">
+              <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-lg font-medium text-gray-900">QC Monitoring</h3>
               </div>
               
