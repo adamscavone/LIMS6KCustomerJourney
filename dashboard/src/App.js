@@ -738,46 +738,85 @@ const App = () => {
     const urgency = getDueDateUrgency(order.earliestDueDate);
     const priorityColor = getPriorityColor(order.highestPriority);
     const priorityLabel = getPriorityLabel(order.highestPriority);
+    const isExpanded = expandedOrders[order.orderId];
     
     return (
-      <div key={order.orderId} className="hover:bg-gray-50 rounded">
-        <div className="p-2 grid grid-cols-12 gap-2 items-center text-sm">
-          {/* Order Info */}
-          <div className="col-span-5 min-w-0">
-            <div className="flex items-center space-x-1">
-              <p className="font-medium text-gray-900 truncate text-xs">
-                {order.orderId}
-              </p>
-              {priorityLabel && (
-                <span className={`inline-flex px-1 py-0.5 text-xs font-medium rounded ${priorityColor}`}>
-                  {priorityLabel}
-                </span>
-              )}
+      <div key={order.orderId}>
+        <div className="hover:bg-gray-50 rounded">
+          <div className="p-2 grid grid-cols-12 gap-2 items-center text-sm">
+            {/* Expand Button */}
+            <div className="col-span-1 flex justify-center">
+              <button
+                onClick={() => toggleOrderExpansion(order.orderId)}
+                className="p-1 text-gray-400 hover:text-gray-600"
+              >
+                {isExpanded ? 
+                  <ChevronDown className="w-3 h-3" /> : 
+                  <ChevronRight className="w-3 h-3" />
+                }
+              </button>
             </div>
-            <p className="text-xs text-gray-500 truncate">
-              {order.client} • {order.samples.length} samples
-            </p>
-          </div>
-          
-          {/* Due Date */}
-          <div className="col-span-3 text-right">
-            <p className={`text-xs ${urgency.color}`}>
-              {urgency.label}
-            </p>
-          </div>
-          
-          {/* Order Icon */}
-          <div className="col-span-3 text-center">
-            <Package className="w-3 h-3 text-gray-400 mx-auto" />
-          </div>
-          
-          {/* Action */}
-          <div className="col-span-1 flex justify-center">
-            <button className="p-1 text-gray-400 hover:text-gray-600">
-              <Eye className="w-3 h-3" />
-            </button>
+            
+            {/* Order Info */}
+            <div className="col-span-4 min-w-0">
+              <div className="flex items-center space-x-1">
+                <p className="font-medium text-gray-900 truncate text-xs">
+                  {order.orderId}
+                </p>
+                {priorityLabel && (
+                  <span className={`inline-flex px-1 py-0.5 text-xs font-medium rounded ${priorityColor}`}>
+                    {priorityLabel}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 truncate">
+                {order.client} • {order.samples.length} samples
+              </p>
+            </div>
+            
+            {/* Due Date */}
+            <div className="col-span-3 text-right">
+              <p className={`text-xs ${urgency.color}`}>
+                {urgency.label}
+              </p>
+            </div>
+            
+            {/* Order Icon */}
+            <div className="col-span-3 text-center">
+              <Package className="w-3 h-3 text-gray-400 mx-auto" />
+            </div>
+            
+            {/* Action */}
+            <div className="col-span-1 flex justify-center">
+              <button className="p-1 text-gray-400 hover:text-gray-600">
+                <Eye className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         </div>
+        
+        {/* Expanded Samples */}
+        {isExpanded && (
+          <div className="bg-gray-50 ml-4">
+            {order.samples.map(sample => (
+              <div key={sample.id} className="p-2 border-t border-gray-100 first:border-t-0">
+                <div className="grid grid-cols-12 gap-2 items-center text-xs">
+                  <div className="col-span-1"></div>
+                  <div className="col-span-4 text-gray-700">
+                    {sample.sampleName}
+                  </div>
+                  <div className="col-span-3 text-right text-gray-500">
+                    Due: {sample.dueDate}
+                  </div>
+                  <div className="col-span-3 text-center text-gray-500">
+                    {getStatusLabel(sample.status)}
+                  </div>
+                  <div className="col-span-1"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
