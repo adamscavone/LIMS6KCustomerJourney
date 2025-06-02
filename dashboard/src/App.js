@@ -1062,13 +1062,48 @@ const App = () => {
     const allSamples = mockSamples[assayType];
     const analyticalBatches = mockAnalyticalBatches[assayType] || [];
     
-    // Group samples by workflow phase
+    // Group samples by workflow phase for Sample View
     const samplesByPhase = {
       prepNeeded: allSamples.filter(s => s.status === 'ready_for_prep'),
       readyForBatch: allSamples.filter(s => s.status === 'prepped'),
       inProgress: allSamples.filter(s => ['prep', 'analysis'].includes(s.status)),
       dataReady: allSamples.filter(s => s.status === 'analyzed')
     };
+    
+    // Group orders by due date for Order View
+    const getBusinessDayAfterTomorrow = () => {
+      const today = new Date();
+      let daysToAdd = 2;
+      let resultDate = new Date(today);
+      
+      while (daysToAdd > 0) {
+        resultDate.setDate(resultDate.getDate() + 1);
+        const dayOfWeek = resultDate.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip weekends
+          daysToAdd--;
+        }
+      }
+      
+      return resultDate.toISOString().split('T')[0];
+    };
+    
+    const ordersByDueDate = viewMode === 'order' ? (() => {
+      const orders = groupSamplesByOrder(allSamples);
+      const today = getCurrentDate();
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      const dayAfterTomorrow = getBusinessDayAfterTomorrow();
+      
+      return {
+        dueToday: orders.filter(order => {
+          const urgency = getDueDateUrgency(order.earliestDueDate);
+          return urgency.label === 'OVERDUE' || order.earliestDueDate === today;
+        }),
+        dueTomorrow: orders.filter(order => order.earliestDueDate === tomorrowStr),
+        dueDayAfter: orders.filter(order => order.earliestDueDate === dayAfterTomorrow)
+      };
+    })() : null;
     
     const totalSamples = allSamples.length;
     
@@ -1112,101 +1147,164 @@ const App = () => {
           </div>
         </div>
 
-        {/* Phase-Based Workflow Sections */}
+        {/* Conditional rendering based on view mode */}
         <div className="divide-y divide-gray-200">
-          
-          {/* Prep Needed Phase */}
-          {samplesByPhase.prepNeeded.length > 0 && (
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Prep Needed</h4>
-                  <span className="text-xs text-gray-500">({samplesByPhase.prepNeeded.length})</span>
-                </div>
-              </div>
-              <div className="space-y-1">
-                {(viewMode === 'order' 
-                  ? groupSamplesByOrder(samplesByPhase.prepNeeded) 
-                  : sortSamplesByPriority(samplesByPhase.prepNeeded)
-                ).slice(0, 3).map(item => 
-                  viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
-                )}
-                {samplesByPhase.prepNeeded.length > 3 && (
-                  <div className="text-xs text-gray-500 text-center py-2">
-                    +{samplesByPhase.prepNeeded.length - 3} more samples
+          {viewMode === 'order' ? (
+            // Date-based grouping for Order View
+            <>
+              {/* Due Today (includes Overdue) */}
+              {ordersByDueDate.dueToday.length > 0 && (
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <h4 className="text-sm font-semibold text-gray-900">Due Today</h4>
+                      <span className="text-xs text-gray-500">({ordersByDueDate.dueToday.length} orders)</span>
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Checked Out for Prep Phase (moved to middle of prep group) */}
-          {samplesByPhase.inProgress.length > 0 && (
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Checked Out for Prep</h4>
-                  <span className="text-xs text-gray-500">({samplesByPhase.inProgress.length})</span>
-                </div>
-              </div>
-              <div className="space-y-1">
-                {(viewMode === 'order' 
-                  ? groupSamplesByOrder(samplesByPhase.inProgress) 
-                  : sortSamplesByPriority(samplesByPhase.inProgress)
-                ).slice(0, 3).map(item => 
-                  viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
-                )}
-                {samplesByPhase.inProgress.length > 3 && (
-                  <div className="text-xs text-gray-500 text-center py-2">
-                    +{samplesByPhase.inProgress.length - 3} more samples
+                  <div className="space-y-1">
+                    {ordersByDueDate.dueToday.slice(0, 5).map(order => renderOrderRowCompact(order))}
+                    {ordersByDueDate.dueToday.length > 5 && (
+                      <div className="text-xs text-gray-500 text-center py-2">
+                        +{ordersByDueDate.dueToday.length - 5} more orders
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Ready for Analysis Phase */}
-          {samplesByPhase.readyForBatch.length > 0 && (
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Ready for Analysis</h4>
-                  <span className="text-xs text-gray-500">({samplesByPhase.readyForBatch.length})</span>
                 </div>
-              </div>
-              <div className="space-y-1">
-                {(viewMode === 'order' 
-                  ? groupSamplesByOrder(samplesByPhase.readyForBatch) 
-                  : sortSamplesByPriority(samplesByPhase.readyForBatch)
-                ).slice(0, 3).map(item => 
-                  viewMode === 'order' ? renderOrderRowCompact(item) : renderSampleRowCompact(item)
-                )}
-                {samplesByPhase.readyForBatch.length > 3 && (
-                  <div className="text-xs text-gray-500 text-center py-2">
-                    +{samplesByPhase.readyForBatch.length - 3} more samples
+              )}
+
+              {/* Due Tomorrow */}
+              {ordersByDueDate.dueTomorrow.length > 0 && (
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <h4 className="text-sm font-semibold text-gray-900">Due Tomorrow</h4>
+                      <span className="text-xs text-gray-500">({ordersByDueDate.dueTomorrow.length} orders)</span>
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* On Instrument (Analysis section) */}
-          {analyticalBatches.length > 0 && (
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">On Instrument</h4>
-                  <span className="text-xs text-gray-500">({analyticalBatches.length})</span>
+                  <div className="space-y-1">
+                    {ordersByDueDate.dueTomorrow.slice(0, 5).map(order => renderOrderRowCompact(order))}
+                    {ordersByDueDate.dueTomorrow.length > 5 && (
+                      <div className="text-xs text-gray-500 text-center py-2">
+                        +{ordersByDueDate.dueTomorrow.length - 5} more orders
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                {analyticalBatches.map(batch => renderAnalyticalBatch(batch, allSamples))}
-              </div>
-            </div>
+              )}
+
+              {/* Due Day After Tomorrow */}
+              {ordersByDueDate.dueDayAfter.length > 0 && (
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <h4 className="text-sm font-semibold text-gray-900">
+                        Due {new Date(getBusinessDayAfterTomorrow()).toLocaleDateString('en-US', { weekday: 'long' })}
+                      </h4>
+                      <span className="text-xs text-gray-500">({ordersByDueDate.dueDayAfter.length} orders)</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {ordersByDueDate.dueDayAfter.slice(0, 5).map(order => renderOrderRowCompact(order))}
+                    {ordersByDueDate.dueDayAfter.length > 5 && (
+                      <div className="text-xs text-gray-500 text-center py-2">
+                        +{ordersByDueDate.dueDayAfter.length - 5} more orders
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            // Phase-based grouping for Sample View
+            <>
+              {/* Prep Needed Phase */}
+              {samplesByPhase.prepNeeded.length > 0 && (
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <h4 className="text-sm font-semibold text-gray-900">Prep Needed</h4>
+                      <span className="text-xs text-gray-500">({samplesByPhase.prepNeeded.length})</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {sortSamplesByPriority(samplesByPhase.prepNeeded).slice(0, 3).map(sample => 
+                      renderSampleRowCompact(sample)
+                    )}
+                    {samplesByPhase.prepNeeded.length > 3 && (
+                      <div className="text-xs text-gray-500 text-center py-2">
+                        +{samplesByPhase.prepNeeded.length - 3} more samples
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Checked Out for Prep Phase */}
+              {samplesByPhase.inProgress.length > 0 && (
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <h4 className="text-sm font-semibold text-gray-900">Checked Out for Prep</h4>
+                      <span className="text-xs text-gray-500">({samplesByPhase.inProgress.length})</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {sortSamplesByPriority(samplesByPhase.inProgress).slice(0, 3).map(sample => 
+                      renderSampleRowCompact(sample)
+                    )}
+                    {samplesByPhase.inProgress.length > 3 && (
+                      <div className="text-xs text-gray-500 text-center py-2">
+                        +{samplesByPhase.inProgress.length - 3} more samples
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Ready for Analysis Phase */}
+              {samplesByPhase.readyForBatch.length > 0 && (
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <h4 className="text-sm font-semibold text-gray-900">Ready for Analysis</h4>
+                      <span className="text-xs text-gray-500">({samplesByPhase.readyForBatch.length})</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {sortSamplesByPriority(samplesByPhase.readyForBatch).slice(0, 3).map(sample => 
+                      renderSampleRowCompact(sample)
+                    )}
+                    {samplesByPhase.readyForBatch.length > 3 && (
+                      <div className="text-xs text-gray-500 text-center py-2">
+                        +{samplesByPhase.readyForBatch.length - 3} more samples
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* On Instrument (Analysis section) */}
+              {analyticalBatches.length > 0 && (
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <h4 className="text-sm font-semibold text-gray-900">On Instrument</h4>
+                      <span className="text-xs text-gray-500">({analyticalBatches.length})</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {analyticalBatches.map(batch => renderAnalyticalBatch(batch, allSamples))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
           
           {totalSamples === 0 && (

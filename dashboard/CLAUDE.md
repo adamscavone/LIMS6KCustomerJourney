@@ -56,3 +56,25 @@ Each sample moves through phases: Sample Receipt → Sample Prep → Analysis �
 - Responsive design using Tailwind's grid system
 - Real-time clock updates every second
 - Expandable/collapsible UI sections throughout
+
+### UI Design Patterns
+
+1. **Dual View Modes**: 
+   - **Order View**: Groups samples by customer order with date-based sections (Due Today, Due Tomorrow, etc.)
+   - **Sample View**: Shows individual samples organized by workflow phase
+
+2. **Order View Date Groupings**:
+   - "Due Today" includes any overdue items with visual indicators
+   - "Due Tomorrow" shows next day's orders
+   - Third section shows business day after tomorrow (skips weekends)
+
+3. **Sample View Phase Groupings**:
+   - Prep Needed → Checked Out for Prep → Ready for Analysis → On Instrument
+   - Status chips removed in Sample View for cleaner interface
+
+4. **Key UI Decisions**:
+   - Multi-sample orders are common (not one sample per order)
+   - Removed redundant status labels and simplified section names
+   - Removed QC Monitoring section from sidebar
+   - Removed vertical lines in nested instrument batch display
+   - Air gap between LIMS and instruments means no real-time instrument status
