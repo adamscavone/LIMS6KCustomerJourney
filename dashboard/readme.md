@@ -10,6 +10,23 @@ npm install
 npm start
 ```
 
+## Key Features
+
+### Dual View Modes
+- **Order View (Default)**: Date-based grouping showing orders due today, tomorrow, and the following business day
+- **Sample View**: Phase-based workflow showing individual sample status
+
+### Dynamic Date Handling
+- Business day calculations that skip weekends
+- "Due Today" section includes overdue items with visual indicators
+- Mock data uses relative dates for realistic testing scenarios
+
+### Realistic Laboratory Workflow
+- Multi-sample orders reflecting actual lab operations
+- Sample checkout system for accountability
+- Expandable order rows to view constituent samples
+- "Received On" dates for workload context
+
 ## Important System Limitations
 
 ### Air Gap Between LIMS and Instruments

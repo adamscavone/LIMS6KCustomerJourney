@@ -60,21 +60,33 @@ Each sample moves through phases: Sample Receipt → Sample Prep → Analysis �
 ### UI Design Patterns
 
 1. **Dual View Modes**: 
-   - **Order View**: Groups samples by customer order with date-based sections (Due Today, Due Tomorrow, etc.)
+   - **Order View**: Groups samples by customer order with date-based sections (Due Today, Due Tomorrow, Due [Weekday])
    - **Sample View**: Shows individual samples organized by workflow phase
 
 2. **Order View Date Groupings**:
-   - "Due Today" includes any overdue items with visual indicators
-   - "Due Tomorrow" shows next day's orders
-   - Third section shows business day after tomorrow (skips weekends)
+   - "Due Today" includes any overdue items with "OVERDUE" visual indicator
+   - "Due Tomorrow" shows next business day's orders
+   - "Due [Weekday]" dynamically shows business day after tomorrow (skips weekends)
+   - Orders are expandable to show constituent samples
+   - No redundant "TODAY" indicator in Due Today section
+   - Each order shows "Received On" date for context
 
 3. **Sample View Phase Groupings**:
-   - Prep Needed → Checked Out for Prep → Ready for Analysis → On Instrument
+   - Awaiting Prep → Checked Out for Prep → Ready for Analysis → On Instrument
    - Status chips removed in Sample View for cleaner interface
+   - Phase names use active voice to indicate required actions
 
 4. **Key UI Decisions**:
-   - Multi-sample orders are common (not one sample per order)
-   - Removed redundant status labels and simplified section names
+   - Multi-sample orders are the norm (realistic lab workflow)
+   - Removed all redundant status labels ("PREP REQUIRED", "BATCH ASSIGNMENT", etc.)
    - Removed QC Monitoring section from sidebar
-   - Removed vertical lines in nested instrument batch display
-   - Air gap between LIMS and instruments means no real-time instrument status
+   - Removed vertical lines in nested instrument batch displays
+   - Air gap between LIMS and instruments acknowledged in "Awaiting Instrument Results" phase
+   - Dynamic date calculations use business days (excludes weekends)
+   - Mock data uses relative dates (today, yesterday, etc.) for realistic testing
+
+5. **Data Display Principles**:
+   - Orders show: Order ID, Client, Sample count, Received date, Priority (if rush)
+   - Overdue items always appear in "Due Today" section with red "OVERDUE" indicator
+   - Consistent date groupings across all pipelines for predictable UI
+   - Expandable orders in Order View show sample details without page navigation
