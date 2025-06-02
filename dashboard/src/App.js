@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package, FlaskConical } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package, FlaskConical, Building2 } from 'lucide-react';
 
 const App = () => {
   const [expandedBatches, setExpandedBatches] = useState({});
   const [expandedOrders, setExpandedOrders] = useState({});
+  const [expandedDPMCustomers, setExpandedDPMCustomers] = useState({});
   const [viewMode, setViewMode] = useState('order'); // Default to 'order' view
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -152,49 +153,72 @@ const App = () => {
     ]
   };
 
-  // Mock DPM Early Start data
-  const mockDPMEarlyStart = [
+  // Updated DPM Early Start data - grouped by customer
+  const mockDPMByCustomer = [
     {
-      id: 'DPM001',
-      orderId: 'ORD-2024-1200',
-      client: 'Pacific Northwest Cannabis',
-      sampleName: 'PNW-Early-Test-1',
-      dueDate: '2025-05-31',
-      status: 'micro_in_progress',
+      customer: 'Pacific Northwest Cannabis',
+      sampleCount: 8,
+      esDue: '2025-05-31',
       priority: 'standard',
-      microbialTests: {
-        completed: 4,
-        total: 6,
-        remaining: ['STEC', 'Salmonella']
-      }
+      orders: [
+        { orderId: 'ORD-2024-1200', sampleCount: 5 },
+        { orderId: 'ORD-2024-1203', sampleCount: 3 }
+      ],
+      samples: [
+        {
+          id: 'DPM001',
+          orderId: 'ORD-2024-1200',
+          sampleName: 'PNW-Early-Test-1',
+          status: 'micro_in_progress',
+          microbialTests: { completed: 4, total: 6, remaining: ['STEC', 'Salmonella'] }
+        },
+        {
+          id: 'DPM004',
+          orderId: 'ORD-2024-1200',
+          sampleName: 'PNW-Early-Test-2',
+          status: 'micro_primary_review',
+          microbialTests: { completed: 6, total: 6, remaining: [] }
+        }
+        // ... more samples
+      ]
     },
     {
-      id: 'DPM002',
-      orderId: 'ORD-2024-1201',
-      client: 'Northern Lights Labs',
-      sampleName: 'NLL-Conditional-2',
-      dueDate: '2025-06-01',
-      status: 'micro_primary_review',
+      customer: 'Northern Lights Labs',
+      sampleCount: 12,
+      esDue: '2025-06-01',
       priority: 'rush',
-      microbialTests: {
-        completed: 6,
-        total: 6,
-        remaining: []
-      }
+      orders: [
+        { orderId: 'ORD-2024-1201', sampleCount: 12 }
+      ],
+      samples: [
+        {
+          id: 'DPM002',
+          orderId: 'ORD-2024-1201',
+          sampleName: 'NLL-Conditional-2',
+          status: 'micro_primary_review',
+          microbialTests: { completed: 6, total: 6, remaining: [] }
+        }
+        // ... more samples
+      ]
     },
     {
-      id: 'DPM003',
-      orderId: 'ORD-2024-1202',
-      client: 'Cascade Cannabis Co',
-      sampleName: 'CCC-DPM-Sample-A',
-      dueDate: '2025-06-02',
-      status: 'micro_secondary_review',
+      customer: 'Cascade Cannabis Co',
+      sampleCount: 4,
+      esDue: '2025-06-02',
       priority: 'standard',
-      microbialTests: {
-        completed: 6,
-        total: 6,
-        remaining: []
-      }
+      orders: [
+        { orderId: 'ORD-2024-1202', sampleCount: 4 }
+      ],
+      samples: [
+        {
+          id: 'DPM003',
+          orderId: 'ORD-2024-1202',
+          sampleName: 'CCC-DPM-Sample-A',
+          status: 'micro_secondary_review',
+          microbialTests: { completed: 6, total: 6, remaining: [] }
+        }
+        // ... more samples
+      ]
     }
   ];
 
@@ -313,6 +337,13 @@ const App = () => {
     setExpandedOrders(prev => ({
       ...prev,
       [orderId]: !prev[orderId]
+    }));
+  };
+
+  const toggleDPMCustomerExpansion = (customer) => {
+    setExpandedDPMCustomers(prev => ({
+      ...prev,
+      [customer]: !prev[customer]
     }));
   };
 
@@ -441,56 +472,99 @@ const App = () => {
     );
   };
 
-  const renderDPMSampleRow = (sample) => {
-    const urgency = getDueDateUrgency(sample.dueDate);
+  const renderDPMCustomerRow = (customerData) => {
+    const urgency = getDueDateUrgency(customerData.esDue);
+    const isExpanded = expandedDPMCustomers[customerData.customer];
     
     return (
-      <div key={sample.id} className="hover:bg-gray-50">
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0">
-                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(sample.priority)}`}>
-                  {sample.priority.toUpperCase()}
-                </span>
+      <div key={customerData.customer}>
+        <div className="hover:bg-gray-50">
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => toggleDPMCustomerExpansion(customerData.customer)}
+                  className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600"
+                >
+                  {isExpanded ? 
+                    <ChevronDown className="w-4 h-4" /> : 
+                    <ChevronRight className="w-4 h-4" />
+                  }
+                </button>
+                <div className="flex-shrink-0">
+                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(customerData.priority)}`}>
+                    {customerData.priority.toUpperCase()}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {customerData.customer}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {customerData.sampleCount} samples • {customerData.orders.length} order{customerData.orders.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {sample.sampleName}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {sample.client} • {sample.orderId}
-                </p>
-                <p className="text-xs text-gray-400">
-                  Microbial: {sample.microbialTests.completed}/{sample.microbialTests.total} complete
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <p className={`text-sm ${urgency.color}`}>
-                {urgency.label}
-              </p>
-              <p className="text-xs text-gray-500">
-                Due: {sample.dueDate}
-              </p>
             </div>
             
-            <div className="text-center">
-              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(sample.status)}`}>
-                {getStatusLabel(sample.status)}
-              </span>
-            </div>
-            
-            <div className="flex space-x-2">
-              <button className="p-2 text-gray-400 hover:text-gray-600">
-                <Eye className="w-4 h-4" />
-              </button>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className={`text-sm ${urgency.color}`}>
+                  {urgency.label}
+                </p>
+                <p className="text-xs text-gray-500">
+                  ES Due: {customerData.esDue}
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <Building2 className="w-4 h-4 text-gray-400" />
+              </div>
+              
+              <div className="flex space-x-2">
+                <button className="p-2 text-gray-400 hover:text-gray-600">
+                  <Eye className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
+        
+        {isExpanded && (
+          <div className="bg-gray-50">
+            <div className="px-8 py-2 border-b border-gray-200">
+              <div className="text-xs text-gray-600 space-y-1">
+                {customerData.orders.map(order => (
+                  <div key={order.orderId} className="flex justify-between">
+                    <span>{order.orderId}</span>
+                    <span>{order.sampleCount} samples</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {customerData.samples.slice(0, 3).map(sample => (
+              <div key={sample.id} className="px-8 py-2 text-xs text-gray-600 border-b border-gray-100">
+                <div className="flex justify-between items-center">
+                  <span>{sample.sampleName}</span>
+                  <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(sample.status)}`}>
+                    {getStatusLabel(sample.status)}
+                  </span>
+                </div>
+                <div className="text-gray-500 mt-1">
+                  Microbial: {sample.microbialTests.completed}/{sample.microbialTests.total} complete
+                  {sample.microbialTests.remaining.length > 0 && 
+                    ` • Pending: ${sample.microbialTests.remaining.join(', ')}`
+                  }
+                </div>
+              </div>
+            ))}
+            {customerData.samples.length > 3 && (
+              <div className="px-8 py-2 text-xs text-gray-500 text-center">
+                +{customerData.samples.length - 3} more samples
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -642,6 +716,9 @@ const App = () => {
     );
   };
 
+  // Calculate total potential samples across all DPM customers
+  const totalDPMSamples = mockDPMByCustomer.reduce((sum, customer) => sum + customer.sampleCount, 0);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -693,10 +770,16 @@ const App = () => {
                   <span className="text-sm text-gray-600">QC Deviations</span>
                   <span className="text-lg font-semibold text-red-600">1</span>
                 </div>
+                <div className="border-t pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Potential DPM</span>
+                    <span className="text-lg font-semibold text-purple-600">{totalDPMSamples}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* DPM Early Start Pipeline */}
+            {/* DPM Early Start Pipeline - Customer Grouped */}
             <div className="bg-white rounded-lg shadow">
               <div className="border-b border-white">
                 <div className="px-6 py-4">
@@ -704,16 +787,16 @@ const App = () => {
                     <FlaskConical className="w-5 h-5 text-purple-600" />
                     <div>
                       <h3 className="text-lg font-medium text-gray-900">DPM Early Start</h3>
-                      <p className="text-sm text-gray-600">{mockDPMEarlyStart.length} samples pending microbial</p>
+                      <p className="text-sm text-gray-600">{mockDPMByCustomer.length} customers • {totalDPMSamples} potential samples</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="divide-y divide-white">
-                {mockDPMEarlyStart.map(renderDPMSampleRow)}
+                {mockDPMByCustomer.map(renderDPMCustomerRow)}
                 
-                {mockDPMEarlyStart.length === 0 && (
+                {mockDPMByCustomer.length === 0 && (
                   <div className="p-8 text-center text-gray-500">
                     <FlaskConical className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                     <p>No DPM Early Start samples</p>
