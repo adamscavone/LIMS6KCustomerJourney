@@ -1079,7 +1079,7 @@ const App = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Analytical Batches</h4>
+                  <h4 className="text-sm font-semibold text-gray-900">Analytical Batches - On Instrument</h4>
                   <span className="text-xs text-gray-500">({analyticalBatches.length})</span>
                 </div>
               </div>
@@ -1095,10 +1095,9 @@ const App = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Individual Prep</h4>
+                  <h4 className="text-sm font-semibold text-gray-900">Checked Out for Prep</h4>
                   <span className="text-xs text-gray-500">({samplesByPhase.inProgress.length})</span>
                 </div>
-                <span className="text-xs text-yellow-600 font-medium">ACTIVE</span>
               </div>
               <div className="space-y-1">
                 {(viewMode === 'order' 
@@ -1122,10 +1121,9 @@ const App = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Data Ready</h4>
+                  <h4 className="text-sm font-semibold text-gray-900">Awaiting Instrument Results</h4>
                   <span className="text-xs text-gray-500">({samplesByPhase.dataReady.length})</span>
                 </div>
-                <span className="text-xs text-purple-600 font-medium">EXPORT NEEDED</span>
               </div>
               <div className="space-y-1">
                 {(viewMode === 'order' 
