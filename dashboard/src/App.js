@@ -1030,7 +1030,6 @@ const App = () => {
                   <h4 className="text-sm font-semibold text-gray-900">Prep Needed</h4>
                   <span className="text-xs text-gray-500">({samplesByPhase.prepNeeded.length})</span>
                 </div>
-                <span className="text-xs text-red-600 font-medium">PREP REQUIRED</span>
               </div>
               <div className="space-y-1">
                 {(viewMode === 'order' 
@@ -1054,10 +1053,9 @@ const App = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <h4 className="text-sm font-semibold text-gray-900">Ready for Batch</h4>
+                  <h4 className="text-sm font-semibold text-gray-900">Ready for Analysis</h4>
                   <span className="text-xs text-gray-500">({samplesByPhase.readyForBatch.length})</span>
                 </div>
-                <span className="text-xs text-orange-600 font-medium">BATCH ASSIGNMENT</span>
               </div>
               <div className="space-y-1">
                 {(viewMode === 'order' 
@@ -1084,7 +1082,6 @@ const App = () => {
                   <h4 className="text-sm font-semibold text-gray-900">Analytical Batches</h4>
                   <span className="text-xs text-gray-500">({analyticalBatches.length})</span>
                 </div>
-                <span className="text-xs text-blue-600 font-medium">RUNNING</span>
               </div>
               <div className="space-y-2">
                 {analyticalBatches.map(batch => renderAnalyticalBatch(batch, allSamples))}
