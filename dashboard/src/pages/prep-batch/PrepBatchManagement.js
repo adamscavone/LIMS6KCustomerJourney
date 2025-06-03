@@ -246,10 +246,43 @@ const PrepBatchManagement = () => {
   };
 
   const handleCreateAnalysisBatch = () => {
-    // In production, this would create an analysis batch with selected prep batches
-    console.log('Creating analysis batch with prep batches:', selectedPrepBatches);
-    // For now, just clear selection
+    // Get all samples from selected prep batches
+    const selectedBatches = activePrepBatchesState.filter(b => 
+      selectedPrepBatches.includes(b.id) && b.status === 'ready_for_analysis'
+    );
+    
+    const allSamples = selectedBatches.flatMap(batch => batch.samples);
+    
+    // Create new analysis batch
+    const newAnalysisBatch = {
+      id: `AB-${assayType.toUpperCase()}-${new Date().toISOString().split('T')[0]}-${String(analysisBatches.length + 1).padStart(3, '0')}`,
+      type: assayType,
+      status: 'created',
+      createdAt: new Date().toLocaleString(),
+      prepBatches: selectedBatches.map(b => ({
+        id: b.id,
+        sampleCount: b.samples.length,
+        prepAnalyst: b.analyst,
+        samples: b.samples.map(s => s.id)
+      })),
+      totalSamples: allSamples.length,
+      instrument: null,
+      queuePosition: null
+    };
+    
+    // Add to analysis batches
+    setAnalysisBatches(prev => [...prev, newAnalysisBatch]);
+    
+    // Remove selected batches from pending analysis
+    setActivePrepBatchesState(prev => 
+      prev.filter(batch => !selectedPrepBatches.includes(batch.id))
+    );
+    
+    // Clear selection
     setSelectedPrepBatches([]);
+    
+    // Navigate to the analysis batch view
+    navigate(`/analysis-batch/${assayType}/${newAnalysisBatch.id}`);
   };
 
   const handleSampleSelection = (sampleId, event, sampleIndex) => {
@@ -691,7 +724,7 @@ const PrepBatchManagement = () => {
                         <input
                           type="checkbox"
                           checked={selectedPrepBatches.includes(batch.id)}
-                          onChange={() => {}}
+                          onChange={() => handlePrepBatchSelection(batch.id)}
                           onClick={(e) => e.stopPropagation()}
                           className="h-4 w-4 text-blue-600 rounded border-gray-300"
                         />
