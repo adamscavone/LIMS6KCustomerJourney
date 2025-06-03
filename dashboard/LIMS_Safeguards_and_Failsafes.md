@@ -16,19 +16,35 @@ For specific edge cases and their handling, see the companion document: LIMS_Edg
 - **Override Required**: Special circumstances requiring supervisor approval
 
 #### Business Rules
-1. **Batch Locking**: Once marked "Ready for Analysis", a batch becomes read-only
+1. **Single Analyst Requirement**: Each batch must maintain analytical integrity
+   - All samples in a batch MUST be prepared by the same analyst
+   - Using the same equipment set
+   - Following the same SOP
+   - At approximately the same time
+   - This ensures consistency and traceability
+
+2. **Batch Locking**: Once marked "Ready for Analysis", a batch becomes read-only
    - No samples can be added
    - Equipment list is frozen
    - Analyst information cannot be changed
    - Timestamp is recorded for audit trail
+   - All samples remaining in batch when marked ready are certified as prepared by that analyst
 
-2. **Sample Check-out/Check-in**
+3. **Sample Check-out/Check-in**
    - Automatic checkout occurs when samples are added to a batch
    - No explicit "check out" step required - happens transparently
    - Check-out records: who, when, batch assignment
    - Prevents double-booking of samples (locked from other users)
    - Creates audit trail for sample custody
    - "Return Samples" feature for partial batch completion scenarios
+
+4. **Return Samples Workflow**
+   - Used when samples cannot be prepared due to interruption
+   - Maintains data integrity by ensuring LIMS reflects reality
+   - Selected samples are returned to available pool
+   - Returned samples were NOT prepared by the batch analyst
+   - Remaining samples in batch WERE prepared by the batch analyst
+   - "Mark Ready" disabled when samples selected to prevent confusion
 
 ### 2. Equipment Tracking Safeguards
 

@@ -18,6 +18,9 @@ const PrepBatchManagement = () => {
   });
   const [availableSamplesState, setAvailableSamplesState] = useState([]);
   const [activePrepBatchesState, setActivePrepBatchesState] = useState([]);
+  const [selectedBatchSamples, setSelectedBatchSamples] = useState({}); // {batchId: [sampleIds]}
+  const [showReturnSamplesModal, setShowReturnSamplesModal] = useState(false);
+  const [returningFromBatch, setReturningFromBatch] = useState(null);
 
   // Initialize mock data on component mount
   React.useEffect(() => {
@@ -142,6 +145,98 @@ const PrepBatchManagement = () => {
     setExpandedBatches(prev => ({
       ...prev,
       [batchId]: !prev[batchId]
+    }));
+  };
+
+  const handleBatchSampleSelection = (batchId, sampleId) => {
+    setSelectedBatchSamples(prev => {
+      const currentSelected = prev[batchId] || [];
+      if (currentSelected.includes(sampleId)) {
+        return {
+          ...prev,
+          [batchId]: currentSelected.filter(id => id !== sampleId)
+        };
+      }
+      return {
+        ...prev,
+        [batchId]: [...currentSelected, sampleId]
+      };
+    });
+  };
+
+  const handleReturnSamples = (batchId) => {
+    setReturningFromBatch(batchId);
+    setShowReturnSamplesModal(true);
+  };
+
+  const confirmReturnSamples = () => {
+    const selectedSampleIds = selectedBatchSamples[returningFromBatch] || [];
+    
+    // Find the batch and get the samples to return
+    const batch = activePrepBatchesState.find(b => b.id === returningFromBatch);
+    const samplesToReturn = batch.samples.filter(s => selectedSampleIds.includes(s.id));
+    
+    // Add samples back to available pool
+    const returnedSamples = samplesToReturn.map(s => {
+      const originalSample = {
+        id: s.id,
+        orderId: 'ORD-RETURNED',
+        client: s.client,
+        sampleName: s.sampleName,
+        receivedOn: new Date().toISOString().split('T')[0],
+        priority: 'standard',
+        tests: ['Cannabinoids'],
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        checkedOut: false,
+        checkedOutBy: null,
+        checkedOutAt: null
+      };
+      return originalSample;
+    });
+    
+    setAvailableSamplesState(prev => [...prev, ...returnedSamples]);
+    
+    // Update the batch to remove returned samples
+    setActivePrepBatchesState(prev => 
+      prev.map(batch => {
+        if (batch.id === returningFromBatch) {
+          return {
+            ...batch,
+            samples: batch.samples.filter(s => !selectedSampleIds.includes(s.id))
+          };
+        }
+        return batch;
+      })
+    );
+    
+    // Clear selections
+    setSelectedBatchSamples(prev => ({
+      ...prev,
+      [returningFromBatch]: []
+    }));
+    
+    setShowReturnSamplesModal(false);
+    setReturningFromBatch(null);
+  };
+
+  const handleMarkReady = (batchId) => {
+    setActivePrepBatchesState(prev => 
+      prev.map(batch => {
+        if (batch.id === batchId) {
+          return {
+            ...batch,
+            status: 'ready_for_analysis',
+            completedAt: new Date().toLocaleString()
+          };
+        }
+        return batch;
+      })
+    );
+    
+    // Clear any selections for this batch
+    setSelectedBatchSamples(prev => ({
+      ...prev,
+      [batchId]: []
     }));
   };
 
@@ -408,21 +503,34 @@ const PrepBatchManagement = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                // Return uncompleted samples
-                                console.log('Returning samples from batch:', batch.id);
+                                handleReturnSamples(batch.id);
                               }}
-                              className="px-2 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700"
-                              title="Return uncompleted samples to available pool"
+                              disabled={!selectedBatchSamples[batch.id] || selectedBatchSamples[batch.id].length === 0}
+                              className={`px-2 py-1 text-xs rounded ${
+                                selectedBatchSamples[batch.id] && selectedBatchSamples[batch.id].length > 0
+                                  ? 'bg-orange-600 text-white hover:bg-orange-700'
+                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              }`}
+                              title="Return selected samples to available pool"
                             >
-                              Return Samples
+                              Return Samples ({selectedBatchSamples[batch.id]?.length || 0})
                             </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                // Mark batch as ready for analysis
-                                console.log('Marking batch as ready:', batch.id);
+                                handleMarkReady(batch.id);
                               }}
-                              className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                              disabled={selectedBatchSamples[batch.id] && selectedBatchSamples[batch.id].length > 0}
+                              className={`px-2 py-1 text-xs rounded ${
+                                selectedBatchSamples[batch.id] && selectedBatchSamples[batch.id].length > 0
+                                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                              }`}
+                              title={
+                                selectedBatchSamples[batch.id] && selectedBatchSamples[batch.id].length > 0
+                                  ? 'Deselect all samples to mark batch ready'
+                                  : 'Mark all remaining samples as ready for analysis'
+                              }
                             >
                               Mark Ready
                             </button>
@@ -463,18 +571,34 @@ const PrepBatchManagement = () => {
                         {/* Sample List */}
                         <div>
                           <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wider mb-2">
-                            Samples in Batch
+                            Samples in Batch (click to select for return)
                           </h4>
                           <div className="space-y-2">
                             {batch.samples.map(sample => (
-                              <div key={sample.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                <div>
-                                  <p className="text-sm font-medium text-gray-900">
-                                    {sample.sampleName}
-                                  </p>
-                                  <p className="text-xs text-gray-600">
-                                    {sample.client}
-                                  </p>
+                              <div 
+                                key={sample.id} 
+                                className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
+                                  selectedBatchSamples[batch.id]?.includes(sample.id)
+                                    ? 'bg-blue-50 border border-blue-300'
+                                    : 'bg-gray-50 hover:bg-gray-100'
+                                }`}
+                                onClick={() => handleBatchSampleSelection(batch.id, sample.id)}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedBatchSamples[batch.id]?.includes(sample.id) || false}
+                                    onChange={() => {}}
+                                    className="h-4 w-4 text-blue-600 rounded border-gray-300"
+                                  />
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900">
+                                      {sample.sampleName}
+                                    </p>
+                                    <p className="text-xs text-gray-600">
+                                      {sample.client}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             ))}
@@ -778,6 +902,51 @@ const PrepBatchManagement = () => {
                 }`}
               >
                 Create Batch
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Return Samples Modal */}
+      {showReturnSamplesModal && returningFromBatch && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900">
+                Confirm Return Samples
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Return {selectedBatchSamples[returningFromBatch]?.length || 0} selected samples to available pool?
+              </p>
+            </div>
+            <div className="px-6 py-4">
+              <div className="space-y-2">
+                <p className="text-sm text-gray-700">
+                  This action will:
+                </p>
+                <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
+                  <li>Remove selected samples from batch {returningFromBatch}</li>
+                  <li>Return them to the Available Samples pool</li>
+                  <li>Allow other analysts to check them out</li>
+                </ul>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowReturnSamplesModal(false);
+                  setReturningFromBatch(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReturnSamples}
+                className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700"
+              >
+                Return Samples
               </button>
             </div>
           </div>
