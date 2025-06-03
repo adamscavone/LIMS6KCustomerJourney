@@ -1528,7 +1528,7 @@ const App = () => {
                 <Clock className="w-4 h-4 mr-1" />
                 Last updated: {getCurrentTime()}
               </div>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
+              <button className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700">
                 Refresh Data
               </button>
             </div>
