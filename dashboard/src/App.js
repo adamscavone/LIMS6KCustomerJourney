@@ -220,7 +220,7 @@ const App = () => {
         receivedOn: today,
         dueDate: threeDaysFromNow,
         goalDate: twoDaysFromNow,
-        status: 'prep',
+        status: 'in_prep',
         priority: 'standard',
         prepDue: tomorrow,
         analysisDue: twoDaysFromNow,
@@ -234,7 +234,7 @@ const App = () => {
         receivedOn: today,
         dueDate: threeDaysFromNow,
         goalDate: twoDaysFromNow,
-        status: 'prep',
+        status: 'in_prep',
         priority: 'standard',
         prepDue: tomorrow,
         analysisDue: twoDaysFromNow,
@@ -282,6 +282,292 @@ const App = () => {
         prepDue: today,
         analysisDue: tomorrow,
         reportingDue: twoDaysFromNow
+      },
+      // Sunset Gardens - Multiple orders with various states
+      {
+        id: 'S011',
+        orderId: 'ORD-2024-1169',
+        client: 'Sunset Gardens',
+        sampleName: 'SG-OG-Kush-22',
+        receivedOn: threeDaysAgo,
+        dueDate: yesterday, // Overdue
+        goalDate: twoDaysAgo,
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: twoDaysAgo,
+        analysisDue: yesterday,
+        reportingDue: today
+      },
+      {
+        id: 'S012',
+        orderId: 'ORD-2024-1169',
+        client: 'Sunset Gardens',
+        sampleName: 'SG-OG-Kush-23',
+        receivedOn: threeDaysAgo,
+        dueDate: yesterday,
+        goalDate: twoDaysAgo,
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: twoDaysAgo,
+        analysisDue: yesterday,
+        reportingDue: today
+      },
+      // Pacific Herbs Co - Large order
+      {
+        id: 'S013',
+        orderId: 'ORD-2024-1170',
+        client: 'Pacific Herbs Co',
+        sampleName: 'PHC-Blue-Dream-88',
+        receivedOn: today,
+        dueDate: today,
+        goalDate: today,
+        status: 'analysis',
+        priority: 'rush',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'S014',
+        orderId: 'ORD-2024-1170',
+        client: 'Pacific Herbs Co',
+        sampleName: 'PHC-Blue-Dream-89',
+        receivedOn: today,
+        dueDate: today,
+        goalDate: today,
+        status: 'analyzed',
+        priority: 'rush',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'S015',
+        orderId: 'ORD-2024-1170',
+        client: 'Pacific Herbs Co',
+        sampleName: 'PHC-Blue-Dream-90',
+        receivedOn: today,
+        dueDate: today,
+        goalDate: today,
+        status: 'primary_review',
+        priority: 'rush',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      // Crystal Gardens - Mixed status order
+      {
+        id: 'S016',
+        orderId: 'ORD-2024-1171',
+        client: 'Crystal Gardens',
+        sampleName: 'CG-Purple-Haze-33',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'prepped',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      {
+        id: 'S017',
+        orderId: 'ORD-2024-1171',
+        client: 'Crystal Gardens',
+        sampleName: 'CG-Purple-Haze-34',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'analysis',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      {
+        id: 'S018',
+        orderId: 'ORD-2024-1171',
+        client: 'Crystal Gardens',
+        sampleName: 'CG-Purple-Haze-35',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'analyzed',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      // Organic Labs - Future samples
+      {
+        id: 'S019',
+        orderId: 'ORD-2024-1172',
+        client: 'Organic Labs',
+        sampleName: 'OL-Diesel-44',
+        receivedOn: today,
+        dueDate: threeDaysFromNow,
+        goalDate: twoDaysFromNow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
+      },
+      {
+        id: 'S020',
+        orderId: 'ORD-2024-1172',
+        client: 'Organic Labs',
+        sampleName: 'OL-Diesel-45',
+        receivedOn: today,
+        dueDate: threeDaysFromNow,
+        goalDate: twoDaysFromNow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
+      },
+      {
+        id: 'S021',
+        orderId: 'ORD-2024-1172',
+        client: 'Organic Labs',
+        sampleName: 'OL-Diesel-46',
+        receivedOn: today,
+        dueDate: threeDaysFromNow,
+        goalDate: twoDaysFromNow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
+      },
+      {
+        id: 'S022',
+        orderId: 'ORD-2024-1172',
+        client: 'Organic Labs',
+        sampleName: 'OL-Diesel-47',
+        receivedOn: today,
+        dueDate: threeDaysFromNow,
+        goalDate: twoDaysFromNow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
+      },
+      // Emerald Fields - Review samples
+      {
+        id: 'S023',
+        orderId: 'ORD-2024-1173',
+        client: 'Emerald Fields',
+        sampleName: 'EF-Gorilla-Glue-01',
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        status: 'secondary_review',
+        priority: 'standard',
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'S024',
+        orderId: 'ORD-2024-1173',
+        client: 'Emerald Fields',
+        sampleName: 'EF-Gorilla-Glue-02',
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        status: 'secondary_review',
+        priority: 'standard',
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'S025',
+        orderId: 'ORD-2024-1173',
+        client: 'Emerald Fields',
+        sampleName: 'EF-Gorilla-Glue-03',
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        status: 'ready_to_report',
+        priority: 'standard',
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      // Northern Lights - Large batch ready
+      {
+        id: 'S026',
+        orderId: 'ORD-2024-1174',
+        client: 'Northern Lights',
+        sampleName: 'NL-Amnesia-Haze-11',
+        receivedOn: yesterday,
+        dueDate: today,
+        goalDate: today,
+        status: 'ready_to_report',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'S027',
+        orderId: 'ORD-2024-1174',
+        client: 'Northern Lights',
+        sampleName: 'NL-Amnesia-Haze-12',
+        receivedOn: yesterday,
+        dueDate: today,
+        goalDate: today,
+        status: 'ready_to_report',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'S028',
+        orderId: 'ORD-2024-1174',
+        client: 'Northern Lights',
+        sampleName: 'NL-Amnesia-Haze-13',
+        receivedOn: yesterday,
+        dueDate: today,
+        goalDate: today,
+        status: 'ready_to_report',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'S029',
+        orderId: 'ORD-2024-1174',
+        client: 'Northern Lights',
+        sampleName: 'NL-Amnesia-Haze-14',
+        receivedOn: yesterday,
+        dueDate: today,
+        goalDate: today,
+        status: 'ready_to_report',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'S030',
+        orderId: 'ORD-2024-1174',
+        client: 'Northern Lights',
+        sampleName: 'NL-Amnesia-Haze-15',
+        receivedOn: yesterday,
+        dueDate: today,
+        goalDate: today,
+        status: 'ready_to_report',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
       }
     ],
     terpenes: [
@@ -323,7 +609,7 @@ const App = () => {
         receivedOn: today,
         dueDate: twoDaysFromNow,
         goalDate: tomorrow,
-        status: 'prep',
+        status: 'in_prep',
         priority: 'standard',
         prepDue: tomorrow,
         analysisDue: twoDaysFromNow,
@@ -337,7 +623,7 @@ const App = () => {
         receivedOn: today,
         dueDate: twoDaysFromNow,
         goalDate: tomorrow,
-        status: 'prep',
+        status: 'in_prep',
         priority: 'standard',
         prepDue: tomorrow,
         analysisDue: twoDaysFromNow,
@@ -351,7 +637,7 @@ const App = () => {
         receivedOn: today,
         dueDate: twoDaysFromNow,
         goalDate: tomorrow,
-        status: 'prep',
+        status: 'in_prep',
         priority: 'standard',
         prepDue: tomorrow,
         analysisDue: twoDaysFromNow,
@@ -381,6 +667,235 @@ const App = () => {
         dueDate: tomorrow,
         goalDate: today,
         status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      // Terpene Masters - Large overdue order
+      {
+        id: 'T008',
+        orderId: 'ORD-2024-1175',
+        client: 'Terpene Masters',
+        sampleName: 'TM-Pinene-Study-01',
+        receivedOn: threeDaysAgo,
+        dueDate: yesterday,
+        goalDate: twoDaysAgo,
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: twoDaysAgo,
+        analysisDue: yesterday,
+        reportingDue: today
+      },
+      {
+        id: 'T009',
+        orderId: 'ORD-2024-1175',
+        client: 'Terpene Masters',
+        sampleName: 'TM-Pinene-Study-02',
+        receivedOn: threeDaysAgo,
+        dueDate: yesterday,
+        goalDate: twoDaysAgo,
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: twoDaysAgo,
+        analysisDue: yesterday,
+        reportingDue: today
+      },
+      {
+        id: 'T010',
+        orderId: 'ORD-2024-1175',
+        client: 'Terpene Masters',
+        sampleName: 'TM-Pinene-Study-03',
+        receivedOn: threeDaysAgo,
+        dueDate: yesterday,
+        goalDate: twoDaysAgo,
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: twoDaysAgo,
+        analysisDue: yesterday,
+        reportingDue: today
+      },
+      // Essence Labs - Mixed status order
+      {
+        id: 'T011',
+        orderId: 'ORD-2024-1176',
+        client: 'Essence Labs',
+        sampleName: 'EL-Terpinolene-Mix-A',
+        receivedOn: yesterday,
+        dueDate: today,
+        goalDate: today,
+        status: 'analysis',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'T012',
+        orderId: 'ORD-2024-1176',
+        client: 'Essence Labs',
+        sampleName: 'EL-Terpinolene-Mix-B',
+        receivedOn: yesterday,
+        dueDate: today,
+        goalDate: today,
+        status: 'analyzed',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'T013',
+        orderId: 'ORD-2024-1176',
+        client: 'Essence Labs',
+        sampleName: 'EL-Terpinolene-Mix-C',
+        receivedOn: yesterday,
+        dueDate: today,
+        goalDate: today,
+        status: 'primary_review',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      // Flavor Sciences - Review samples
+      {
+        id: 'T014',
+        orderId: 'ORD-2024-1177',
+        client: 'Flavor Sciences',
+        sampleName: 'FS-Caryophyllene-01',
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        status: 'secondary_review',
+        priority: 'standard',
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'T015',
+        orderId: 'ORD-2024-1177',
+        client: 'Flavor Sciences',
+        sampleName: 'FS-Caryophyllene-02',
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        status: 'ready_to_report',
+        priority: 'standard',
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      // Aromatic Research - Future samples
+      {
+        id: 'T016',
+        orderId: 'ORD-2024-1178',
+        client: 'Aromatic Research',
+        sampleName: 'AR-Humulene-Test-X1',
+        receivedOn: today,
+        dueDate: twoDaysFromNow,
+        goalDate: tomorrow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
+      },
+      {
+        id: 'T017',
+        orderId: 'ORD-2024-1178',
+        client: 'Aromatic Research',
+        sampleName: 'AR-Humulene-Test-X2',
+        receivedOn: today,
+        dueDate: twoDaysFromNow,
+        goalDate: tomorrow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
+      },
+      {
+        id: 'T018',
+        orderId: 'ORD-2024-1178',
+        client: 'Aromatic Research',
+        sampleName: 'AR-Humulene-Test-X3',
+        receivedOn: today,
+        dueDate: twoDaysFromNow,
+        goalDate: tomorrow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
+      },
+      // Scent Dynamics - Large batch in prep
+      {
+        id: 'T019',
+        orderId: 'ORD-2024-1179',
+        client: 'Scent Dynamics',
+        sampleName: 'SD-Linalool-Batch-01',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'in_prep',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      {
+        id: 'T020',
+        orderId: 'ORD-2024-1179',
+        client: 'Scent Dynamics',
+        sampleName: 'SD-Linalool-Batch-02',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'in_prep',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      {
+        id: 'T021',
+        orderId: 'ORD-2024-1179',
+        client: 'Scent Dynamics',
+        sampleName: 'SD-Linalool-Batch-03',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'prepped',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      {
+        id: 'T022',
+        orderId: 'ORD-2024-1179',
+        client: 'Scent Dynamics',
+        sampleName: 'SD-Linalool-Batch-04',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'prepped',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      {
+        id: 'T023',
+        orderId: 'ORD-2024-1179',
+        client: 'Scent Dynamics',
+        sampleName: 'SD-Linalool-Batch-05',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'prepped',
         priority: 'standard',
         prepDue: today,
         analysisDue: tomorrow,
@@ -459,6 +974,227 @@ const App = () => {
         prepDue: tomorrow,
         analysisDue: twoDaysFromNow,
         reportingDue: threeDaysFromNow
+      },
+      // Additional comprehensive test data for various states
+      
+      // High Priority Labs - Multiple orders with various statuses
+      {
+        id: 'P006',
+        orderId: 'ORD-2024-1180',
+        client: 'High Priority Labs',
+        sampleName: 'HPL-Critical-01',
+        receivedOn: threeDaysAgo,
+        dueDate: today,
+        goalDate: yesterday,
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: twoDaysAgo,
+        analysisDue: yesterday,
+        reportingDue: today
+      },
+      {
+        id: 'P007',
+        orderId: 'ORD-2024-1180',
+        client: 'High Priority Labs',
+        sampleName: 'HPL-Critical-02',
+        receivedOn: threeDaysAgo,
+        dueDate: today,
+        goalDate: yesterday,
+        status: 'in_prep',
+        priority: 'rush',
+        prepDue: twoDaysAgo,
+        analysisDue: yesterday,
+        reportingDue: today
+      },
+      {
+        id: 'P008',
+        orderId: 'ORD-2024-1180',
+        client: 'High Priority Labs',
+        sampleName: 'HPL-Critical-03',
+        receivedOn: threeDaysAgo,
+        dueDate: today,
+        goalDate: yesterday,
+        status: 'in_prep',
+        priority: 'rush',
+        prepDue: twoDaysAgo,
+        analysisDue: yesterday,
+        reportingDue: today
+      },
+      
+      // Botanical Sciences - Large order with mixed statuses
+      {
+        id: 'P009',
+        orderId: 'ORD-2024-1181',
+        client: 'Botanical Sciences Inc',
+        sampleName: 'BSI-Pesticide-Panel-A1',
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        status: 'ready_to_report',
+        priority: 'standard',
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'P010',
+        orderId: 'ORD-2024-1181',
+        client: 'Botanical Sciences Inc',
+        sampleName: 'BSI-Pesticide-Panel-A2',
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        status: 'secondary_review',
+        priority: 'standard',
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'P011',
+        orderId: 'ORD-2024-1181',
+        client: 'Botanical Sciences Inc',
+        sampleName: 'BSI-Pesticide-Panel-A3',
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        status: 'primary_review',
+        priority: 'standard',
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'P012',
+        orderId: 'ORD-2024-1181',
+        client: 'Botanical Sciences Inc',
+        sampleName: 'BSI-Pesticide-Panel-A4',
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        status: 'analyzed',
+        priority: 'standard',
+        prepDue: yesterday,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      
+      // Green Thumb Gardens - Overdue samples
+      {
+        id: 'P013',
+        orderId: 'ORD-2024-1175',
+        client: 'Green Thumb Gardens',
+        sampleName: 'GTG-Overdue-01',
+        receivedOn: getBusinessDaysAgo(5),
+        dueDate: twoDaysAgo,
+        goalDate: threeDaysAgo,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: getBusinessDaysAgo(4),
+        analysisDue: threeDaysAgo,
+        reportingDue: twoDaysAgo
+      },
+      {
+        id: 'P014',
+        orderId: 'ORD-2024-1175',
+        client: 'Green Thumb Gardens',
+        sampleName: 'GTG-Overdue-02',
+        receivedOn: getBusinessDaysAgo(5),
+        dueDate: twoDaysAgo,
+        goalDate: threeDaysAgo,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: getBusinessDaysAgo(4),
+        analysisDue: threeDaysAgo,
+        reportingDue: twoDaysAgo
+      },
+      
+      // Testing Tomorrow samples
+      {
+        id: 'P015',
+        orderId: 'ORD-2024-1182',
+        client: 'Tomorrow Testing Co',
+        sampleName: 'TTC-Tomorrow-01',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'prepped',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      {
+        id: 'P016',
+        orderId: 'ORD-2024-1182',
+        client: 'Tomorrow Testing Co',
+        sampleName: 'TTC-Tomorrow-02',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'analysis',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      {
+        id: 'P017',
+        orderId: 'ORD-2024-1182',
+        client: 'Tomorrow Testing Co',
+        sampleName: 'TTC-Tomorrow-03',
+        receivedOn: yesterday,
+        dueDate: tomorrow,
+        goalDate: today,
+        status: 'analyzed',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: twoDaysFromNow
+      },
+      
+      // Complex Lab Services - Various stages
+      {
+        id: 'P018',
+        orderId: 'ORD-2024-1183',
+        client: 'Complex Lab Services',
+        sampleName: 'CLS-Multi-01',
+        receivedOn: today,
+        dueDate: twoDaysFromNow,
+        goalDate: tomorrow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: twoDaysFromNow,
+        reportingDue: threeDaysFromNow
+      },
+      {
+        id: 'P019',
+        orderId: 'ORD-2024-1184',
+        client: 'Complex Lab Services',
+        sampleName: 'CLS-Rush-01',
+        receivedOn: today,
+        dueDate: today,
+        goalDate: today,
+        status: 'in_prep',
+        priority: 'rush',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
+      },
+      {
+        id: 'P020',
+        orderId: 'ORD-2024-1184',
+        client: 'Complex Lab Services',
+        sampleName: 'CLS-Rush-02',
+        receivedOn: today,
+        dueDate: today,
+        goalDate: today,
+        status: 'prepped',
+        priority: 'rush',
+        prepDue: today,
+        analysisDue: today,
+        reportingDue: tomorrow
       }
     ]
   };
@@ -629,6 +1365,7 @@ const App = () => {
     switch (status) {
       case 'ready_for_prep': return 'Available for Prep';
       case 'prep': return 'In Prep';
+      case 'in_prep': return 'In Prep';
       case 'prepped': return 'Prep Complete';
       case 'analysis': return 'On Instrument';
       case 'analyzed': return 'Awaiting Review';
@@ -654,6 +1391,7 @@ const App = () => {
       case 'prepped':
         return 'prep_complete';
       case 'prep':
+      case 'in_prep':
         return 'in_prep';
       case 'ready_for_prep':
         return 'available_for_prep';
@@ -665,14 +1403,14 @@ const App = () => {
   };
 
   const workflowStatusOrder = [
-    'ready_to_report',
-    'secondary_review_pending',
-    'primary_review_pending',
-    'awaiting_instrument_data',
-    'on_instrument',
-    'prep_complete',
+    'available_for_prep',
     'in_prep',
-    'available_for_prep'
+    'prep_complete',
+    'on_instrument',
+    'awaiting_instrument_data',
+    'primary_review_pending',
+    'secondary_review_pending',
+    'ready_to_report'
   ];
 
   const workflowStatusLabels = {
@@ -1010,36 +1748,8 @@ const App = () => {
               )}
             </div>
             
-            {/* Status Summary */}
-            <div className="col-span-3 text-center">
-              {(() => {
-                // Count samples by status group
-                const statusCounts = {};
-                order.samples.forEach(sample => {
-                  const group = getWorkflowStatusGroup(sample.status);
-                  statusCounts[group] = (statusCounts[group] || 0) + 1;
-                });
-                
-                // Show the most critical status
-                for (const status of workflowStatusOrder) {
-                  if (statusCounts[status]) {
-                    return (
-                      <span className={`inline-flex items-center px-1.5 py-0.5 text-xs rounded ${
-                        status === 'ready_to_report' ? 'bg-green-100 text-green-800' :
-                        status.includes('review') ? 'bg-blue-100 text-blue-800' :
-                        status.includes('instrument') || status === 'on_instrument' ? 'bg-orange-100 text-orange-800' :
-                        status === 'prep_complete' ? 'bg-purple-100 text-purple-800' :
-                        status === 'in_prep' ? 'bg-indigo-100 text-indigo-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {statusCounts[status]}/{order.samples.length}
-                      </span>
-                    );
-                  }
-                }
-                return null;
-              })()}
-            </div>
+            {/* Empty column - removed status summary */}
+            <div className="col-span-3"></div>
             
             {/* Action */}
             <div className="col-span-1 flex justify-center">
@@ -1305,14 +2015,14 @@ const App = () => {
 
   const getCurrentData = (assayType) => {
     const samples = mockSamples[assayType];
-    if (viewMode === 'order') {
+    if (viewModes[assayType] === 'order') {
       return groupSamplesByOrder(samples);
     }
     return sortSamplesByPriority(samples);
   };
 
   const getCount = (assayType) => {
-    if (viewMode === 'order') {
+    if (viewModes[assayType] === 'order') {
       return groupSamplesByOrder(mockSamples[assayType]).length;
     }
     return mockSamples[assayType].length;
@@ -1482,23 +2192,23 @@ const App = () => {
                     
                     // Group orders by their worst-case sample status
                     ordersByDueDate.dueToday.forEach(order => {
-                      // Find the earliest workflow status among all samples in the order
-                      let earliestStatus = null;
-                      let earliestIndex = workflowStatusOrder.length;
+                      // Find the most critical (earliest in workflow) status among all samples in the order
+                      let mostCriticalStatus = null;
+                      let mostCriticalIndex = workflowStatusOrder.length;
                       
                       order.samples.forEach(sample => {
                         const statusGroup = getWorkflowStatusGroup(sample.status);
                         const statusIndex = workflowStatusOrder.indexOf(statusGroup);
-                        if (statusIndex < earliestIndex) {
-                          earliestIndex = statusIndex;
-                          earliestStatus = statusGroup;
+                        if (statusIndex < mostCriticalIndex) {
+                          mostCriticalIndex = statusIndex;
+                          mostCriticalStatus = statusGroup;
                         }
                       });
                       
-                      if (!ordersByStatus[earliestStatus]) {
-                        ordersByStatus[earliestStatus] = [];
+                      if (!ordersByStatus[mostCriticalStatus]) {
+                        ordersByStatus[mostCriticalStatus] = [];
                       }
-                      ordersByStatus[earliestStatus].push(order);
+                      ordersByStatus[mostCriticalStatus].push(order);
                     });
                     
                     // Render groups in workflow order
