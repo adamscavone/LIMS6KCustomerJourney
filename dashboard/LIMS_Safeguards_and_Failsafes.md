@@ -4,6 +4,8 @@
 
 This document outlines the critical safeguards and failsafe mechanisms implemented throughout the LIMS to ensure data integrity, maintain regulatory compliance, and prevent operational errors.
 
+For specific edge cases and their handling, see the companion document: LIMS_Edge_Cases.md
+
 ## Preparation Batch Management Safeguards
 
 ### 1. Batch Status Workflow
@@ -21,10 +23,12 @@ This document outlines the critical safeguards and failsafe mechanisms implement
    - Timestamp is recorded for audit trail
 
 2. **Sample Check-out/Check-in**
-   - Samples must be checked out before adding to a batch
-   - Check-out records: who, when, and for what purpose
-   - Prevents double-booking of samples
+   - Automatic checkout occurs when samples are added to a batch
+   - No explicit "check out" step required - happens transparently
+   - Check-out records: who, when, batch assignment
+   - Prevents double-booking of samples (locked from other users)
    - Creates audit trail for sample custody
+   - "Return Samples" feature for partial batch completion scenarios
 
 ### 2. Equipment Tracking Safeguards
 

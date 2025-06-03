@@ -166,11 +166,14 @@ const PrepBatchManagement = () => {
   };
 
   const handleCreateBatch = () => {
-    // In a real implementation, this would create the batch via API
+    // In a real implementation, this would:
+    // 1. Check out the selected samples (marking them unavailable to others)
+    // 2. Create the batch via API
     console.log('Creating batch with:', {
       samples: selectedSamples,
       ...batchDetails
     });
+    // Samples are automatically checked out when added to batch
     setShowCreateBatchModal(false);
     setSelectedSamples([]);
     setBatchDetails({ analyst: '', sop: '', equipment: [] });
@@ -208,22 +211,6 @@ const PrepBatchManagement = () => {
               </div>
             </div>
             <div className="flex space-x-3">
-              <button
-                onClick={() => {
-                  // Check out selected samples
-                  console.log('Checking out samples:', selectedSamples);
-                  // In real implementation, this would update sample status
-                }}
-                disabled={selectedSamples.length === 0}
-                className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedSamples.length > 0
-                    ? 'bg-orange-600 text-white hover:bg-orange-700'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                <Unlock className="w-4 h-4 mr-2" />
-                Check Out Samples
-              </button>
               <button
                 onClick={() => setShowCreateBatchModal(true)}
                 disabled={selectedSamples.length === 0}
@@ -327,20 +314,21 @@ const PrepBatchManagement = () => {
             </div>
           </div>
 
-          {/* Active Prep Batches Section */}
-          <div className="col-span-7">
+          {/* In Prep and Pending Analysis Sections */}
+          <div className="col-span-7 space-y-6">
+            {/* In Prep Section */}
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h2 className="text-lg font-medium text-gray-900 flex items-center">
                   <FlaskConical className="w-5 h-5 mr-2 text-blue-600" />
-                  Active Prep Batches
+                  In Prep
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Batches currently in preparation or ready for analysis
+                  Batches currently being prepared
                 </p>
               </div>
               <div className="divide-y divide-gray-200">
-                {activePrepBatches.map(batch => (
+                {activePrepBatches.filter(b => b.status === 'open').map(batch => (
                   <div key={batch.id} className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
@@ -384,16 +372,29 @@ const PrepBatchManagement = () => {
                           {batch.samples.length} samples
                         </span>
                         {batch.status === 'open' && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Mark batch as ready for analysis
-                              console.log('Marking batch as ready:', batch.id);
-                            }}
-                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                          >
-                            Mark Ready
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Return uncompleted samples
+                                console.log('Returning samples from batch:', batch.id);
+                              }}
+                              className="px-2 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700"
+                              title="Return uncompleted samples to available pool"
+                            >
+                              Return Samples
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Mark batch as ready for analysis
+                                console.log('Marking batch as ready:', batch.id);
+                              }}
+                              className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                              Mark Ready
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -451,6 +452,117 @@ const PrepBatchManagement = () => {
                     )}
                   </div>
                 ))}
+                {activePrepBatches.filter(b => b.status === 'open').length === 0 && (
+                  <p className="p-4 text-sm text-gray-500 text-center">
+                    No batches currently in preparation
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Pending Analysis Section */}
+            <div className="bg-white rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-medium text-gray-900 flex items-center">
+                  <Clock className="w-5 h-5 mr-2 text-green-600" />
+                  Pending Analysis
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Prep complete, ready for instrumental analysis
+                </p>
+              </div>
+              <div className="divide-y divide-gray-200">
+                {activePrepBatches.filter(b => b.status === 'ready_for_analysis').map(batch => (
+                  <div key={batch.id} className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => toggleBatchExpansion(batch.id)}
+                          className="p-1 text-gray-400 hover:text-gray-600"
+                        >
+                          {expandedBatches[batch.id] ? 
+                            <ChevronDown className="w-4 h-4" /> : 
+                            <ChevronRight className="w-4 h-4" />
+                          }
+                        </button>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {batch.id}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {batch.analyst} • Completed: {batch.completedAt || batch.createdAt}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Ready for Analysis
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          {batch.samples.length} samples
+                        </span>
+                      </div>
+                    </div>
+
+                    {expandedBatches[batch.id] && (
+                      <div className="mt-4 space-y-4 pl-8">
+                        {/* SOP Information */}
+                        <div>
+                          <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wider mb-2">
+                            Standard Operating Procedure
+                          </h4>
+                          <p className="text-sm text-gray-600">{batch.sop}</p>
+                        </div>
+
+                        {/* Equipment List */}
+                        <div>
+                          <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wider mb-2">
+                            Equipment Used
+                          </h4>
+                          <div className="space-y-1">
+                            {batch.equipment.map((eq, idx) => (
+                              <div key={idx} className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600">
+                                  {eq.type} ({eq.id})
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  Cal. due: {new Date(eq.calibrationDue).toLocaleDateString()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Sample List */}
+                        <div>
+                          <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wider mb-2">
+                            Samples in Batch
+                          </h4>
+                          <div className="space-y-2">
+                            {batch.samples.map(sample => (
+                              <div key={sample.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {sample.sampleName}
+                                  </p>
+                                  <p className="text-xs text-gray-600">
+                                    {sample.client}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {activePrepBatches.filter(b => b.status === 'ready_for_analysis').length === 0 && (
+                  <p className="p-4 text-sm text-gray-500 text-center">
+                    No batches pending analysis
+                  </p>
+                )}
               </div>
             </div>
           </div>
