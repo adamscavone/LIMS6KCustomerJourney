@@ -84,9 +84,25 @@ Each sample moves through phases: Sample Receipt → Sample Prep → Analysis �
    - Air gap between LIMS and instruments acknowledged in "Awaiting Instrument Results" phase
    - Dynamic date calculations use business days (excludes weekends)
    - Mock data uses relative dates (today, yesterday, etc.) for realistic testing
+   - Review Batches given equal visual prominence as Pipeline sections (not relegated to sidebar)
 
 5. **Data Display Principles**:
    - Orders show: Order ID, Client, Sample count, Received date, Priority (if rush)
+   - Samples show: Sample name, Client, Received date, Goal date, Reporting due date
    - Overdue items always appear in "Due Today" section with red "OVERDUE" indicator
    - Consistent date groupings across all pipelines for predictable UI
    - Expandable orders in Order View show sample details without page navigation
+   - Three critical dates tracked: Received date, Goal date (internal), Reporting due date (customer-facing)
+   - Goal date calculated as one business day before reporting due date
+
+6. **Accessibility Design**:
+   - Colorblind-friendly palette: Blue for success (not green), Orange for warnings (not yellow)
+   - All colored elements include borders for visual redundancy
+   - Higher contrast colors used throughout (700/800 shades instead of 600)
+   - Status indicators combine both color and icons where possible
+
+7. **Layout Architecture**:
+   - Left column (3 units): Today's Overview + DPM Early Start
+   - Main area (9 units): Review Batches (Primary & Secondary) + Pipeline sections
+   - Review Batches displayed in 2-column grid at top of main area for prominence
+   - Equal visual treatment for review work and pipeline work (acknowledges overnight data review workflow)

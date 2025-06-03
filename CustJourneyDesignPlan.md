@@ -636,6 +636,167 @@ PrepBatchSamples (
 - Customer expansion/collapse is smooth and immediate
 - CSS Grid maintains alignment across screen sizes
 
+## Real-World Order Structures and Receiving Operations
+
+### Dynamic Order Management
+**Business Reality**: Orders are dynamic entities that change after receipt based on customer requests and operational needs.
+
+**Key Characteristics**:
+- Customers frequently request changes after samples are received
+- Test assignments may be modified after testing begins
+- Additional analyses may be added mid-workflow
+- Priority levels can be elevated based on customer needs
+- Order consolidation/splitting occurs regularly
+
+**System Requirements**:
+- Flexible order modification workflows
+- Audit trail for all order changes
+- Customer communication logging
+- Impact analysis for mid-stream changes
+- Resource reallocation capabilities
+
+### Receiving Operations and Metrc Integration
+
+**Metrc API Integration**:
+The system captures extensive data during receiving operations from Metrc (cannabis track-and-trace system):
+- Transfer manifest details
+- Package identifiers and chain of custody
+- Source harvest information
+- Original quantities and weights
+- Strain/variety information
+- License holder details
+
+**Laboratory-Added Information**:
+Beyond Metrc data, laboratory personnel add critical testing parameters:
+
+1. **Test Selection**:
+   - Terpenes analysis (not tracked in Metrc)
+   - Target cannabinoid concentrations (ranges)
+   - Specific pathogen panels required
+
+2. **Product Classification**:
+   - **Inhaled Flag**: Critical for compliance limits
+     - Vape cartridges, flower, pre-rolls marked as "inhaled"
+     - Edibles, topicals, tinctures marked as "non-inhaled"
+     - Affects action limits for residual solvents and other hazards
+   - **Solvent Flag**: Indicates extraction method used
+   - **Product Category**: Beyond Metrc's basic categories
+
+3. **Serving Information** (for edibles):
+   - Serving size and units
+   - Servings per container
+   - Critical for per-serving potency calculations
+
+### Excel Import Template Structure
+
+The LIMS5000 import template captures comprehensive order information:
+
+**Metrc-Sourced Fields**:
+- METRC Manifest Number
+- Client License
+- Source Harvest
+- Source Package
+- Metrc Category
+- Item Strain
+- Shipped Qty
+- Gross Wgt
+- Original Qty
+
+**Laboratory-Added Fields**:
+- Received On
+- Needed By
+- CC Order Number
+- CC ID #
+- Bundle/Additional
+- Research/Development
+- Re-test
+- Package
+- Rush Tests
+- Item (laboratory description)
+- Potency Category
+- Inhaled? (Y/N flag)
+- Solvent? (Y/N flag)
+- Serving Size
+- Serving Size Units
+- Servings per Container
+- Notes
+
+**Target Specifications**:
+- Potency Target Units
+- THC Potency Target Low
+- THC Potency Target High
+- CBD Potency Target Low
+- CBD Potency Target High
+
+### Information Flow and Feedback Systems
+
+**Feedforward Principles**:
+- Data entered at receiving propagates throughout workflow
+- Metrc data auto-populates where applicable
+- Target specifications guide analytical decisions
+- Product flags determine compliance calculations
+- Historical data informs default selections
+
+**Feedback Loops**:
+- Analytical results inform future target ranges
+- QC failures trigger automatic retesting protocols
+- Customer preferences learned and suggested
+- Turnaround time actuals update scheduling algorithms
+- Resource utilization feeds capacity planning
+
+## Accessibility and Visual Design Standards
+
+### Color Accessibility for Colorblind Users
+
+**Design Decision**: Following user feedback, the dashboard implements colorblind-friendly color schemes with enhanced contrast and visual redundancy.
+
+**Color Palette Changes**:
+- **Success/Completed States**: Changed from green to blue (blue-600/700/800)
+  - Rationale: Blue provides better distinction for red-green colorblindness
+  - Implementation: `bg-blue-100 text-blue-800 border border-blue-300`
+  
+- **Warning/In-Progress States**: Changed from yellow to orange (orange-600/700/800)
+  - Rationale: Orange provides higher contrast than yellow
+  - Implementation: `bg-orange-100 text-orange-800 border border-orange-300`
+  
+- **Error/Urgent States**: Enhanced red with darker shades (red-700/800)
+  - Rationale: Darker reds provide better contrast
+  - Implementation: `bg-red-100 text-red-800 border border-red-300`
+
+**Visual Redundancy Patterns**:
+- All status badges include borders for additional visual definition
+- Colored dots include contrasting borders (e.g., `border-2 border-orange-800`)
+- Status indicators combine color with icons where possible
+- Priority indicators use both color and text labels
+
+**Contrast Guidelines**:
+- Minimum contrast ratio of 4.5:1 for normal text
+- Minimum contrast ratio of 3:1 for large text
+- All interactive elements meet WCAG AA standards
+- Background/foreground combinations tested for all colorblind types
+
+**Implementation Examples**:
+```jsx
+// Status badges with borders
+<span className="bg-blue-100 text-blue-800 border border-blue-300">
+  Analyzed
+</span>
+
+// Colored indicators with borders
+<div className="w-3 h-3 bg-orange-600 rounded-full border-2 border-orange-800"></div>
+
+// Combined icon and color for status
+<CheckCircle className="w-4 h-4 text-blue-700" /> // Pass
+<XCircle className="w-4 h-4 text-red-700" />      // Fail
+<Clock className="w-4 h-4 text-orange-700" />     // Pending
+```
+
+**Testing Requirements**:
+- All color combinations tested with colorblind simulation tools
+- User acceptance testing with colorblind users
+- Regular accessibility audits using automated tools
+- Manual verification of visual redundancy patterns
+
 ## Future Enhancement Roadmap
 
 ### Phase 2: Enhanced Batch Management (Months 2-3)

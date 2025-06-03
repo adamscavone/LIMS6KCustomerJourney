@@ -43,10 +43,27 @@ const App = () => {
     const diffTime = due - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return { color: 'text-red-600 font-bold', label: 'OVERDUE' };
-    if (diffDays === 0) return { color: 'text-orange-600 font-semibold', label: 'TODAY' };
-    if (diffDays === 1) return { color: 'text-yellow-600', label: 'TOMORROW' };
+    if (diffDays < 0) return { color: 'text-red-700 font-bold', label: 'OVERDUE' };
+    if (diffDays === 0) return { color: 'text-orange-700 font-semibold', label: 'TODAY' };
+    if (diffDays === 1) return { color: 'text-orange-600', label: 'TOMORROW' };
     return { color: 'text-gray-600', label: `${diffDays} days` };
+  };
+
+  // Calculate goal date (one business day before reporting due)
+  const getGoalDate = (reportingDue) => {
+    if (!reportingDue) return null;
+    const date = new Date(reportingDue);
+    let businessDaysBack = 0;
+    
+    while (businessDaysBack < 1) {
+      date.setDate(date.getDate() - 1);
+      const dayOfWeek = date.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        businessDaysBack++;
+      }
+    }
+    
+    return date.toISOString().split('T')[0];
   };
 
   // Helper function to get business days in the past
@@ -93,45 +110,48 @@ const App = () => {
   // Mock data representing realistic sample loads
   const mockSamples = {
     cannabinoids: [
-      // Green Valley Farms - 3 samples in one order (OVERDUE)
+      // Green Valley Farms - 3 samples in one order (RUSH, Due Today)
       {
         id: 'S001',
         orderId: 'ORD-2024-1156',
         client: 'Green Valley Farms',
         sampleName: 'GVF-Indica-Batch-45A',
-        receivedOn: threeDaysAgo,
-        dueDate: yesterday, // Overdue
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        reportingDue: tomorrow,
         status: 'ready_for_prep',
         priority: 'rush',
         prepDue: yesterday,
-        analysisDue: today,
-        reportingDue: tomorrow
+        analysisDue: today
       },
       {
         id: 'S002',
         orderId: 'ORD-2024-1156',
         client: 'Green Valley Farms',
         sampleName: 'GVF-Indica-Batch-45B',
-        receivedOn: threeDaysAgo,
-        dueDate: yesterday,
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        reportingDue: tomorrow,
         status: 'ready_for_prep',
         priority: 'rush',
         prepDue: yesterday,
-        analysisDue: today,
-        reportingDue: tomorrow
+        analysisDue: today
       },
       {
         id: 'S003',
         orderId: 'ORD-2024-1156',
         client: 'Green Valley Farms',
         sampleName: 'GVF-Indica-Batch-45C',
-        receivedOn: threeDaysAgo,
-        dueDate: yesterday,
+        receivedOn: twoDaysAgo,
+        dueDate: today,
+        goalDate: today,
+        reportingDue: tomorrow,
         status: 'ready_for_prep',
         priority: 'rush',
         prepDue: yesterday,
-        analysisDue: today,
-        reportingDue: tomorrow
+        analysisDue: today
       },
       // Mountain Peak Cannabis - 4 samples across 2 orders
       {
@@ -141,6 +161,7 @@ const App = () => {
         sampleName: 'MPC-Sativa-Mix-12',
         receivedOn: twoDaysAgo,
         dueDate: today, // Due Today
+        goalDate: today,
         status: 'analysis',
         priority: 'standard',
         prepDue: yesterday,
@@ -154,6 +175,7 @@ const App = () => {
         sampleName: 'MPC-Sativa-Mix-13',
         receivedOn: twoDaysAgo,
         dueDate: today,
+        goalDate: today,
         status: 'analysis',
         priority: 'standard',
         prepDue: yesterday,
@@ -167,6 +189,7 @@ const App = () => {
         sampleName: 'MPC-Hybrid-Special-01',
         receivedOn: today,
         dueDate: threeDaysFromNow,
+        goalDate: twoDaysFromNow,
         status: 'prep',
         priority: 'standard',
         prepDue: tomorrow,
@@ -180,6 +203,7 @@ const App = () => {
         sampleName: 'MPC-Hybrid-Special-02',
         receivedOn: today,
         dueDate: threeDaysFromNow,
+        goalDate: twoDaysFromNow,
         status: 'prep',
         priority: 'standard',
         prepDue: tomorrow,
@@ -194,6 +218,7 @@ const App = () => {
         sampleName: 'UHC-Hybrid-Premium-8',
         receivedOn: yesterday,
         dueDate: tomorrow,
+        goalDate: today,
         status: 'prepped',
         priority: 'standard',
         prepDue: today,
@@ -207,6 +232,7 @@ const App = () => {
         sampleName: 'UHC-Hybrid-Premium-9',
         receivedOn: yesterday,
         dueDate: tomorrow,
+        goalDate: today,
         status: 'prepped',
         priority: 'standard',
         prepDue: today,
@@ -220,6 +246,7 @@ const App = () => {
         sampleName: 'UHC-Hybrid-Premium-10',
         receivedOn: yesterday,
         dueDate: tomorrow,
+        goalDate: today,
         status: 'prepped',
         priority: 'standard',
         prepDue: today,
@@ -236,6 +263,7 @@ const App = () => {
         sampleName: 'CC-Terpene-Profile-A',
         receivedOn: yesterday,
         dueDate: today,
+        goalDate: today,
         status: 'ready_for_prep',
         priority: 'standard',
         prepDue: today,
@@ -249,6 +277,7 @@ const App = () => {
         sampleName: 'CC-Terpene-Profile-B',
         receivedOn: yesterday,
         dueDate: today,
+        goalDate: today,
         status: 'ready_for_prep',
         priority: 'standard',
         prepDue: today,
@@ -263,6 +292,7 @@ const App = () => {
         sampleName: 'DB-Myrcene-Study-3',
         receivedOn: today,
         dueDate: twoDaysFromNow,
+        goalDate: tomorrow,
         status: 'prep',
         priority: 'standard',
         prepDue: tomorrow,
@@ -276,6 +306,7 @@ const App = () => {
         sampleName: 'DB-Myrcene-Study-4',
         receivedOn: today,
         dueDate: twoDaysFromNow,
+        goalDate: tomorrow,
         status: 'prep',
         priority: 'standard',
         prepDue: tomorrow,
@@ -289,6 +320,7 @@ const App = () => {
         sampleName: 'DB-Myrcene-Study-5',
         receivedOn: today,
         dueDate: twoDaysFromNow,
+        goalDate: tomorrow,
         status: 'prep',
         priority: 'standard',
         prepDue: tomorrow,
@@ -303,6 +335,7 @@ const App = () => {
         sampleName: 'ATC-Limonene-Test-01',
         receivedOn: yesterday,
         dueDate: tomorrow,
+        goalDate: today,
         status: 'ready_for_prep',
         priority: 'standard',
         prepDue: today,
@@ -316,6 +349,7 @@ const App = () => {
         sampleName: 'ATC-Limonene-Test-02',
         receivedOn: yesterday,
         dueDate: tomorrow,
+        goalDate: today,
         status: 'ready_for_prep',
         priority: 'standard',
         prepDue: today,
@@ -332,6 +366,7 @@ const App = () => {
         sampleName: 'PLT-Residue-Screen-19',
         receivedOn: threeDaysAgo,
         dueDate: yesterday, // Overdue
+        goalDate: twoDaysAgo,
         status: 'ready_for_prep',
         priority: 'rush',
         prepDue: yesterday,
@@ -345,6 +380,7 @@ const App = () => {
         sampleName: 'PLT-Residue-Screen-20',
         receivedOn: threeDaysAgo,
         dueDate: yesterday,
+        goalDate: twoDaysAgo,
         status: 'ready_for_prep',
         priority: 'rush',
         prepDue: yesterday,
@@ -358,6 +394,7 @@ const App = () => {
         sampleName: 'PLT-Mycotoxin-Test-01',
         receivedOn: twoDaysAgo,
         dueDate: tomorrow,
+        goalDate: today,
         status: 'prepped',
         priority: 'standard',
         prepDue: today,
@@ -371,6 +408,7 @@ const App = () => {
         sampleName: 'PLT-Mycotoxin-Test-02',
         receivedOn: twoDaysAgo,
         dueDate: tomorrow,
+        goalDate: today,
         status: 'prepped',
         priority: 'standard',
         prepDue: today,
@@ -385,6 +423,7 @@ const App = () => {
         sampleName: 'VTL-Heavy-Metals-01',
         receivedOn: today,
         dueDate: twoDaysFromNow,
+        goalDate: tomorrow,
         status: 'ready_for_prep',
         priority: 'standard',
         prepDue: tomorrow,
@@ -545,10 +584,10 @@ const App = () => {
       case 'ready_for_prep': return 'bg-blue-100 text-blue-800';
       case 'prep': return 'bg-indigo-100 text-indigo-800';
       case 'prepped': return 'bg-purple-100 text-purple-800';
-      case 'analysis': return 'bg-yellow-100 text-yellow-800';
-      case 'analyzed': return 'bg-green-100 text-green-800';
-      case 'ready_for_review': return 'bg-green-100 text-green-800';
-      case 'ready_for_secondary': return 'bg-orange-100 text-orange-800';
+      case 'analysis': return 'bg-orange-100 text-orange-800 border border-orange-300';
+      case 'analyzed': return 'bg-blue-100 text-blue-800 border border-blue-300';
+      case 'ready_for_review': return 'bg-blue-100 text-blue-800 border border-blue-300';
+      case 'ready_for_secondary': return 'bg-amber-100 text-amber-800 border border-amber-300';
       case 'micro_in_progress': return 'bg-pink-100 text-pink-800';
       case 'micro_primary_review': return 'bg-teal-100 text-teal-800';
       case 'micro_secondary_review': return 'bg-cyan-100 text-cyan-800';
@@ -573,7 +612,7 @@ const App = () => {
   };
 
   const getPriorityColor = (priority) => {
-    return priority === 'rush' ? 'bg-red-100 text-red-800' : null;
+    return priority === 'rush' ? 'bg-red-100 text-red-800 border border-red-300' : null;
   };
 
   const getPriorityLabel = (priority) => {
@@ -582,9 +621,9 @@ const App = () => {
 
   const getQCStatusIcon = (status) => {
     switch (status) {
-      case 'pass': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'deviation': return <XCircle className="w-4 h-4 text-red-600" />;
-      case 'pending': return <Clock className="w-4 h-4 text-yellow-600" />;
+      case 'pass': return <CheckCircle className="w-4 h-4 text-blue-700" />;
+      case 'deviation': return <XCircle className="w-4 h-4 text-red-700" />;
+      case 'pending': return <Clock className="w-4 h-4 text-orange-700" />;
       default: return <Clock className="w-4 h-4 text-gray-400" />;
     }
   };
@@ -684,9 +723,9 @@ const App = () => {
     const getStatusIcon = () => {
       switch (analyticalBatch.status) {
         case 'in_progress':
-          return <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>;
+          return <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse border border-blue-800"></div>;
         case 'queued':
-          return <div className="w-2 h-2 bg-orange-500 rounded-full"></div>;
+          return <div className="w-2 h-2 bg-orange-600 rounded-full border border-orange-800"></div>;
         default:
           return <div className="w-2 h-2 bg-gray-400 rounded-full"></div>;
       }
@@ -947,7 +986,7 @@ const App = () => {
               {sample.sampleName}
             </p>
             <p className="text-sm text-gray-500 truncate">
-              {sample.client} • {sample.orderId}
+              {sample.client} • Received: {new Date(sample.receivedOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </p>
           </div>
           
@@ -966,7 +1005,10 @@ const App = () => {
               {urgency.label}
             </p>
             <p className="text-xs text-gray-500">
-              Due: {sample.dueDate}
+              Goal: {sample.goalDate || getGoalDate(sample.reportingDue)}
+            </p>
+            <p className="text-xs text-gray-400">
+              Report: {sample.reportingDue}
             </p>
           </div>
           
@@ -1307,7 +1349,7 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-red-600 rounded-full border-2 border-red-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">Due Today</h4>
                       <span className="text-xs text-gray-500">({ordersByDueDate.dueToday.length} orders)</span>
                     </div>
@@ -1328,7 +1370,7 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-orange-600 rounded-full border-2 border-orange-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">Due Tomorrow</h4>
                       <span className="text-xs text-gray-500">({ordersByDueDate.dueTomorrow.length} orders)</span>
                     </div>
@@ -1349,7 +1391,7 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-blue-600 rounded-full border-2 border-blue-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">
                         Due {new Date(getBusinessDayAfterTomorrow()).toLocaleDateString('en-US', { weekday: 'long' })}
                       </h4>
@@ -1375,7 +1417,7 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-red-600 rounded-full border-2 border-red-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">Awaiting Prep</h4>
                       <span className="text-xs text-gray-500">({samplesByPhase.prepNeeded.length})</span>
                     </div>
@@ -1398,7 +1440,7 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-amber-600 rounded-full border-2 border-amber-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">Checked Out for Prep</h4>
                       <span className="text-xs text-gray-500">({samplesByPhase.inProgress.length})</span>
                     </div>
@@ -1421,7 +1463,7 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-orange-600 rounded-full border-2 border-orange-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">Ready for Analysis</h4>
                       <span className="text-xs text-gray-500">({samplesByPhase.readyForBatch.length})</span>
                     </div>
@@ -1444,7 +1486,7 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-blue-600 rounded-full border-2 border-blue-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">On Instrument</h4>
                       <span className="text-xs text-gray-500">({analyticalBatches.length})</span>
                     </div>
@@ -1508,24 +1550,24 @@ const App = () => {
               <div className="p-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Overdue Samples</span>
-                  <span className="text-lg font-semibold text-red-600">2</span>
+                  <span className="text-lg font-semibold text-red-700">2</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Due Today</span>
-                  <span className="text-lg font-semibold text-orange-600">3</span>
+                  <span className="text-lg font-semibold text-orange-700">3</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Batches to Review</span>
-                  <span className="text-lg font-semibold text-blue-600">2</span>
+                  <span className="text-lg font-semibold text-blue-700">2</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">QC Deviations</span>
-                  <span className="text-lg font-semibold text-red-600">1</span>
+                  <span className="text-lg font-semibold text-red-700">1</span>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Potential DPM</span>
-                    <span className="text-lg font-semibold text-purple-600">{totalDPMSamples}</span>
+                    <span className="text-lg font-semibold text-purple-700">{totalDPMSamples}</span>
                   </div>
                 </div>
               </div>
@@ -1558,15 +1600,124 @@ const App = () => {
             </div>
           </div>
 
-          {/* Pipeline Sections - Main Area */}
-          <div className="lg:col-span-6 space-y-6">
+          {/* Main Work Area - Pipelines and Review Batches */}
+          <div className="lg:col-span-9 space-y-6">
+            {/* Review Batches - Given Equal Prominence */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Primary Review Batches */}
+              <div className="bg-white rounded-lg shadow">
+                <div className="border-b border-gray-200">
+                  <div className="px-6 py-4">
+                    <div className="flex items-center space-x-3">
+                      <BarChart3 className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900">Primary Review</h3>
+                        <p className="text-sm text-gray-600">{mockPrimaryBatches.length} batches ready</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="divide-y divide-gray-100">
+                  {mockPrimaryBatches.map((batch) => (
+                    <div key={batch.id} className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <button
+                          onClick={() => toggleBatchExpansion(batch.id)}
+                          className="flex items-center text-sm font-medium text-gray-900 hover:text-blue-600"
+                        >
+                          {expandedBatches[batch.id] ? 
+                            <ChevronDown className="w-4 h-4 mr-1" /> : 
+                            <ChevronRight className="w-4 h-4 mr-1" />
+                          }
+                          {batch.id}
+                        </button>
+                        {getQCStatusIcon(batch.qcStatus)}
+                      </div>
+                      
+                      <div className="text-xs text-gray-600 space-y-1">
+                        <p>{batch.type.toUpperCase()} • {batch.sampleCount} samples</p>
+                        <p>Analyst: {batch.analyst}</p>
+                        <p>Analysis: {batch.analysisDate}</p>
+                      </div>
+                      
+                      {expandedBatches[batch.id] && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="flex space-x-2">
+                            <button className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-xs font-medium hover:bg-blue-700">
+                              Review Batch
+                            </button>
+                            <button className="px-3 py-2 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50">
+                              QC Charts
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Secondary Review Batches */}
+              <div className="bg-white rounded-lg shadow">
+                <div className="border-b border-gray-200">
+                  <div className="px-6 py-4">
+                    <div className="flex items-center space-x-3">
+                      <BarChart3 className="w-5 h-5 text-orange-600" />
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900">Secondary Review</h3>
+                        <p className="text-sm text-gray-600">{mockSecondaryBatches.length} batches awaiting</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="divide-y divide-gray-100">
+                  {mockSecondaryBatches.map((batch) => (
+                    <div key={batch.id} className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <button
+                          onClick={() => toggleBatchExpansion(batch.id)}
+                          className="flex items-center text-sm font-medium text-gray-900 hover:text-blue-600"
+                        >
+                          {expandedBatches[batch.id] ? 
+                            <ChevronDown className="w-4 h-4 mr-1" /> : 
+                            <ChevronRight className="w-4 h-4 mr-1" />
+                          }
+                          {batch.id}
+                        </button>
+                        {getQCStatusIcon(batch.qcStatus)}
+                      </div>
+                      
+                      <div className="text-xs text-gray-600 space-y-1">
+                        <p>{batch.type.toUpperCase()} • {batch.sampleCount} samples</p>
+                        <p>Primary: {batch.primaryReviewer}</p>
+                        <p>Analysis: {batch.analysisDate}</p>
+                      </div>
+                      
+                      {expandedBatches[batch.id] && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="flex space-x-2">
+                            <button className="flex-1 bg-orange-700 text-white px-3 py-2 rounded text-xs font-medium hover:bg-orange-800 border border-orange-800">
+                              Secondary Review
+                            </button>
+                            <button className="px-3 py-2 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50">
+                              QC Charts
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Pipeline Sections */}
             {renderPipelineSection('cannabinoids', 'Cannabinoids Pipeline', Beaker)}
             {renderPipelineSection('terpenes', 'Terpenes Pipeline', Beaker)}
             {renderPipelineSection('pesticides', 'Pesticides/Mycotoxins Pipeline', Beaker)}
           </div>
-
-          {/* Right Sidebar */}
-          <div className="lg:col-span-3 space-y-6">
             
             {/* Primary Review Batches */}
             <div className="bg-white rounded-lg shadow">
@@ -1648,7 +1799,7 @@ const App = () => {
                     {expandedBatches[batch.id] && (
                       <div className="mt-3 pt-3 border-t border-gray-100">
                         <div className="flex space-x-2">
-                          <button className="flex-1 bg-orange-600 text-white px-3 py-2 rounded text-xs font-medium hover:bg-orange-700">
+                          <button className="flex-1 bg-orange-700 text-white px-3 py-2 rounded text-xs font-medium hover:bg-orange-800 border border-orange-800">
                             Secondary Review
                           </button>
                           <button className="px-3 py-2 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50">
