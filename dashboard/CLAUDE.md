@@ -25,19 +25,33 @@ This is a React 18 dashboard prototype for a Laboratory Information Management S
 
 ### Key Architectural Decisions
 
-1. **Single Component Architecture**: The entire dashboard is implemented in `src/App.js` (1374 lines). This monolithic approach was chosen for rapid prototyping but should be refactored into smaller components for production use.
+1. **Component Architecture**: 
+   - Main dashboard remains in `src/App.js` for overview and pipeline management
+   - New page components in `src/pages/` for specific workflows
+   - `src/pages/prep-batch/PrepBatchManagement.js`: Handles preparation batch creation and management
 
-2. **Mock Data Pattern**: All sample data, batch information, and pipeline statuses are hardcoded within the component. Look for these data structures when understanding the domain:
+2. **Routing**: 
+   - React Router v6 implemented for navigation between dashboard and workflow pages
+   - Routes defined in `src/index.js`
+   - Current routes:
+     - `/`: Main dashboard
+     - `/prep-batch/:assayType`: Preparation batch management for specific assay types
+
+3. **Mock Data Pattern**: All sample data, batch information, and pipeline statuses are hardcoded within the components. Look for these data structures when understanding the domain:
    - `mockSamples`: Cannabis sample testing data
    - `mockPrimaryBatches`: Batch-level groupings
    - `mockQCBatches`: Quality control batch data
    - Pipeline-specific arrays for Cannabinoids, Terpenes, and Pesticides
+   - `availableSamples` and `activePrepBatches` in PrepBatchManagement
 
-3. **State Management**: Uses React hooks (useState) for all state management. No external state management library is used.
+4. **State Management**: 
+   - Uses React hooks (useState) for all state management
+   - Pipeline-specific view modes (`viewModes` object) for independent Order/Sample view toggling
+   - No external state management library is used
 
-4. **Styling**: Tailwind CSS is loaded via CDN in `public/index.html`. All styling uses Tailwind utility classes inline.
+5. **Styling**: Tailwind CSS is loaded via CDN in `public/index.html`. All styling uses Tailwind utility classes inline.
 
-5. **Icons**: Uses lucide-react for all UI icons (ChevronDown, Clock, AlertCircle, etc.)
+6. **Icons**: Uses lucide-react for all UI icons (ChevronDown, Clock, AlertCircle, etc.)
 
 ### Domain Context
 
@@ -48,14 +62,41 @@ This dashboard manages laboratory testing workflows for cannabis samples with th
 
 Each sample moves through phases: Sample Receipt → Sample Prep → Analysis → Data Review → Reporting
 
+#### Preparation Batch Management
+
+The preparation batch workflow is critical for maintaining data integrity and traceability:
+
+1. **Batch Creation Requirements**:
+   - Samples must be prepared together under the same Standard Operating Procedure (SOP)
+   - Same analyst must perform all preparations in a batch
+   - All equipment used must be tracked with serial numbers and calibration dates
+   - Preparations should occur at approximately the same time
+
+2. **Equipment Tracking**:
+   - Analytical balances
+   - Bottle-top dispensers
+   - Autopipettes
+   - Calibrated syringes
+   - Vortex mixers
+   - Each device requires serial number and calibration due date
+
+3. **Exceptions**:
+   - Rush samples can be added to existing analytical batches if fully prepped
+   - This allows expedited analysis without waiting for a full batch
+
+4. **Navigation**:
+   - Users can navigate from any pipeline's "Awaiting Prep" samples to the Prep Batch Management page
+   - The "Manage Prep Batches" button appears in each pipeline header
+
 ### Development Notes
 
-- No routing implemented - single page application
+- React Router v6 implemented for navigation between pages
 - No API integration - all data is mocked
 - No authentication/authorization
 - Responsive design using Tailwind's grid system
 - Real-time clock updates every second
 - Expandable/collapsible UI sections throughout
+- Pipeline-specific view mode toggles (Order/Sample view)
 
 ### UI Design Patterns
 

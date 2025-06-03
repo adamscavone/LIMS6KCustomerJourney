@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package, FlaskConical, Building2 } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package, FlaskConical, Building2, AlertCircle, CalendarDays, CalendarClock, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const App = () => {
+  const navigate = useNavigate();
   const [expandedBatches, setExpandedBatches] = useState({});
   const [expandedOrders, setExpandedOrders] = useState({});
   const [expandedDPMCustomers, setExpandedDPMCustomers] = useState({});
-  const [viewMode, setViewMode] = useState('order'); // Default to 'order' view
+  const [viewModes, setViewModes] = useState({
+    cannabinoids: 'order',
+    terpenes: 'order',
+    pesticides: 'order'
+  }); // Pipeline-specific view modes
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update time every minute for "Last Updated"
@@ -43,10 +49,34 @@ const App = () => {
     const diffTime = due - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return { color: 'text-red-700 font-bold', label: 'OVERDUE' };
-    if (diffDays === 0) return { color: 'text-orange-700 font-semibold', label: 'TODAY' };
-    if (diffDays === 1) return { color: 'text-orange-600', label: 'TOMORROW' };
-    return { color: 'text-gray-600', label: `${diffDays} days` };
+    if (diffDays < 0) return { 
+      color: 'text-red-700 font-bold', 
+      label: 'OVERDUE',
+      borderClass: 'border-red-700',
+      bgClass: 'bg-red-50',
+      icon: 'alert'
+    };
+    if (diffDays === 0) return { 
+      color: 'text-orange-800 font-semibold', 
+      label: 'TODAY',
+      borderClass: 'border-orange-800',
+      bgClass: 'bg-orange-50',
+      icon: 'today'
+    };
+    if (diffDays === 1) return { 
+      color: 'text-blue-700', 
+      label: 'TOMORROW',
+      borderClass: 'border-blue-700',
+      bgClass: 'bg-blue-50',
+      icon: 'tomorrow'
+    };
+    return { 
+      color: 'text-gray-600', 
+      label: `${diffDays} days`,
+      borderClass: 'border-gray-400',
+      bgClass: 'bg-gray-50',
+      icon: null
+    };
   };
 
   // Calculate goal date (one business day before reporting due)
@@ -925,9 +955,13 @@ const App = () => {
             {/* Due Date */}
             <div className="col-span-3 text-right">
               {urgency.label !== 'TODAY' && (
-                <p className={`text-xs ${urgency.color}`}>
-                  {urgency.label}
-                </p>
+                <div className={`inline-flex items-center space-x-1 px-1.5 py-0.5 rounded border ${urgency.borderClass} ${urgency.bgClass}`}>
+                  {urgency.icon === 'alert' && <AlertCircle className="w-3 h-3" />}
+                  {urgency.icon === 'tomorrow' && <CalendarDays className="w-3 h-3" />}
+                  <span className={`text-xs ${urgency.color}`}>
+                    {urgency.label}
+                  </span>
+                </div>
               )}
             </div>
             
@@ -1001,10 +1035,15 @@ const App = () => {
           
           {/* Column 8-9: Due Date Info (fixed width) */}
           <div className="col-span-2 text-right">
-            <p className={`text-sm ${urgency.color}`}>
-              {urgency.label}
-            </p>
-            <p className="text-xs text-gray-500">
+            <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-md border ${urgency.borderClass} ${urgency.bgClass}`}>
+              {urgency.icon === 'alert' && <AlertCircle className="w-3 h-3" />}
+              {urgency.icon === 'today' && <Clock className="w-3 h-3" />}
+              {urgency.icon === 'tomorrow' && <CalendarDays className="w-3 h-3" />}
+              <span className={`text-sm ${urgency.color}`}>
+                {urgency.label}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
               Goal: {sample.goalDate || getGoalDate(sample.reportingDue)}
             </p>
             <p className="text-xs text-gray-400">
@@ -1279,7 +1318,7 @@ const App = () => {
       return resultDate.toISOString().split('T')[0];
     };
     
-    const ordersByDueDate = viewMode === 'order' ? (() => {
+    const ordersByDueDate = viewModes[assayType] === 'order' ? (() => {
       const orders = groupSamplesByOrder(allSamples);
       const today = getCurrentDate();
       const tomorrow = new Date();
@@ -1311,37 +1350,48 @@ const App = () => {
               </div>
             </div>
             
-            {/* View Mode Toggle */}
-            <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center space-x-4">
+              {/* Navigation Button */}
               <button
-                onClick={() => setViewMode('order')}
-                className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                  viewMode === 'order'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                onClick={() => navigate(`/prep-batch/${assayType}`)}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
               >
-                <Package className="w-4 h-4 mr-1.5" />
-                Order View
+                Manage Prep Batches
+                <ArrowRight className="w-4 h-4 ml-2" />
               </button>
-              <button
-                onClick={() => setViewMode('sample')}
-                className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                  viewMode === 'sample'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <List className="w-4 h-4 mr-1.5" />
-                Sample View
-              </button>
+              
+              {/* View Mode Toggle */}
+              <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewModes(prev => ({ ...prev, [assayType]: 'order' }))}
+                  className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    viewModes[assayType] === 'order'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <Package className="w-4 h-4 mr-1.5" />
+                  Order View
+                </button>
+                <button
+                  onClick={() => setViewModes(prev => ({ ...prev, [assayType]: 'sample' }))}
+                  className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    viewModes[assayType] === 'sample'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <List className="w-4 h-4 mr-1.5" />
+                  Sample View
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Conditional rendering based on view mode */}
         <div className="divide-y divide-gray-200">
-          {viewMode === 'order' ? (
+          {viewModes[assayType] === 'order' ? (
             // Date-based grouping for Order View
             <>
               {/* Due Today (includes Overdue) */}
