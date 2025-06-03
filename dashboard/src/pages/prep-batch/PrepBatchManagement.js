@@ -16,8 +16,8 @@ const PrepBatchManagement = () => {
     sop: '',
     equipment: []
   });
-  const [availableSamplesStateState, setAvailableSamplesState] = useState([]);
-  const [activePrepBatchesStateState, setActivePrepBatchesState] = useState([]);
+  const [availableSamplesState, setAvailableSamplesState] = useState([]);
+  const [activePrepBatchesState, setActivePrepBatchesState] = useState([]);
 
   // Initialize mock data on component mount
   React.useEffect(() => {
