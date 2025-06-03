@@ -1736,7 +1736,7 @@ const App = () => {
             </div>
             
             {/* Due Date */}
-            <div className="col-span-3 text-right">
+            <div className="col-span-5 text-right">
               {urgency.label !== 'TODAY' && (
                 <div className={`inline-flex items-center space-x-1 px-1.5 py-0.5 rounded border ${urgency.borderClass} ${urgency.bgClass}`}>
                   {urgency.icon === 'alert' && <AlertCircle className="w-3 h-3" />}
@@ -1748,11 +1748,8 @@ const App = () => {
               )}
             </div>
             
-            {/* Empty column - removed status summary */}
-            <div className="col-span-3"></div>
-            
             {/* Action */}
-            <div className="col-span-1 flex justify-center">
+            <div className="col-span-2 flex justify-center">
               <button className="p-1 text-gray-400 hover:text-gray-600">
                 <Eye className="w-3 h-3" />
               </button>
@@ -1767,16 +1764,12 @@ const App = () => {
               <div key={sample.id} className="p-2 border-t border-gray-100 first:border-t-0">
                 <div className="grid grid-cols-12 gap-2 items-center text-xs">
                   <div className="col-span-1"></div>
-                  <div className="col-span-4 text-gray-700">
+                  <div className="col-span-6 text-gray-700">
                     {sample.sampleName}
                   </div>
-                  <div className="col-span-3 text-right text-gray-500">
+                  <div className="col-span-5 text-right text-gray-500">
                     Due: {sample.dueDate}
                   </div>
-                  <div className="col-span-3 text-center text-gray-500">
-                    {getStatusLabel(sample.status)}
-                  </div>
-                  <div className="col-span-1"></div>
                 </div>
               </div>
             ))}
