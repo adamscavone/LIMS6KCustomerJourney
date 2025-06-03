@@ -16,9 +16,13 @@ const PrepBatchManagement = () => {
     sop: '',
     equipment: []
   });
+  const [availableSamplesStateState, setAvailableSamplesState] = useState([]);
+  const [activePrepBatchesStateState, setActivePrepBatchesState] = useState([]);
 
-  // Mock data for available samples (ready for prep)
-  const availableSamples = [
+  // Initialize mock data on component mount
+  React.useEffect(() => {
+    // Mock data for available samples (ready for prep)
+    const initialAvailableSamples = [
     {
       id: 'S001',
       orderId: 'ORD-2024-1156',
@@ -74,8 +78,8 @@ const PrepBatchManagement = () => {
     }
   ];
 
-  // Mock data for active prep batches
-  const activePrepBatches = [
+    // Mock data for active prep batches
+    const initialActivePrepBatches = [
     {
       id: 'PB-2025-001',
       analyst: 'Dr. Emily Chen',
@@ -130,6 +134,10 @@ const PrepBatchManagement = () => {
     }
   ];
 
+    setAvailableSamplesState(initialAvailableSamples);
+    setActivePrepBatchesState(initialActivePrepBatches);
+  }, []);
+
   const toggleBatchExpansion = (batchId) => {
     setExpandedBatches(prev => ({
       ...prev,
@@ -142,7 +150,7 @@ const PrepBatchManagement = () => {
       // Shift+click: select range
       const start = Math.min(lastSelectedIndex, sampleIndex);
       const end = Math.max(lastSelectedIndex, sampleIndex);
-      const rangeIds = availableSamples.slice(start, end + 1).map(s => s.id);
+      const rangeIds = availableSamplesStateState.slice(start, end + 1).map(s => s.id);
       
       setSelectedSamples(prev => {
         const newSelection = new Set(prev);
@@ -166,14 +174,38 @@ const PrepBatchManagement = () => {
   };
 
   const handleCreateBatch = () => {
-    // In a real implementation, this would:
-    // 1. Check out the selected samples (marking them unavailable to others)
-    // 2. Create the batch via API
-    console.log('Creating batch with:', {
-      samples: selectedSamples,
-      ...batchDetails
-    });
-    // Samples are automatically checked out when added to batch
+    // Get selected sample details
+    const samplesToAdd = availableSamplesState
+      .filter(s => selectedSamples.includes(s.id))
+      .map(s => ({
+        id: s.id,
+        sampleName: s.sampleName,
+        client: s.client
+      }));
+
+    // Create new batch
+    const newBatch = {
+      id: `PB-2025-${String(activePrepBatchesState.length + 1).padStart(3, '0')}`,
+      analyst: batchDetails.analyst,
+      createdAt: new Date().toLocaleString(),
+      sop: batchDetails.sop,
+      status: 'open',
+      samples: samplesToAdd,
+      equipment: []
+    };
+
+    // Add new batch to state
+    setActivePrepBatchesState(prev => [...prev, newBatch]);
+
+    // Remove added samples from available list
+    setAvailableSamplesState(prev => 
+      prev.filter(s => !selectedSamples.includes(s.id))
+    );
+
+    // Expand the new batch
+    setExpandedBatches(prev => ({ ...prev, [newBatch.id]: true }));
+
+    // Reset form
     setShowCreateBatchModal(false);
     setSelectedSamples([]);
     setBatchDetails({ analyst: '', sop: '', equipment: [] });
@@ -225,9 +257,9 @@ const PrepBatchManagement = () => {
               </button>
               <button
                 onClick={() => setShowAddToBatchModal(true)}
-                disabled={selectedSamples.length === 0 || activePrepBatches.filter(b => b.status === 'open').length === 0}
+                disabled={selectedSamples.length === 0 || activePrepBatchesState.filter(b => b.status === 'open').length === 0}
                 className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedSamples.length > 0 && activePrepBatches.filter(b => b.status === 'open').length > 0
+                  selectedSamples.length > 0 && activePrepBatchesState.filter(b => b.status === 'open').length > 0
                     ? 'bg-green-600 text-white hover:bg-green-700'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
@@ -260,7 +292,7 @@ const PrepBatchManagement = () => {
                 </p>
               </div>
               <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
-                {availableSamples.map((sample, index) => (
+                {availableSamplesState.map((sample, index) => (
                   <div
                     key={sample.id}
                     className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
@@ -328,7 +360,7 @@ const PrepBatchManagement = () => {
                 </p>
               </div>
               <div className="divide-y divide-gray-200">
-                {activePrepBatches.filter(b => b.status === 'open').map(batch => (
+                {activePrepBatchesState.filter(b => b.status === 'open').map(batch => (
                   <div key={batch.id} className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
@@ -452,7 +484,7 @@ const PrepBatchManagement = () => {
                     )}
                   </div>
                 ))}
-                {activePrepBatches.filter(b => b.status === 'open').length === 0 && (
+                {activePrepBatchesState.filter(b => b.status === 'open').length === 0 && (
                   <p className="p-4 text-sm text-gray-500 text-center">
                     No batches currently in preparation
                   </p>
@@ -472,7 +504,7 @@ const PrepBatchManagement = () => {
                 </p>
               </div>
               <div className="divide-y divide-gray-200">
-                {activePrepBatches.filter(b => b.status === 'ready_for_analysis').map(batch => (
+                {activePrepBatchesState.filter(b => b.status === 'ready_for_analysis').map(batch => (
                   <div key={batch.id} className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
@@ -558,7 +590,7 @@ const PrepBatchManagement = () => {
                     )}
                   </div>
                 ))}
-                {activePrepBatches.filter(b => b.status === 'ready_for_analysis').length === 0 && (
+                {activePrepBatchesState.filter(b => b.status === 'ready_for_analysis').length === 0 && (
                   <p className="p-4 text-sm text-gray-500 text-center">
                     No batches pending analysis
                   </p>
@@ -583,7 +615,7 @@ const PrepBatchManagement = () => {
             </div>
             <div className="px-6 py-4">
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {activePrepBatches.filter(b => b.status === 'open').map(batch => (
+                {activePrepBatchesState.filter(b => b.status === 'open').map(batch => (
                   <div
                     key={batch.id}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
@@ -615,7 +647,7 @@ const PrepBatchManagement = () => {
                   </div>
                 ))}
               </div>
-              {activePrepBatches.filter(b => b.status === 'open').length === 0 && (
+              {activePrepBatchesState.filter(b => b.status === 'open').length === 0 && (
                 <p className="text-sm text-gray-500 text-center py-8">
                   No open batches available. All existing batches are ready for analysis.
                 </p>
@@ -633,7 +665,36 @@ const PrepBatchManagement = () => {
               </button>
               <button
                 onClick={() => {
-                  console.log('Adding samples to batch:', selectedBatchId);
+                  // Get selected sample details
+                  const samplesToAdd = availableSamplesState
+                    .filter(s => selectedSamples.includes(s.id))
+                    .map(s => ({
+                      id: s.id,
+                      sampleName: s.sampleName,
+                      client: s.client
+                    }));
+
+                  // Update the batch with new samples
+                  setActivePrepBatchesState(prev => 
+                    prev.map(batch => {
+                      if (batch.id === selectedBatchId) {
+                        return {
+                          ...batch,
+                          samples: [...batch.samples, ...samplesToAdd]
+                        };
+                      }
+                      return batch;
+                    })
+                  );
+
+                  // Remove added samples from available list
+                  setAvailableSamplesState(prev => 
+                    prev.filter(s => !selectedSamples.includes(s.id))
+                  );
+
+                  // Expand the batch that was just updated
+                  setExpandedBatches(prev => ({ ...prev, [selectedBatchId]: true }));
+
                   setShowAddToBatchModal(false);
                   setSelectedBatchId('');
                   setSelectedSamples([]);
