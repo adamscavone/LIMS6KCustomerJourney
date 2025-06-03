@@ -26,32 +26,32 @@ This is a React 18 dashboard prototype for a Laboratory Information Management S
 ### Key Architectural Decisions
 
 1. **Component Architecture**: 
-   - Main dashboard remains in `src/App.js` for overview and pipeline management
-   - New page components in `src/pages/` for specific workflows
-   - `src/pages/prep-batch/PrepBatchManagement.js`: Handles preparation batch creation and management
+   - Main dashboard in `src/App.js` (expanded to ~2600 lines with comprehensive mock data)
+   - Modular components for specific workflows:
+     - `PrepBatchManagement.js`: Sample preparation batch management
+     - `AnalysisBatchView.js`: Instrument analysis and result upload
+   - React Router v6 for navigation between views
 
-2. **Routing**: 
-   - React Router v6 implemented for navigation between dashboard and workflow pages
-   - Routes defined in `src/index.js`
-   - Current routes:
-     - `/`: Main dashboard
-     - `/prep-batch/:assayType`: Preparation batch management for specific assay types
+2. **Mock Data Pattern**: Extensive mock data simulating real laboratory workflows:
+   - `mockSamples`: ~73 total samples across three pipelines with various statuses
+   - Status progression: `ready_for_prep` → `in_prep` → `prepped` → `analysis` → `analyzed` → `primary_review` → `secondary_review` → `ready_to_report`
+   - Realistic order groupings (1-5 samples per order)
+   - Time-based organization (overdue, due today, due tomorrow, future)
 
-3. **Mock Data Pattern**: All sample data, batch information, and pipeline statuses are hardcoded within the components. Look for these data structures when understanding the domain:
-   - `mockSamples`: Cannabis sample testing data
-   - `mockPrimaryBatches`: Batch-level groupings
-   - `mockQCBatches`: Quality control batch data
-   - Pipeline-specific arrays for Cannabinoids, Terpenes, and Pesticides
-   - `availableSamples` and `activePrepBatches` in PrepBatchManagement
+3. **State Management**: 
+   - React hooks (useState, useEffect) for local state
+   - Pipeline-specific view modes (Order View vs Sample View)
+   - No external state management library (appropriate for prototype)
 
-4. **State Management**: 
-   - Uses React hooks (useState) for all state management
-   - Pipeline-specific view modes (`viewModes` object) for independent Order/Sample view toggling
-   - No external state management library is used
+4. **Styling**: 
+   - Tailwind CSS via CDN for rapid prototyping
+   - Consistent colorblind-friendly palette:
+     - Blue (not green) for success states
+     - Orange (not yellow) for warnings
+     - Higher contrast (700/800 shades)
+   - All status indicators use both color AND icons/borders
 
-5. **Styling**: Tailwind CSS is loaded via CDN in `public/index.html`. All styling uses Tailwind utility classes inline.
-
-6. **Icons**: Uses lucide-react for all UI icons (ChevronDown, Clock, AlertCircle, etc.)
+5. **Icons**: lucide-react for consistent iconography throughout
 
 ### Domain Context
 
@@ -62,89 +62,81 @@ This dashboard manages laboratory testing workflows for cannabis samples with th
 
 Each sample moves through phases: Sample Receipt → Sample Prep → Analysis → Data Review → Reporting
 
-#### Preparation Batch Management
-
-The preparation batch workflow is critical for maintaining data integrity and traceability:
-
-1. **Batch Creation Requirements**:
-   - Samples must be prepared together under the same Standard Operating Procedure (SOP)
-   - SOPs are pipeline-specific (each pipeline represents a unique SOP)
-   - Analyst is automatically set to the logged-in user for audit trail
-   - All equipment used must be tracked with serial numbers and calibration dates
-   - Preparations should occur at approximately the same time
-
-2. **Equipment Tracking**:
-   - Analytical balances
-   - Bottle-top dispensers
-   - Autopipettes
-   - Calibrated syringes
-   - Vortex mixers
-   - Each device requires serial number and calibration due date
-
-3. **Exceptions**:
-   - Rush samples can be added to existing analytical batches if fully prepped
-   - This allows expedited analysis without waiting for a full batch
-
-4. **Navigation**:
-   - Users can navigate from any pipeline's "Awaiting Prep" samples to the Prep Batch Management page
-   - The "Manage Prep Batches" button appears in each pipeline header
-
-5. **Sample Check-out/Check-in Workflow**:
-   - Samples must be checked out before adding to batches
-   - Check-out creates custody trail
-   - Checked-out samples show lock icon and are disabled for other users
-   - Windows-native multi-select: Ctrl+Click for individual, Shift+Click for range
-
-6. **Batch Status Management**:
-   - **Open**: Samples can be added, equipment tracked, actively in preparation
-   - **Ready for Analysis**: Locked state, no modifications without override
-   - Failsafe mechanisms documented in LIMS_Safeguards_and_Failsafes.md
-
-7. **Analysis Batch Creation**:
-   - Select multiple prep batches from "Pending Analysis"
-   - Create new analysis batch or add to existing
-   - Maintains traceability from prep through analysis
-
 ### Development Notes
 
-- React Router v6 implemented for navigation between pages
-- No API integration - all data is mocked
-- No authentication/authorization
-- Responsive design using Tailwind's grid system
-- Real-time clock updates every second
-- Expandable/collapsible UI sections throughout
-- Pipeline-specific view mode toggles (Order/Sample view)
+- **Routing**: React Router v6 implemented with routes:
+  - `/` - Main dashboard
+  - `/prep-batch/:assayType` - Prep batch management
+  - `/analysis-batch/:assayType/:batchId` - Analysis batch view
+- **Navigation**: Seamless flow from dashboard → prep → analysis → review
+- **Mock Data**: Comprehensive dataset with ~73 samples showing all workflow states
+- **No Authentication**: Prototype assumes logged-in user ("Dr. Sarah Chen")
+- **Responsive Design**: Tailwind grid system, optimized for desktop
+- **Real-time Updates**: Clock updates, immediate UI feedback on actions
+- **Multi-select**: Windows-native patterns (Ctrl+Click, Shift+Click)
+
+### Workflow Implementation
+
+1. **Prep Batch Management**:
+   - Automatic sample checkout (no explicit checkout button)
+   - Single analyst per batch requirement enforced
+   - "Return Samples" for partial batch completion
+   - "Mark Ready" moves batch to Pending Analysis
+   - Multi-select prep batches for analysis batch creation
+
+2. **Analysis Batch Creation**:
+   - Combines multiple prep batches into analysis batch
+   - Navigates to dedicated analysis view
+   - Handles the "air gap" between LIMS and instruments
+
+3. **Instrument Integration**:
+   - Instrument selection from available options
+   - Queue position and time estimates
+   - File upload for results (CSV, TXT, XML)
+   - Send to review when complete
 
 ### UI Design Patterns
 
-1. **Dual View Modes**: 
-   - **Order View**: Groups samples by customer order with date-based sections (Due Today, Due Tomorrow, Due [Weekday])
+1. **Dual View Modes** (Pipeline-Specific): 
+   - **Order View**: Groups samples by customer order with date-based sections
    - **Sample View**: Shows individual samples organized by workflow phase
+   - View mode toggles independently per pipeline (not global)
 
-2. **Order View Date Groupings**:
-   - "Due Today" includes any overdue items with "OVERDUE" visual indicator
-   - "Due Tomorrow" shows next business day's orders
-   - "Due [Weekday]" dynamically shows business day after tomorrow (skips weekends)
-   - Orders are expandable to show constituent samples
-   - No redundant "TODAY" indicator in Due Today section
-   - Each order shows "Received On" date for context
+2. **Order View Organization**:
+   - **Due Today Section**: 
+     - Includes all overdue items (shown first)
+     - Groups orders by workflow status (most critical first)
+     - Status headers: "Available for Prep", "In Preparation", etc.
+     - No redundant status columns at order level
+   - **Due Tomorrow**: Next business day's orders
+   - **Due [Weekday]**: Business day after tomorrow
+   - Orders expandable to show samples (no status shown)
 
 3. **Sample View Phase Groupings**:
    - Awaiting Prep → Checked Out for Prep → Ready for Analysis → On Instrument
-   - Status chips removed in Sample View for cleaner interface
-   - Phase names use active voice to indicate required actions
+   - Status chips removed for cleaner interface
+   - Active voice phase names indicate required actions
 
-4. **Key UI Decisions**:
-   - Multi-sample orders are the norm (realistic lab workflow)
-   - Removed all redundant status labels ("PREP REQUIRED", "BATCH ASSIGNMENT", etc.)
-   - Removed QC Monitoring section from sidebar
-   - Removed vertical lines in nested instrument batch displays
-   - Air gap between LIMS and instruments acknowledged in "Awaiting Instrument Results" phase
-   - Dynamic date calculations use business days (excludes weekends)
-   - Mock data uses relative dates (today, yesterday, etc.) for realistic testing
-   - Review Batches given equal visual prominence as Pipeline sections (not relegated to sidebar)
+4. **Workflow Status Grouping** (NEW):
+   - Reversed order to show most critically behind items first:
+     1. Available for Prep (most critical)
+     2. In Preparation
+     3. Prep Complete (Awaiting Batch)
+     4. On Instrument
+     5. Awaiting Instrument Data
+     6. Primary Review Pending
+     7. Secondary Review Pending
+     8. Ready to Report (least critical)
 
-5. **Data Display Principles**:
+5. **Key UI Decisions**:
+   - Multi-sample orders reflect real lab workflows
+   - No redundant status indicators
+   - Air gap between LIMS and instruments explicitly handled
+   - Business day calculations throughout
+   - Review Batches given equal prominence (not sidebar)
+   - Logical consistency enforced between headers and data
+
+6. **Data Display Principles**:
    - Orders show: Order ID, Client, Sample count, Received date, Priority (if rush)
    - Samples show: Sample name, Client, Received date, Goal date, Reporting due date
    - Overdue items always appear in "Due Today" section with red "OVERDUE" indicator
@@ -153,14 +145,39 @@ The preparation batch workflow is critical for maintaining data integrity and tr
    - Three critical dates tracked: Received date, Goal date (internal), Reporting due date (customer-facing)
    - Goal date calculated as one business day before reporting due date
 
-6. **Accessibility Design**:
+7. **Accessibility Design**:
    - Colorblind-friendly palette: Blue for success (not green), Orange for warnings (not yellow)
    - All colored elements include borders for visual redundancy
    - Higher contrast colors used throughout (700/800 shades instead of 600)
    - Status indicators combine both color and icons where possible
+   - Multi-select uses standard OS patterns (Ctrl/Shift+Click)
 
-7. **Layout Architecture**:
-   - Left column (3 units): Today's Overview + DPM Early Start
-   - Main area (9 units): Review Batches (Primary & Secondary) + Pipeline sections
-   - Review Batches displayed in 2-column grid at top of main area for prominence
-   - Equal visual treatment for review work and pipeline work (acknowledges overnight data review workflow)
+8. **Layout Architecture**:
+   - **Dashboard**: 
+     - Left column (3 units): Today's Overview + DPM Early Start
+     - Main area (9 units): Review Batches + Pipeline sections
+   - **Prep Batch Management**:
+     - Left column (5 units): Available samples with multi-select
+     - Right column (7 units): In Prep + Pending Analysis sections
+   - **Analysis Batch View**:
+     - Left column (8 units): Batch details + results upload
+     - Right column (4 units): Instrument selection + summary
+
+### Important Business Rules
+
+1. **Single Analyst per Batch**: All samples in a batch must be prepared by the same analyst
+2. **Automatic Checkout**: Samples checked out when added to batch (no explicit step)
+3. **Partial Completion**: "Return Samples" allows incomplete batch handling
+4. **Pipeline-Specific SOPs**: Each assay type has its own SOP (e.g., SOP-CANNABINOIDS-PREP-v3.2)
+5. **Status Progression**: Samples must follow defined workflow (cannot skip steps)
+6. **Business Days**: All date calculations exclude weekends
+7. **Air Gap Handling**: Explicit workflow for instrument integration and result upload
+
+# Project-Specific Guidelines
+
+1. **Mock Data Consistency**: Ensure mock data statuses match their UI grouping headers
+2. **Status Terminology**: Use `in_prep` (not `prep`) for consistency
+3. **No Redundancy**: Avoid showing same information multiple times (e.g., status in grouped views)
+4. **Business Logic**: Enforce single analyst per batch, automatic checkout, partial completion
+5. **Navigation Flow**: Dashboard → Prep Batch → Analysis Batch → Review (clear path)
+6. **Air Gap**: Acknowledge and handle the disconnect between LIMS and instruments
