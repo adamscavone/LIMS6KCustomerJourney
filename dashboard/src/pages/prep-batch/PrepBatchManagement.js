@@ -7,20 +7,16 @@ const PrepBatchManagement = () => {
   const { assayType } = useParams();
   const [selectedSamples, setSelectedSamples] = useState([]);
   const [expandedBatches, setExpandedBatches] = useState({});
-  const [showCreateBatchModal, setShowCreateBatchModal] = useState(false);
   const [showAddToBatchModal, setShowAddToBatchModal] = useState(false);
   const [selectedBatchId, setSelectedBatchId] = useState('');
   const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
-  const [batchDetails, setBatchDetails] = useState({
-    analyst: '',
-    sop: '',
-    equipment: []
-  });
   const [availableSamplesState, setAvailableSamplesState] = useState([]);
   const [activePrepBatchesState, setActivePrepBatchesState] = useState([]);
   const [selectedBatchSamples, setSelectedBatchSamples] = useState({}); // {batchId: [sampleIds]}
   const [showReturnSamplesModal, setShowReturnSamplesModal] = useState(false);
   const [returningFromBatch, setReturningFromBatch] = useState(null);
+  const [selectedPrepBatches, setSelectedPrepBatches] = useState([]); // For analysis batch creation
+  const [analysisBatches, setAnalysisBatches] = useState([]); // Mock analysis batches
 
   // Initialize mock data on component mount
   React.useEffect(() => {
@@ -240,6 +236,22 @@ const PrepBatchManagement = () => {
     }));
   };
 
+  const handlePrepBatchSelection = (batchId) => {
+    setSelectedPrepBatches(prev => {
+      if (prev.includes(batchId)) {
+        return prev.filter(id => id !== batchId);
+      }
+      return [...prev, batchId];
+    });
+  };
+
+  const handleCreateAnalysisBatch = () => {
+    // In production, this would create an analysis batch with selected prep batches
+    console.log('Creating analysis batch with prep batches:', selectedPrepBatches);
+    // For now, just clear selection
+    setSelectedPrepBatches([]);
+  };
+
   const handleSampleSelection = (sampleId, event, sampleIndex) => {
     if (event.shiftKey && lastSelectedIndex !== null) {
       // Shift+click: select range
@@ -278,12 +290,16 @@ const PrepBatchManagement = () => {
         client: s.client
       }));
 
-    // Create new batch
+    // Create new batch with current user as analyst
+    // In production, this would get the actual logged-in user
+    const currentUser = "Dr. Sarah Chen"; // Mock logged-in user
+    const sopForPipeline = `SOP-${assayType.toUpperCase()}-PREP-v3.2`; // Pipeline-specific SOP
+    
     const newBatch = {
       id: `PB-2025-${String(activePrepBatchesState.length + 1).padStart(3, '0')}`,
-      analyst: batchDetails.analyst,
+      analyst: currentUser,
       createdAt: new Date().toLocaleString(),
-      sop: batchDetails.sop,
+      sop: sopForPipeline,
       status: 'open',
       samples: samplesToAdd,
       equipment: []
@@ -300,10 +316,8 @@ const PrepBatchManagement = () => {
     // Expand the new batch
     setExpandedBatches(prev => ({ ...prev, [newBatch.id]: true }));
 
-    // Reset form
-    setShowCreateBatchModal(false);
+    // Reset selection
     setSelectedSamples([]);
-    setBatchDetails({ analyst: '', sop: '', equipment: [] });
   };
 
   const getAssayTitle = () => {
@@ -339,7 +353,7 @@ const PrepBatchManagement = () => {
             </div>
             <div className="flex space-x-3">
               <button
-                onClick={() => setShowCreateBatchModal(true)}
+                onClick={handleCreateBatch}
                 disabled={selectedSamples.length === 0}
                 className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   selectedSamples.length > 0
@@ -619,21 +633,73 @@ const PrepBatchManagement = () => {
             {/* Pending Analysis Section */}
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900 flex items-center">
-                  <Clock className="w-5 h-5 mr-2 text-green-600" />
-                  Pending Analysis
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  Prep complete, ready for instrumental analysis
-                </p>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-lg font-medium text-gray-900 flex items-center">
+                      <Clock className="w-5 h-5 mr-2 text-green-600" />
+                      Pending Analysis
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Prep complete, ready for instrumental analysis
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleCreateAnalysisBatch}
+                      disabled={selectedPrepBatches.length === 0}
+                      className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                        selectedPrepBatches.length > 0
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      Create Analysis Batch
+                    </button>
+                    <button
+                      disabled={selectedPrepBatches.length === 0}
+                      className={`flex items-center px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                        selectedPrepBatches.length > 0
+                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      Add to Existing
+                    </button>
+                    {selectedPrepBatches.length > 0 && (
+                      <span className="flex items-center px-2 py-1.5 text-sm text-gray-600">
+                        {selectedPrepBatches.length} selected
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
               <div className="divide-y divide-gray-200">
                 {activePrepBatchesState.filter(b => b.status === 'ready_for_analysis').map(batch => (
-                  <div key={batch.id} className="p-4">
+                  <div 
+                    key={batch.id} 
+                    className={`p-4 cursor-pointer transition-colors ${
+                      selectedPrepBatches.includes(batch.id) 
+                        ? 'bg-blue-50 border-l-4 border-blue-500' 
+                        : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => handlePrepBatchSelection(batch.id)}
+                  >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedPrepBatches.includes(batch.id)}
+                          onChange={() => {}}
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-4 w-4 text-blue-600 rounded border-gray-300"
+                        />
                         <button
-                          onClick={() => toggleBatchExpansion(batch.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleBatchExpansion(batch.id);
+                          }}
                           className="p-1 text-gray-400 hover:text-gray-600"
                         >
                           {expandedBatches[batch.id] ? 
@@ -837,76 +903,6 @@ const PrepBatchManagement = () => {
         </div>
       )}
 
-      {/* Create Batch Modal */}
-      {showCreateBatchModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">
-                Create Preparation Batch
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">
-                Complete the details to create a new prep batch with {selectedSamples.length} selected samples
-              </p>
-            </div>
-            <div className="px-6 py-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Analyst Name
-                </label>
-                <input
-                  type="text"
-                  value={batchDetails.analyst}
-                  onChange={(e) => setBatchDetails(prev => ({ ...prev, analyst: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  placeholder="Enter analyst name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Standard Operating Procedure
-                </label>
-                <select
-                  value={batchDetails.sop}
-                  onChange={(e) => setBatchDetails(prev => ({ ...prev, sop: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                >
-                  <option value="">Select SOP</option>
-                  <option value="SOP-CANN-PREP-v3.2">SOP-CANN-PREP-v3.2 - Cannabinoids Sample Preparation</option>
-                  <option value="SOP-CANN-PREP-v3.1">SOP-CANN-PREP-v3.1 - Cannabinoids Sample Preparation (Legacy)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Equipment (Add serial numbers)
-                </label>
-                <div className="text-sm text-gray-600">
-                  Equipment tracking will be implemented in the next iteration
-                </div>
-              </div>
-            </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowCreateBatchModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateBatch}
-                disabled={!batchDetails.analyst || !batchDetails.sop}
-                className={`px-4 py-2 text-sm font-medium rounded-md ${
-                  batchDetails.analyst && batchDetails.sop
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                Create Batch
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Return Samples Modal */}
       {showReturnSamplesModal && returningFromBatch && (

@@ -68,7 +68,8 @@ The preparation batch workflow is critical for maintaining data integrity and tr
 
 1. **Batch Creation Requirements**:
    - Samples must be prepared together under the same Standard Operating Procedure (SOP)
-   - Same analyst must perform all preparations in a batch
+   - SOPs are pipeline-specific (each pipeline represents a unique SOP)
+   - Analyst is automatically set to the logged-in user for audit trail
    - All equipment used must be tracked with serial numbers and calibration dates
    - Preparations should occur at approximately the same time
 
@@ -98,6 +99,11 @@ The preparation batch workflow is critical for maintaining data integrity and tr
    - **Open**: Samples can be added, equipment tracked, actively in preparation
    - **Ready for Analysis**: Locked state, no modifications without override
    - Failsafe mechanisms documented in LIMS_Safeguards_and_Failsafes.md
+
+7. **Analysis Batch Creation**:
+   - Select multiple prep batches from "Pending Analysis"
+   - Create new analysis batch or add to existing
+   - Maintains traceability from prep through analysis
 
 ### Development Notes
 
