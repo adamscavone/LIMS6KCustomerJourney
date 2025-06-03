@@ -150,7 +150,7 @@ const PrepBatchManagement = () => {
       // Shift+click: select range
       const start = Math.min(lastSelectedIndex, sampleIndex);
       const end = Math.max(lastSelectedIndex, sampleIndex);
-      const rangeIds = availableSamplesStateState.slice(start, end + 1).map(s => s.id);
+      const rangeIds = availableSamplesState.slice(start, end + 1).map(s => s.id);
       
       setSelectedSamples(prev => {
         const newSelection = new Set(prev);
