@@ -150,7 +150,7 @@ const App = () => {
         dueDate: today,
         goalDate: today,
         reportingDue: tomorrow,
-        status: 'ready_for_prep',
+        status: 'secondary_review',
         priority: 'rush',
         prepDue: yesterday,
         analysisDue: today
@@ -164,7 +164,7 @@ const App = () => {
         dueDate: today,
         goalDate: today,
         reportingDue: tomorrow,
-        status: 'ready_for_prep',
+        status: 'secondary_review',
         priority: 'rush',
         prepDue: yesterday,
         analysisDue: today
@@ -178,7 +178,7 @@ const App = () => {
         dueDate: today,
         goalDate: today,
         reportingDue: tomorrow,
-        status: 'ready_for_prep',
+        status: 'ready_to_report',
         priority: 'rush',
         prepDue: yesterday,
         analysisDue: today
@@ -192,7 +192,7 @@ const App = () => {
         receivedOn: twoDaysAgo,
         dueDate: today, // Due Today
         goalDate: today,
-        status: 'analysis',
+        status: 'primary_review',
         priority: 'standard',
         prepDue: yesterday,
         analysisDue: today,
@@ -627,18 +627,63 @@ const App = () => {
 
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'ready_for_prep': return 'Ready for Prep';
-      case 'prep': return 'Prep';
-      case 'prepped': return 'Prepped';
-      case 'analysis': return 'Analysis';
-      case 'analyzed': return 'Analyzed';
-      case 'ready_for_review': return 'Ready for Review';
-      case 'ready_for_secondary': return 'Ready for Secondary';
-      case 'micro_in_progress': return 'Micro In Progress';
-      case 'micro_primary_review': return 'Micro Primary Review';
-      case 'micro_secondary_review': return 'Micro Secondary Review';
+      case 'ready_for_prep': return 'Available for Prep';
+      case 'prep': return 'In Prep';
+      case 'prepped': return 'Prep Complete';
+      case 'analysis': return 'On Instrument';
+      case 'analyzed': return 'Awaiting Review';
+      case 'primary_review': return 'Primary Review';
+      case 'secondary_review': return 'Secondary Review';
+      case 'ready_to_report': return 'Ready to Report';
+      case 'reported': return 'Reported';
       default: return status.replace('_', ' ').toUpperCase();
     }
+  };
+
+  const getWorkflowStatusGroup = (status) => {
+    switch (status) {
+      case 'ready_to_report':
+      case 'reported':
+        return 'ready_to_report';
+      case 'secondary_review':
+        return 'secondary_review_pending';
+      case 'primary_review':
+        return 'primary_review_pending';
+      case 'analyzed':
+        return 'awaiting_instrument_data';
+      case 'prepped':
+        return 'prep_complete';
+      case 'prep':
+        return 'in_prep';
+      case 'ready_for_prep':
+        return 'available_for_prep';
+      case 'analysis':
+        return 'on_instrument';
+      default:
+        return 'other';
+    }
+  };
+
+  const workflowStatusOrder = [
+    'ready_to_report',
+    'secondary_review_pending',
+    'primary_review_pending',
+    'awaiting_instrument_data',
+    'on_instrument',
+    'prep_complete',
+    'in_prep',
+    'available_for_prep'
+  ];
+
+  const workflowStatusLabels = {
+    'ready_to_report': 'Ready to Report',
+    'secondary_review_pending': 'Secondary Review Pending',
+    'primary_review_pending': 'Primary Review Pending',
+    'awaiting_instrument_data': 'Awaiting Instrument Data',
+    'on_instrument': 'On Instrument',
+    'prep_complete': 'Prep Complete (Awaiting Batch)',
+    'in_prep': 'In Preparation',
+    'available_for_prep': 'Available for Prep'
   };
 
   const getPriorityColor = (priority) => {
@@ -965,9 +1010,35 @@ const App = () => {
               )}
             </div>
             
-            {/* Order Icon */}
+            {/* Status Summary */}
             <div className="col-span-3 text-center">
-              <Package className="w-3 h-3 text-gray-400 mx-auto" />
+              {(() => {
+                // Count samples by status group
+                const statusCounts = {};
+                order.samples.forEach(sample => {
+                  const group = getWorkflowStatusGroup(sample.status);
+                  statusCounts[group] = (statusCounts[group] || 0) + 1;
+                });
+                
+                // Show the most critical status
+                for (const status of workflowStatusOrder) {
+                  if (statusCounts[status]) {
+                    return (
+                      <span className={`inline-flex items-center px-1.5 py-0.5 text-xs rounded ${
+                        status === 'ready_to_report' ? 'bg-green-100 text-green-800' :
+                        status.includes('review') ? 'bg-blue-100 text-blue-800' :
+                        status.includes('instrument') || status === 'on_instrument' ? 'bg-orange-100 text-orange-800' :
+                        status === 'prep_complete' ? 'bg-purple-100 text-purple-800' :
+                        status === 'in_prep' ? 'bg-indigo-100 text-indigo-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {statusCounts[status]}/{order.samples.length}
+                      </span>
+                    );
+                  }
+                }
+                return null;
+              })()}
             </div>
             
             {/* Action */}
@@ -1394,7 +1465,7 @@ const App = () => {
           {viewModes[assayType] === 'order' ? (
             // Date-based grouping for Order View
             <>
-              {/* Due Today (includes Overdue) */}
+              {/* Due Today (includes Overdue) - Grouped by Status */}
               {ordersByDueDate.dueToday.length > 0 && (
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -1404,14 +1475,65 @@ const App = () => {
                       <span className="text-xs text-gray-500">({ordersByDueDate.dueToday.length} orders)</span>
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    {ordersByDueDate.dueToday.slice(0, 5).map(order => renderOrderRowCompact(order))}
-                    {ordersByDueDate.dueToday.length > 5 && (
-                      <div className="text-xs text-gray-500 text-center py-2">
-                        +{ordersByDueDate.dueToday.length - 5} more orders
-                      </div>
-                    )}
-                  </div>
+                  
+                  {/* Group orders by workflow status */}
+                  {(() => {
+                    const ordersByStatus = {};
+                    
+                    // Group orders by their worst-case sample status
+                    ordersByDueDate.dueToday.forEach(order => {
+                      // Find the earliest workflow status among all samples in the order
+                      let earliestStatus = null;
+                      let earliestIndex = workflowStatusOrder.length;
+                      
+                      order.samples.forEach(sample => {
+                        const statusGroup = getWorkflowStatusGroup(sample.status);
+                        const statusIndex = workflowStatusOrder.indexOf(statusGroup);
+                        if (statusIndex < earliestIndex) {
+                          earliestIndex = statusIndex;
+                          earliestStatus = statusGroup;
+                        }
+                      });
+                      
+                      if (!ordersByStatus[earliestStatus]) {
+                        ordersByStatus[earliestStatus] = [];
+                      }
+                      ordersByStatus[earliestStatus].push(order);
+                    });
+                    
+                    // Render groups in workflow order
+                    return workflowStatusOrder.map(statusGroup => {
+                      if (!ordersByStatus[statusGroup] || ordersByStatus[statusGroup].length === 0) {
+                        return null;
+                      }
+                      
+                      return (
+                        <div key={statusGroup} className="mb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className={`w-2 h-2 rounded-full ${
+                              statusGroup === 'ready_to_report' ? 'bg-green-600' :
+                              statusGroup.includes('review') ? 'bg-blue-600' :
+                              statusGroup.includes('instrument') || statusGroup === 'on_instrument' ? 'bg-orange-600' :
+                              statusGroup === 'prep_complete' ? 'bg-purple-600' :
+                              statusGroup === 'in_prep' ? 'bg-indigo-600' :
+                              'bg-gray-600'
+                            }`}></div>
+                            <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                              {workflowStatusLabels[statusGroup]} ({ordersByStatus[statusGroup].length})
+                            </h5>
+                          </div>
+                          <div className="space-y-1 ml-4">
+                            {ordersByStatus[statusGroup].slice(0, 3).map(order => renderOrderRowCompact(order))}
+                            {ordersByStatus[statusGroup].length > 3 && (
+                              <div className="text-xs text-gray-500 text-center py-1">
+                                +{ordersByStatus[statusGroup].length - 3} more
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }).filter(Boolean);
+                  })()}
                 </div>
               )}
 
