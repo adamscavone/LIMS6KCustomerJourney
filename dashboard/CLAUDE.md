@@ -88,6 +88,17 @@ The preparation batch workflow is critical for maintaining data integrity and tr
    - Users can navigate from any pipeline's "Awaiting Prep" samples to the Prep Batch Management page
    - The "Manage Prep Batches" button appears in each pipeline header
 
+5. **Sample Check-out/Check-in Workflow**:
+   - Samples must be checked out before adding to batches
+   - Check-out creates custody trail
+   - Checked-out samples show lock icon and are disabled for other users
+   - Windows-native multi-select: Ctrl+Click for individual, Shift+Click for range
+
+6. **Batch Status Management**:
+   - **Open**: Samples can be added, equipment tracked, actively in preparation
+   - **Ready for Analysis**: Locked state, no modifications without override
+   - Failsafe mechanisms documented in LIMS_Safeguards_and_Failsafes.md
+
 ### Development Notes
 
 - React Router v6 implemented for navigation between pages
