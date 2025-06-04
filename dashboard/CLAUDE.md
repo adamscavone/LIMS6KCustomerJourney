@@ -68,6 +68,8 @@ Each sample moves through phases: Sample Receipt → Sample Prep → Analysis �
   - `/` - Main dashboard
   - `/prep-batch/:assayType` - Prep batch management
   - `/analysis-batch/:assayType/:batchId` - Analysis batch view
+  - `/analysis-batch/:assayType` - Upload results for instruments
+  - `/secondary-review/:assayType` - Secondary review queue
 - **Navigation**: Seamless flow from dashboard → prep → analysis → review
 - **Mock Data**: Comprehensive dataset with ~73 samples showing all workflow states
 - **No Authentication**: Prototype assumes logged-in user ("Dr. Sarah Chen")
@@ -172,6 +174,51 @@ Each sample moves through phases: Sample Receipt → Sample Prep → Analysis �
 5. **Status Progression**: Samples must follow defined workflow (cannot skip steps)
 6. **Business Days**: All date calculations exclude weekends
 7. **Air Gap Handling**: Explicit workflow for instrument integration and result upload
+
+### Recent Design Decisions (December 2024)
+
+1. **Collapsible Interface**: 
+   - All sections start collapsed by default for cleaner initial view
+   - Date sections (Due Today, Due Tomorrow) are independently collapsible
+   - Workflow status sections have individual expand/collapse controls
+   - Clicking anywhere on the header toggles expansion
+
+2. **Contextual Navigation**:
+   - Removed global "Sample Prep" button from pipeline header
+   - Navigation buttons appear contextually within workflow status sections:
+     - "Sample Prep" button only in "Available for Prep" section
+     - "Upload Results" button in "On Instrument" section
+     - "Review Queue" button in "Secondary Review Pending" section
+   - Each workflow state guides users to the appropriate next action
+
+3. **Confirmation Testing Workflow**:
+   - Samples requiring confirmation (OOS/OOE results) use `needs_confirmation` status
+   - No separate section for confirmations - they appear in "Available for Prep"
+   - Inline "CONF" indicator shows when a sample needs confirmation testing
+   - Tooltip shows reason for confirmation (e.g., "Initial result: 23.5% THC (expected: 18-20%)")
+   - These samples require extra scrutiny and have extended turnaround times
+
+4. **Mixed-Status Order Handling**:
+   - Orders with samples in different statuses appear in multiple workflow sections
+   - Each section shows only the relevant samples from that order
+   - Prevents users from missing samples that need attention
+   - Orders are fully expandable to show all samples regardless of status
+
+5. **Status Terminology Updates**:
+   - Changed "Ready to Report" to "Secondary Review Complete" for clarity
+   - Emphasizes that secondary review is the final quality checkpoint
+   - Better reflects actual laboratory workflow terminology
+
+6. **Visual Hierarchy**:
+   - Removed colored indicator circles from date group headers
+   - Minimal indentation (ml-4) for content within sections
+   - Spindown indicators are small (w-3 h-3) and left-aligned
+   - Clean, professional appearance focused on data density
+
+7. **Eye Icon Removal**:
+   - Removed all eye icons as their purpose was unclear
+   - Simplified interface by removing non-essential UI elements
+   - Future: Consider adding explicit "View Details" text if needed
 
 # Project-Specific Guidelines
 
