@@ -228,3 +228,25 @@ Each sample moves through phases: Sample Receipt → Sample Prep → Analysis �
 4. **Business Logic**: Enforce single analyst per batch, automatic checkout, partial completion
 5. **Navigation Flow**: Dashboard → Prep Batch → Analysis Batch → Review (clear path)
 6. **Air Gap**: Acknowledge and handle the disconnect between LIMS and instruments
+
+### Test Categories and Compliance
+
+**Test Categories** are Ohio Division of Cannabis Control compliance designations that determine which assays/analytes must be reported to Metrc:
+
+- **DPM (Dispensary Plant Material)**: Lab required test batch requiring:
+  - Cannabinoids quantification (11 cannabinoids)
+  - Microbial testing (total yeast/mold, BTGN, etc.)
+  - Pesticide screening
+  - Mycotoxin screening
+  
+- **TERPS**: Customer-requested terpene profiling (not required by state)
+
+- **PPPT (Processed Product Previously Tested)**: Different compliance requirements for previously tested products
+
+- **PPM**: Pesticides/Mycotoxins specific testing
+
+- **NSPNPT (Non-Solvent Product Not Previously Tested)**: Requires different analyte panel than standard DPM
+
+- **R&D VIR**: Research & Development viral testing (HLV, Fusarium, Pythium)
+
+These test categories encode the specific analytes and reporting requirements, similar to foreign keys in a database.

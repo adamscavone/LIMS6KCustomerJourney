@@ -44,9 +44,26 @@ const App = () => {
   };
 
   const getDueDateUrgency = (dueDate) => {
+    if (!dueDate) return { 
+      color: 'text-gray-500', 
+      label: 'No due date',
+      borderClass: 'border-gray-300',
+      bgClass: 'bg-gray-50',
+      icon: null
+    };
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const due = new Date(dueDate);
+    
+    if (isNaN(due.getTime())) return { 
+      color: 'text-gray-500', 
+      label: 'Invalid date',
+      borderClass: 'border-gray-300',
+      bgClass: 'bg-gray-50',
+      icon: null
+    };
+    
     due.setHours(0, 0, 0, 0);
     const diffTime = due - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -131,7 +148,7 @@ const App = () => {
   };
 
   // Get various dates for mock data
-  const today = getCurrentDate();
+  const today = new Date().toISOString().split('T')[0];
   const yesterday = getBusinessDaysAgo(1);
   const twoDaysAgo = getBusinessDaysAgo(2);
   const threeDaysAgo = getBusinessDaysAgo(3);
@@ -140,94 +157,156 @@ const App = () => {
   const threeDaysFromNow = getBusinessDaysFromNow(3);
 
   // Mock data representing realistic sample loads
+  // Updated to align with manifests.csv structure
   const mockSamples = {
     cannabinoids: [
-      // Green Valley Farms - 3 samples in one order (RUSH, Due Today)
+      // King City Gardens - Multiple samples (aligned with CSV manifest structure)
       {
         id: 'S001',
+        ccId: '.14872',
+        limsId: '171747',
         orderId: 'ORD-2024-1156',
-        client: 'Green Valley Farms',
-        sampleName: 'GVF-Indica-Batch-45A',
+        manifestId: '0001268426',
+        client: 'King City Gardens',
+        sampleName: 'Cookie Kush Big Buds',
+        productCategory: 'Bulk Flower/Buds',
+        strain: 'Cookie Kush',
+        packageId: '1A4070300005C31000012260',
+        tests: ['TERPS', 'DPM'],
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         reportingDue: tomorrow,
         status: 'secondary_review',
         priority: 'rush',
         prepDue: yesterday,
-        analysisDue: today
+        analysisDue: today,
+        shippedQuantity: 28.62,
+        thcTarget: '-',
+        cbdTarget: '-'
       },
       {
         id: 'S002',
+        ccId: '.14873',
+        limsId: '171748',
         orderId: 'ORD-2024-1156',
-        client: 'Green Valley Farms',
-        sampleName: 'GVF-Indica-Batch-45B',
+        manifestId: '0001268426',
+        client: 'King City Gardens',
+        sampleName: 'Cookie Kush Small Buds',
+        productCategory: 'Bulk Flower/Buds',
+        strain: 'Cookie Kush',
+        packageId: '1A4070300005C31000012261',
+        tests: ['TERPS', 'DPM'],
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         reportingDue: tomorrow,
         status: 'needs_confirmation',
         priority: 'rush',
         prepDue: yesterday,
         analysisDue: today,
-        notes: 'Initial result: 23.5% THC (expected: 18-20%). Requires confirmation run.'
+        notes: 'Initial result: 23.5% THC (expected: 18-20%). Requires confirmation run.',
+        shippedQuantity: 27.79,
+        thcTarget: '-',
+        cbdTarget: '-'
       },
       {
         id: 'S003',
+        ccId: '.14874',
+        limsId: '171749',
         orderId: 'ORD-2024-1156',
-        client: 'Green Valley Farms',
-        sampleName: 'GVF-Indica-Batch-45C',
+        manifestId: '0001268426',
+        client: 'King City Gardens',
+        sampleName: 'Slurri Crasher Small Buds',
+        productCategory: 'Bulk Flower/Buds',
+        strain: 'Slurri Crasher',
+        packageId: '1A4070300005C31000012262',
+        tests: ['TERPS', 'DPM'],
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         reportingDue: tomorrow,
         status: 'ready_to_report',
         priority: 'rush',
         prepDue: yesterday,
-        analysisDue: today
+        analysisDue: today,
+        shippedQuantity: 6.0,
+        thcTarget: '-',
+        cbdTarget: '-'
       },
-      // Mountain Peak Cannabis - 4 samples across 2 orders
+      // Pure Ohio Wellness - Multiple samples across different tests
       {
         id: 'S004',
+        ccId: '.17367',
+        limsId: '174145',
         orderId: 'ORD-2024-1157',
-        client: 'Mountain Peak Cannabis',
-        sampleName: 'MPC-Sativa-Mix-12',
+        manifestId: '0001273927',
+        client: 'Pure Ohio Wellness',
+        sampleName: 'Raspberry Trophy Wife - Bulk Flower/Buds',
+        productCategory: 'Bulk Flower/Buds',
+        strain: 'Raspberry Trophy Wife',
+        packageId: '1A40703000004B2000004928',
+        tests: ['DPM', 'TERPS'],
         receivedOn: twoDaysAgo,
-        dueDate: today, // Due Today
+        coaDueDate: today,
         goalDate: today,
         status: 'primary_review',
         priority: 'standard',
         prepDue: yesterday,
         analysisDue: today,
-        reportingDue: tomorrow
+        reportingDue: tomorrow,
+        shippedQuantity: 33.85,
+        thcTarget: '-',
+        cbdTarget: '-'
       },
       {
         id: 'S005',
+        ccId: '.17368',
+        limsId: '174146',
         orderId: 'ORD-2024-1157',
-        client: 'Mountain Peak Cannabis',
-        sampleName: 'MPC-Sativa-Mix-13',
+        manifestId: '0001273927',
+        client: 'Pure Ohio Wellness',
+        sampleName: 'First Class Funk - Bulk Flower/Buds',
+        productCategory: 'Bulk Flower/Buds',
+        strain: 'First Class Funk',
+        packageId: '1A40703000004B2000004929',
+        tests: ['DPM', 'TERPS'],
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'analysis',
         priority: 'standard',
         prepDue: yesterday,
         analysisDue: today,
-        reportingDue: tomorrow
+        reportingDue: tomorrow,
+        shippedQuantity: 23.99,
+        thcTarget: '-',
+        cbdTarget: '-'
       },
       {
         id: 'S006',
+        ccId: '.17378',
+        limsId: '174156',
         orderId: 'ORD-2024-1168',
-        client: 'Mountain Peak Cannabis',
-        sampleName: 'MPC-Hybrid-Special-01',
+        manifestId: '0001273927',
+        client: 'Pure Ohio Wellness',
+        sampleName: 'Skunky Jack - Bulk Flower/Buds',
+        productCategory: 'Bulk Flower/Buds',
+        strain: 'Super Skunk x Jack Herer',
+        packageId: '1A40703000004B2000004939',
+        tests: ['MICRO to DPM', 'TERPS'],
         receivedOn: today,
-        dueDate: threeDaysFromNow,
+        coaDueDate: threeDaysFromNow,
         goalDate: twoDaysFromNow,
         status: 'in_prep',
         priority: 'standard',
         prepDue: tomorrow,
         analysisDue: twoDaysFromNow,
-        reportingDue: threeDaysFromNow
+        reportingDue: threeDaysFromNow,
+        shippedQuantity: 24.34,
+        thcTarget: '-',
+        cbdTarget: '-',
+        notes: 'ES'
       },
       {
         id: 'S007',
@@ -235,7 +314,7 @@ const App = () => {
         client: 'Mountain Peak Cannabis',
         sampleName: 'MPC-Hybrid-Special-02',
         receivedOn: today,
-        dueDate: threeDaysFromNow,
+        coaDueDate: threeDaysFromNow,
         goalDate: twoDaysFromNow,
         status: 'in_prep',
         priority: 'standard',
@@ -243,14 +322,14 @@ const App = () => {
         analysisDue: twoDaysFromNow,
         reportingDue: threeDaysFromNow
       },
-      // Urban Harvest Co - 3 samples in one order
+      // Urban Harvest Co - 3 samples in one order (Due Tomorrow)
       {
         id: 'S008',
         orderId: 'ORD-2024-1158',
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-8',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: tomorrow,
         goalDate: today,
         status: 'prepped',
         priority: 'standard',
@@ -264,7 +343,7 @@ const App = () => {
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-9',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: tomorrow,
         goalDate: today,
         status: 'prepped',
         priority: 'standard',
@@ -278,7 +357,7 @@ const App = () => {
         client: 'Urban Harvest Co',
         sampleName: 'UHC-Hybrid-Premium-10',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: tomorrow,
         goalDate: today,
         status: 'prepped',
         priority: 'standard',
@@ -293,7 +372,7 @@ const App = () => {
         client: 'Sunset Gardens',
         sampleName: 'SG-OG-Kush-22',
         receivedOn: threeDaysAgo,
-        dueDate: yesterday, // Overdue
+        coaDueDate: yesterday, // Overdue
         goalDate: twoDaysAgo,
         status: 'ready_for_prep',
         priority: 'rush',
@@ -307,7 +386,7 @@ const App = () => {
         client: 'Sunset Gardens',
         sampleName: 'SG-OG-Kush-23',
         receivedOn: threeDaysAgo,
-        dueDate: yesterday,
+        coaDueDate: yesterday,
         goalDate: twoDaysAgo,
         status: 'ready_for_prep',
         priority: 'rush',
@@ -322,7 +401,7 @@ const App = () => {
         client: 'Pacific Herbs Co',
         sampleName: 'PHC-Blue-Dream-88',
         receivedOn: today,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'analysis',
         priority: 'rush',
@@ -336,7 +415,7 @@ const App = () => {
         client: 'Pacific Herbs Co',
         sampleName: 'PHC-Blue-Dream-89',
         receivedOn: today,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'analyzed',
         priority: 'rush',
@@ -350,7 +429,7 @@ const App = () => {
         client: 'Pacific Herbs Co',
         sampleName: 'PHC-Blue-Dream-90',
         receivedOn: today,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'primary_review',
         priority: 'rush',
@@ -358,16 +437,16 @@ const App = () => {
         analysisDue: today,
         reportingDue: tomorrow
       },
-      // Crystal Gardens - Mixed status order
+      // Crystal Gardens - Mixed status order (Due Tomorrow)
       {
         id: 'S016',
         orderId: 'ORD-2024-1171',
         client: 'Crystal Gardens',
         sampleName: 'CG-Purple-Haze-33',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: tomorrow,
         goalDate: today,
-        status: 'prepped',
+        status: 'ready_for_prep',
         priority: 'standard',
         prepDue: today,
         analysisDue: tomorrow,
@@ -379,9 +458,9 @@ const App = () => {
         client: 'Crystal Gardens',
         sampleName: 'CG-Purple-Haze-34',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: tomorrow,
         goalDate: today,
-        status: 'analysis',
+        status: 'in_prep',
         priority: 'standard',
         prepDue: today,
         analysisDue: tomorrow,
@@ -393,7 +472,7 @@ const App = () => {
         client: 'Crystal Gardens',
         sampleName: 'CG-Purple-Haze-35',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: tomorrow,
         goalDate: today,
         status: 'analyzed',
         priority: 'standard',
@@ -408,7 +487,7 @@ const App = () => {
         client: 'Organic Labs',
         sampleName: 'OL-Diesel-44',
         receivedOn: today,
-        dueDate: threeDaysFromNow,
+        coaDueDate: threeDaysFromNow,
         goalDate: twoDaysFromNow,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -422,7 +501,7 @@ const App = () => {
         client: 'Organic Labs',
         sampleName: 'OL-Diesel-45',
         receivedOn: today,
-        dueDate: threeDaysFromNow,
+        coaDueDate: threeDaysFromNow,
         goalDate: twoDaysFromNow,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -436,7 +515,7 @@ const App = () => {
         client: 'Organic Labs',
         sampleName: 'OL-Diesel-46',
         receivedOn: today,
-        dueDate: threeDaysFromNow,
+        coaDueDate: threeDaysFromNow,
         goalDate: twoDaysFromNow,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -450,7 +529,7 @@ const App = () => {
         client: 'Organic Labs',
         sampleName: 'OL-Diesel-47',
         receivedOn: today,
-        dueDate: threeDaysFromNow,
+        coaDueDate: threeDaysFromNow,
         goalDate: twoDaysFromNow,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -465,7 +544,7 @@ const App = () => {
         client: 'Emerald Fields',
         sampleName: 'EF-Gorilla-Glue-01',
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'secondary_review',
         priority: 'standard',
@@ -479,7 +558,7 @@ const App = () => {
         client: 'Emerald Fields',
         sampleName: 'EF-Gorilla-Glue-02',
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'secondary_review',
         priority: 'standard',
@@ -493,7 +572,7 @@ const App = () => {
         client: 'Emerald Fields',
         sampleName: 'EF-Gorilla-Glue-03',
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'ready_to_report',
         priority: 'standard',
@@ -508,7 +587,7 @@ const App = () => {
         client: 'Northern Lights',
         sampleName: 'NL-Amnesia-Haze-11',
         receivedOn: yesterday,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'ready_to_report',
         priority: 'standard',
@@ -522,7 +601,7 @@ const App = () => {
         client: 'Northern Lights',
         sampleName: 'NL-Amnesia-Haze-12',
         receivedOn: yesterday,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'ready_to_report',
         priority: 'standard',
@@ -536,7 +615,7 @@ const App = () => {
         client: 'Northern Lights',
         sampleName: 'NL-Amnesia-Haze-13',
         receivedOn: yesterday,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'ready_to_report',
         priority: 'standard',
@@ -550,7 +629,7 @@ const App = () => {
         client: 'Northern Lights',
         sampleName: 'NL-Amnesia-Haze-14',
         receivedOn: yesterday,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'ready_to_report',
         priority: 'standard',
@@ -564,7 +643,7 @@ const App = () => {
         client: 'Northern Lights',
         sampleName: 'NL-Amnesia-Haze-15',
         receivedOn: yesterday,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'ready_to_report',
         priority: 'standard',
@@ -581,7 +660,7 @@ const App = () => {
         client: 'Coastal Cannabis',
         sampleName: 'CC-Terpene-Profile-A',
         receivedOn: yesterday,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -595,7 +674,7 @@ const App = () => {
         client: 'Coastal Cannabis',
         sampleName: 'CC-Terpene-Profile-B',
         receivedOn: yesterday,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -610,7 +689,7 @@ const App = () => {
         client: 'Desert Bloom',
         sampleName: 'DB-Myrcene-Study-3',
         receivedOn: today,
-        dueDate: twoDaysFromNow,
+        coaDueDate: twoDaysFromNow,
         goalDate: tomorrow,
         status: 'in_prep',
         priority: 'standard',
@@ -624,7 +703,7 @@ const App = () => {
         client: 'Desert Bloom',
         sampleName: 'DB-Myrcene-Study-4',
         receivedOn: today,
-        dueDate: twoDaysFromNow,
+        coaDueDate: twoDaysFromNow,
         goalDate: tomorrow,
         status: 'in_prep',
         priority: 'standard',
@@ -638,7 +717,7 @@ const App = () => {
         client: 'Desert Bloom',
         sampleName: 'DB-Myrcene-Study-5',
         receivedOn: today,
-        dueDate: twoDaysFromNow,
+        coaDueDate: twoDaysFromNow,
         goalDate: tomorrow,
         status: 'in_prep',
         priority: 'standard',
@@ -653,7 +732,7 @@ const App = () => {
         client: 'Alpine Terps Co',
         sampleName: 'ATC-Limonene-Test-01',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -667,7 +746,7 @@ const App = () => {
         client: 'Alpine Terps Co',
         sampleName: 'ATC-Limonene-Test-02',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -682,7 +761,7 @@ const App = () => {
         client: 'Terpene Masters',
         sampleName: 'TM-Pinene-Study-01',
         receivedOn: threeDaysAgo,
-        dueDate: yesterday,
+        coaDueDate: yesterday,
         goalDate: twoDaysAgo,
         status: 'ready_for_prep',
         priority: 'rush',
@@ -696,7 +775,7 @@ const App = () => {
         client: 'Terpene Masters',
         sampleName: 'TM-Pinene-Study-02',
         receivedOn: threeDaysAgo,
-        dueDate: yesterday,
+        coaDueDate: yesterday,
         goalDate: twoDaysAgo,
         status: 'ready_for_prep',
         priority: 'rush',
@@ -710,7 +789,7 @@ const App = () => {
         client: 'Terpene Masters',
         sampleName: 'TM-Pinene-Study-03',
         receivedOn: threeDaysAgo,
-        dueDate: yesterday,
+        coaDueDate: yesterday,
         goalDate: twoDaysAgo,
         status: 'ready_for_prep',
         priority: 'rush',
@@ -725,7 +804,7 @@ const App = () => {
         client: 'Essence Labs',
         sampleName: 'EL-Terpinolene-Mix-A',
         receivedOn: yesterday,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'analysis',
         priority: 'standard',
@@ -739,7 +818,7 @@ const App = () => {
         client: 'Essence Labs',
         sampleName: 'EL-Terpinolene-Mix-B',
         receivedOn: yesterday,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'analyzed',
         priority: 'standard',
@@ -753,7 +832,7 @@ const App = () => {
         client: 'Essence Labs',
         sampleName: 'EL-Terpinolene-Mix-C',
         receivedOn: yesterday,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'primary_review',
         priority: 'standard',
@@ -768,7 +847,7 @@ const App = () => {
         client: 'Flavor Sciences',
         sampleName: 'FS-Caryophyllene-01',
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'secondary_review',
         priority: 'standard',
@@ -782,7 +861,7 @@ const App = () => {
         client: 'Flavor Sciences',
         sampleName: 'FS-Caryophyllene-02',
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'ready_to_report',
         priority: 'standard',
@@ -797,7 +876,7 @@ const App = () => {
         client: 'Aromatic Research',
         sampleName: 'AR-Humulene-Test-X1',
         receivedOn: today,
-        dueDate: twoDaysFromNow,
+        coaDueDate: twoDaysFromNow,
         goalDate: tomorrow,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -811,7 +890,7 @@ const App = () => {
         client: 'Aromatic Research',
         sampleName: 'AR-Humulene-Test-X2',
         receivedOn: today,
-        dueDate: twoDaysFromNow,
+        coaDueDate: twoDaysFromNow,
         goalDate: tomorrow,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -825,7 +904,7 @@ const App = () => {
         client: 'Aromatic Research',
         sampleName: 'AR-Humulene-Test-X3',
         receivedOn: today,
-        dueDate: twoDaysFromNow,
+        coaDueDate: twoDaysFromNow,
         goalDate: tomorrow,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -840,7 +919,7 @@ const App = () => {
         client: 'Scent Dynamics',
         sampleName: 'SD-Linalool-Batch-01',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'in_prep',
         priority: 'standard',
@@ -854,7 +933,7 @@ const App = () => {
         client: 'Scent Dynamics',
         sampleName: 'SD-Linalool-Batch-02',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'in_prep',
         priority: 'standard',
@@ -868,7 +947,7 @@ const App = () => {
         client: 'Scent Dynamics',
         sampleName: 'SD-Linalool-Batch-03',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'prepped',
         priority: 'standard',
@@ -882,7 +961,7 @@ const App = () => {
         client: 'Scent Dynamics',
         sampleName: 'SD-Linalool-Batch-04',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'prepped',
         priority: 'standard',
@@ -896,7 +975,7 @@ const App = () => {
         client: 'Scent Dynamics',
         sampleName: 'SD-Linalool-Batch-05',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'prepped',
         priority: 'standard',
@@ -906,77 +985,137 @@ const App = () => {
       }
     ],
     pesticides: [
-      // Pure Labs Testing - 4 samples across 2 orders
+      // Sun Theory Ohio - Concentrate and Edible samples
       {
         id: 'P001',
+        ccId: '.15009',
+        limsId: '171884',
         orderId: 'ORD-2024-1161',
-        client: 'Pure Labs Testing',
-        sampleName: 'PLT-Residue-Screen-19',
+        manifestId: '0001268929',
+        client: 'Sun Theory Ohio, LLC',
+        sampleName: 'Bulk Sativa Rosin',
+        productCategory: 'Bulk Concentrate',
+        strain: '',
+        packageId: '1A4070300002D51000001706',
+        tests: ['TERPS', 'NSPNPT'],
         receivedOn: threeDaysAgo,
-        dueDate: yesterday, // Overdue
+        coaDueDate: yesterday, // Overdue
         goalDate: twoDaysAgo,
         status: 'ready_for_prep',
         priority: 'rush',
         prepDue: yesterday,
         analysisDue: today,
-        reportingDue: tomorrow
+        reportingDue: tomorrow,
+        shippedQuantity: 4.2,
+        grossWeight: null,
+        notes: 'Blind Duplicate Concentrate',
+        thcTarget: 'Blind DUP',
+        cbdTarget: '-'
       },
       {
         id: 'P002',
+        ccId: '.15010',
+        limsId: '171913',
         orderId: 'ORD-2024-1161',
-        client: 'Pure Labs Testing',
-        sampleName: 'PLT-Residue-Screen-20',
+        manifestId: '0001268929',
+        client: 'Sun Theory Ohio, LLC',
+        sampleName: 'Bulk Indica Gummy',
+        productCategory: 'Bulk Edible',
+        strain: '',
+        packageId: '1A4070300002D51000001707',
+        tests: ['PPPT'],
         receivedOn: threeDaysAgo,
-        dueDate: yesterday,
+        coaDueDate: yesterday,
         goalDate: twoDaysAgo,
         status: 'ready_for_prep',
         priority: 'rush',
         prepDue: yesterday,
         analysisDue: today,
-        reportingDue: tomorrow
+        reportingDue: tomorrow,
+        shippedQuantity: 10.0,
+        grossWeight: 59.51,
+        notes: '',
+        thcTarget: '1.67 mg/g',
+        cbdTarget: '-'
       },
       {
         id: 'P003',
+        ccId: '.16872',
+        limsId: '173649',
         orderId: 'ORD-2024-1170',
-        client: 'Pure Labs Testing',
-        sampleName: 'PLT-Mycotoxin-Test-01',
+        manifestId: '0001273022',
+        client: 'King City Gardens',
+        sampleName: 'Shake/Trim',
+        productCategory: 'Shake/Trim',
+        strain: '',
+        packageId: '1A4070300005C31000012379',
+        tests: ['PPM'],
         receivedOn: twoDaysAgo,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'prepped',
         priority: 'standard',
         prepDue: today,
         analysisDue: tomorrow,
-        reportingDue: twoDaysFromNow
+        reportingDue: twoDaysFromNow,
+        shippedQuantity: 52.15,
+        grossWeight: null,
+        notes: '',
+        thcTarget: '-',
+        cbdTarget: '-'
       },
       {
         id: 'P004',
+        ccId: '.17671',
+        limsId: '174449',
         orderId: 'ORD-2024-1170',
-        client: 'Pure Labs Testing',
-        sampleName: 'PLT-Mycotoxin-Test-02',
+        manifestId: '0001273936',
+        client: 'Pure Ohio Wellness',
+        sampleName: 'Tincture Oral Admin -22-0-30-Mint RSO',
+        productCategory: 'Tinctures for Oral Administration',
+        strain: '',
+        packageId: '1A4070300001E79000011011',
+        tests: ['PPPT'],
         receivedOn: twoDaysAgo,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'prepped',
         priority: 'standard',
         prepDue: today,
         analysisDue: tomorrow,
-        reportingDue: twoDaysFromNow
+        reportingDue: twoDaysFromNow,
+        shippedQuantity: 1.0,
+        grossWeight: 30.0,
+        notes: '22 mg/g Tincture',
+        thcTarget: '22 mg/g',
+        cbdTarget: '-'
       },
-      // Valley Testing - 1 sample (Due business day after tomorrow)
+      // Vaporization product
       {
         id: 'P005',
+        ccId: '.17672',
+        limsId: '174450',
         orderId: 'ORD-2024-1172',
-        client: 'Valley Testing Lab',
-        sampleName: 'VTL-Heavy-Metals-01',
+        manifestId: '0001273936',
+        client: 'Pure Ohio Wellness',
+        sampleName: 'Oil or Sol Vap 10-70 Cranberry Kush Pod',
+        productCategory: 'Metered Oil or Solid for Vaporization',
+        strain: '',
+        packageId: '1A4070300001E79000011012',
+        tests: ['TERPS', 'PPPT'],
         receivedOn: today,
-        dueDate: twoDaysFromNow,
+        coaDueDate: twoDaysFromNow,
         goalDate: tomorrow,
         status: 'ready_for_prep',
         priority: 'standard',
         prepDue: tomorrow,
         analysisDue: twoDaysFromNow,
-        reportingDue: threeDaysFromNow
+        reportingDue: threeDaysFromNow,
+        shippedQuantity: 4.2,
+        grossWeight: null,
+        notes: '70-77% Concentrate',
+        thcTarget: '70-77%',
+        cbdTarget: '-'
       },
       // Additional comprehensive test data for various states
       
@@ -987,7 +1126,7 @@ const App = () => {
         client: 'High Priority Labs',
         sampleName: 'HPL-Critical-01',
         receivedOn: threeDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: yesterday,
         status: 'ready_for_prep',
         priority: 'rush',
@@ -1001,7 +1140,7 @@ const App = () => {
         client: 'High Priority Labs',
         sampleName: 'HPL-Critical-02',
         receivedOn: threeDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: yesterday,
         status: 'in_prep',
         priority: 'rush',
@@ -1015,7 +1154,7 @@ const App = () => {
         client: 'High Priority Labs',
         sampleName: 'HPL-Critical-03',
         receivedOn: threeDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: yesterday,
         status: 'in_prep',
         priority: 'rush',
@@ -1031,7 +1170,7 @@ const App = () => {
         client: 'Botanical Sciences Inc',
         sampleName: 'BSI-Pesticide-Panel-A1',
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'ready_to_report',
         priority: 'standard',
@@ -1045,7 +1184,7 @@ const App = () => {
         client: 'Botanical Sciences Inc',
         sampleName: 'BSI-Pesticide-Panel-A2',
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'secondary_review',
         priority: 'standard',
@@ -1059,7 +1198,7 @@ const App = () => {
         client: 'Botanical Sciences Inc',
         sampleName: 'BSI-Pesticide-Panel-A3',
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'primary_review',
         priority: 'standard',
@@ -1073,7 +1212,7 @@ const App = () => {
         client: 'Botanical Sciences Inc',
         sampleName: 'BSI-Pesticide-Panel-A4',
         receivedOn: twoDaysAgo,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'analyzed',
         priority: 'standard',
@@ -1089,7 +1228,7 @@ const App = () => {
         client: 'Green Thumb Gardens',
         sampleName: 'GTG-Overdue-01',
         receivedOn: getBusinessDaysAgo(5),
-        dueDate: twoDaysAgo,
+        coaDueDate: twoDaysAgo,
         goalDate: threeDaysAgo,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -1103,7 +1242,7 @@ const App = () => {
         client: 'Green Thumb Gardens',
         sampleName: 'GTG-Overdue-02',
         receivedOn: getBusinessDaysAgo(5),
-        dueDate: twoDaysAgo,
+        coaDueDate: twoDaysAgo,
         goalDate: threeDaysAgo,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -1119,7 +1258,7 @@ const App = () => {
         client: 'Tomorrow Testing Co',
         sampleName: 'TTC-Tomorrow-01',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'prepped',
         priority: 'standard',
@@ -1133,7 +1272,7 @@ const App = () => {
         client: 'Tomorrow Testing Co',
         sampleName: 'TTC-Tomorrow-02',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'analysis',
         priority: 'standard',
@@ -1147,7 +1286,7 @@ const App = () => {
         client: 'Tomorrow Testing Co',
         sampleName: 'TTC-Tomorrow-03',
         receivedOn: yesterday,
-        dueDate: tomorrow,
+        coaDueDate: twoDaysFromNow,
         goalDate: today,
         status: 'analyzed',
         priority: 'standard',
@@ -1163,7 +1302,7 @@ const App = () => {
         client: 'Complex Lab Services',
         sampleName: 'CLS-Multi-01',
         receivedOn: today,
-        dueDate: twoDaysFromNow,
+        coaDueDate: twoDaysFromNow,
         goalDate: tomorrow,
         status: 'ready_for_prep',
         priority: 'standard',
@@ -1177,7 +1316,7 @@ const App = () => {
         client: 'Complex Lab Services',
         sampleName: 'CLS-Rush-01',
         receivedOn: today,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'in_prep',
         priority: 'rush',
@@ -1191,7 +1330,7 @@ const App = () => {
         client: 'Complex Lab Services',
         sampleName: 'CLS-Rush-02',
         receivedOn: today,
-        dueDate: today,
+        coaDueDate: today,
         goalDate: today,
         status: 'prepped',
         priority: 'rush',
@@ -1486,8 +1625,8 @@ const App = () => {
   const sortSamplesByPriority = (samples) => {
     return [...samples].sort((a, b) => {
       // First by due date urgency
-      const urgencyA = getDueDateUrgency(a.dueDate);
-      const urgencyB = getDueDateUrgency(b.dueDate);
+      const urgencyA = getDueDateUrgency(a.coaDueDate);
+      const urgencyB = getDueDateUrgency(b.coaDueDate);
       
       if (urgencyA.label === 'OVERDUE' && urgencyB.label !== 'OVERDUE') return -1;
       if (urgencyB.label === 'OVERDUE' && urgencyA.label !== 'OVERDUE') return 1;
@@ -1510,7 +1649,7 @@ const App = () => {
           orderId: sample.orderId,
           client: sample.client,
           samples: [],
-          earliestDueDate: sample.dueDate,
+          earliestDueDate: sample.coaDueDate,
           highestPriority: sample.priority,
           overallStatus: sample.status,
           receivedOn: sample.receivedOn
@@ -1519,8 +1658,8 @@ const App = () => {
       acc[sample.orderId].samples.push(sample);
       
       // Update order-level metadata
-      if (new Date(sample.dueDate) < new Date(acc[sample.orderId].earliestDueDate)) {
-        acc[sample.orderId].earliestDueDate = sample.dueDate;
+      if (new Date(sample.coaDueDate) < new Date(acc[sample.orderId].earliestDueDate)) {
+        acc[sample.orderId].earliestDueDate = sample.coaDueDate;
       }
       if (sample.priority === 'rush') {
         acc[sample.orderId].highestPriority = 'rush';
@@ -1634,7 +1773,7 @@ const App = () => {
                     const sample = allSamples.find(s => s.id === sampleId);
                     if (!sample) return null;
                     
-                    const urgency = getDueDateUrgency(sample.dueDate);
+                    const urgency = getDueDateUrgency(sample.coaDueDate);
                     const priorityColor = getPriorityColor(sample.priority);
                     const priorityLabel = getPriorityLabel(sample.priority);
                     
@@ -1752,17 +1891,8 @@ const App = () => {
               </p>
             </div>
             
-            {/* Due Date */}
+            {/* Due Date - removed redundant chips since orders are already grouped by date */}
             <div className="col-span-5 text-right">
-              {urgency.label !== 'TODAY' && (
-                <div className={`inline-flex items-center space-x-1 px-1.5 py-0.5 rounded border ${urgency.borderClass} ${urgency.bgClass}`}>
-                  {urgency.icon === 'alert' && <AlertCircle className="w-3 h-3" />}
-                  {urgency.icon === 'tomorrow' && <CalendarDays className="w-3 h-3" />}
-                  <span className={`text-xs ${urgency.color}`}>
-                    {urgency.label}
-                  </span>
-                </div>
-              )}
             </div>
             
             {/* Action */}
@@ -1781,7 +1911,7 @@ const App = () => {
                     {sample.sampleName}
                   </div>
                   <div className="col-span-5 text-right text-gray-500">
-                    Due: {sample.dueDate}
+                    Due: {sample.coaDueDate}
                   </div>
                 </div>
               </div>
@@ -1793,7 +1923,7 @@ const App = () => {
   };
 
   const renderSampleRow = (sample, isNested = false) => {
-    const urgency = getDueDateUrgency(sample.dueDate);
+    const urgency = getDueDateUrgency(sample.coaDueDate);
     const indentClass = isNested ? 'ml-6 border-l-2 border-gray-200 pl-4' : '';
     const priorityColor = getPriorityColor(sample.priority);
     const priorityLabel = getPriorityLabel(sample.priority);
@@ -1804,11 +1934,16 @@ const App = () => {
           {/* Column 1-6: Sample Name and Client (flexible) */}
           <div className="col-span-6 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">
-              {sample.sampleName}
+              {sample.sampleName} {sample.limsId && <span className="text-xs text-gray-400">({sample.limsId})</span>}
             </p>
             <p className="text-sm text-gray-500 truncate">
-              {sample.client} • Received: {new Date(sample.receivedOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {sample.client} • {sample.productCategory || 'Bulk Flower/Buds'} • Received: {new Date(sample.receivedOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </p>
+            {sample.tests && (
+              <p className="text-xs text-gray-400">
+                Tests: {sample.tests.join(', ')}
+              </p>
+            )}
           </div>
           
           {/* Column 7: Priority Chip (fixed narrow column) */}
@@ -2104,7 +2239,7 @@ const App = () => {
     
     const ordersByDueDate = viewModes[assayType] === 'order' ? (() => {
       const orders = groupSamplesByOrder(allSamples);
-      const today = getCurrentDate();
+      const today = new Date().toISOString().split('T')[0];
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const tomorrowStr = tomorrow.toISOString().split('T')[0];
@@ -2250,7 +2385,7 @@ const App = () => {
                               {statusGroup === 'on_instrument' && (
                                 <button
                                   onClick={() => navigate(`/analysis-batch/${assayType}`)}
-                                  className="w-full px-2 py-1 bg-orange-600 text-white rounded text-xs font-medium hover:bg-orange-700 transition-colors"
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
                                 >
                                   Upload Results
                                 </button>
@@ -2258,7 +2393,7 @@ const App = () => {
                               {statusGroup === 'secondary_review_pending' && (
                                 <button
                                   onClick={() => navigate(`/secondary-review/${assayType}`)}
-                                  className="w-full px-2 py-1 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 transition-colors"
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
                                 >
                                   Review Queue
                                 </button>
@@ -2298,38 +2433,154 @@ const App = () => {
                       <span className="text-xs text-gray-500">({ordersByDueDate.dueTomorrow.length} orders)</span>
                     </div>
                   </button>
-                  {expandedDateSections[`${assayType}-dueTomorrow`] && (
-                    <div className="space-y-1">
-                      {ordersByDueDate.dueTomorrow.slice(0, 5).map(order => renderOrderRowCompact(order))}
-                      {ordersByDueDate.dueTomorrow.length > 5 && (
-                        <div className="text-xs text-gray-500 text-center py-2">
-                          +{ordersByDueDate.dueTomorrow.length - 5} more orders
+                  {/* Group orders by workflow status */}
+                  {expandedDateSections[`${assayType}-dueTomorrow`] && (() => {
+                    const ordersByStatus = {};
+                    
+                    // Group orders by their worst-case sample status
+                    ordersByDueDate.dueTomorrow.forEach(order => {
+                      // Find the most critical (earliest in workflow) status among all samples in the order
+                      let mostCriticalStatus = null;
+                      let mostCriticalIndex = workflowStatusOrder.length;
+                      
+                      order.samples.forEach(sample => {
+                        const statusGroup = getWorkflowStatusGroup(sample.status);
+                        const statusIndex = workflowStatusOrder.indexOf(statusGroup);
+                        if (statusIndex < mostCriticalIndex) {
+                          mostCriticalIndex = statusIndex;
+                          mostCriticalStatus = statusGroup;
+                        }
+                      });
+                      
+                      if (!ordersByStatus[mostCriticalStatus]) {
+                        ordersByStatus[mostCriticalStatus] = [];
+                      }
+                      ordersByStatus[mostCriticalStatus].push(order);
+                    });
+                    
+                    // Render groups in workflow order
+                    return workflowStatusOrder.map(statusGroup => {
+                      if (!ordersByStatus[statusGroup] || ordersByStatus[statusGroup].length === 0) {
+                        return null;
+                      }
+                      
+                      const isExpanded = expandedWorkflowStatuses[`${assayType}-${statusGroup}`] === true;
+                      
+                      return (
+                        <div key={statusGroup} className="mb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <button
+                              onClick={() => toggleWorkflowStatusExpansion(assayType, statusGroup)}
+                              className="flex items-center space-x-1 text-left hover:text-gray-900"
+                            >
+                              {isExpanded ? 
+                                <ChevronDown className="w-3 h-3 text-gray-400" /> : 
+                                <ChevronRight className="w-3 h-3 text-gray-400" />
+                              }
+                              <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                {workflowStatusLabels[statusGroup]} ({ordersByStatus[statusGroup].length})
+                              </h5>
+                            </button>
+                          </div>
+                          {isExpanded && (
+                            <div className="ml-4 space-y-1">
+                              {ordersByStatus[statusGroup].slice(0, 3).map(order => renderOrderRowCompact(order))}
+                              {ordersByStatus[statusGroup].length > 3 && (
+                                <div className="text-xs text-gray-500 text-center py-1">
+                                  +{ordersByStatus[statusGroup].length - 3} more
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  )}
+                      );
+                    }).filter(Boolean);
+                  })()}
                 </div>
               )}
 
               {/* Due Day After Tomorrow */}
               {ordersByDueDate.dueDayAfter.length > 0 && (
                 <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
+                  <button
+                    onClick={() => toggleDateSectionExpansion(assayType, 'dueDayAfter')}
+                    className="flex items-center justify-between mb-3 w-full text-left hover:text-gray-900"
+                  >
                     <div className="flex items-center space-x-2">
+                      {expandedDateSections[`${assayType}-dueDayAfter`] ? 
+                        <ChevronDown className="w-4 h-4 text-gray-400" /> : 
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      }
                       <h4 className="text-sm font-semibold text-gray-900">
                         Due {new Date(getBusinessDayAfterTomorrow()).toLocaleDateString('en-US', { weekday: 'long' })}
                       </h4>
                       <span className="text-xs text-gray-500">({ordersByDueDate.dueDayAfter.length} orders)</span>
                     </div>
-                  </div>
-                  <div className="space-y-1">
-                    {ordersByDueDate.dueDayAfter.slice(0, 5).map(order => renderOrderRowCompact(order))}
-                    {ordersByDueDate.dueDayAfter.length > 5 && (
-                      <div className="text-xs text-gray-500 text-center py-2">
-                        +{ordersByDueDate.dueDayAfter.length - 5} more orders
-                      </div>
-                    )}
-                  </div>
+                  </button>
+                  
+                  {/* Group orders by workflow status */}
+                  {expandedDateSections[`${assayType}-dueDayAfter`] && (() => {
+                    const ordersByStatus = {};
+                    
+                    // Group orders by their worst-case sample status
+                    ordersByDueDate.dueDayAfter.forEach(order => {
+                      // Find the most critical (earliest in workflow) status among all samples in the order
+                      let mostCriticalStatus = null;
+                      let mostCriticalIndex = workflowStatusOrder.length;
+                      
+                      order.samples.forEach(sample => {
+                        const statusGroup = getWorkflowStatusGroup(sample.status);
+                        const statusIndex = workflowStatusOrder.indexOf(statusGroup);
+                        if (statusIndex < mostCriticalIndex) {
+                          mostCriticalIndex = statusIndex;
+                          mostCriticalStatus = statusGroup;
+                        }
+                      });
+                      
+                      if (!ordersByStatus[mostCriticalStatus]) {
+                        ordersByStatus[mostCriticalStatus] = [];
+                      }
+                      ordersByStatus[mostCriticalStatus].push(order);
+                    });
+                    
+                    // Render groups in workflow order
+                    return workflowStatusOrder.map(statusGroup => {
+                      if (!ordersByStatus[statusGroup] || ordersByStatus[statusGroup].length === 0) {
+                        return null;
+                      }
+                      
+                      const isExpanded = expandedWorkflowStatuses[`${assayType}-${statusGroup}`] === true;
+                      
+                      return (
+                        <div key={statusGroup} className="mb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <button
+                              onClick={() => toggleWorkflowStatusExpansion(assayType, statusGroup)}
+                              className="flex items-center space-x-1 text-left hover:text-gray-900"
+                            >
+                              {isExpanded ? 
+                                <ChevronDown className="w-3 h-3 text-gray-400" /> : 
+                                <ChevronRight className="w-3 h-3 text-gray-400" />
+                              }
+                              <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                {workflowStatusLabels[statusGroup]} ({ordersByStatus[statusGroup].length})
+                              </h5>
+                            </button>
+                          </div>
+                          {isExpanded && (
+                            <div className="ml-4 space-y-1">
+                              {ordersByStatus[statusGroup].slice(0, 3).map(order => renderOrderRowCompact(order))}
+                              {ordersByStatus[statusGroup].length > 3 && (
+                                <div className="text-xs text-gray-500 text-center py-1">
+                                  +{ordersByStatus[statusGroup].length - 3} more
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }).filter(Boolean);
+                  })()}
                 </div>
               )}
             </>
@@ -2344,6 +2595,12 @@ const App = () => {
                       <h4 className="text-sm font-semibold text-gray-900">Awaiting Prep</h4>
                       <span className="text-xs text-gray-500">({samplesByPhase.prepNeeded.length})</span>
                     </div>
+                    <button
+                      onClick={() => navigate(`/prep-batch/${assayType}`)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Sample Prep
+                    </button>
                   </div>
                   <div className="space-y-1">
                     {sortSamplesByPriority(samplesByPhase.prepNeeded).slice(0, 3).map(sample => 
@@ -2366,6 +2623,12 @@ const App = () => {
                       <h4 className="text-sm font-semibold text-gray-900">Checked Out for Prep</h4>
                       <span className="text-xs text-gray-500">({samplesByPhase.inProgress.length})</span>
                     </div>
+                    <button
+                      onClick={() => navigate(`/prep-batch/${assayType}`)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Manage Batches
+                    </button>
                   </div>
                   <div className="space-y-1">
                     {sortSamplesByPriority(samplesByPhase.inProgress).slice(0, 3).map(sample => 
@@ -2388,6 +2651,12 @@ const App = () => {
                       <h4 className="text-sm font-semibold text-gray-900">Ready for Analysis</h4>
                       <span className="text-xs text-gray-500">({samplesByPhase.readyForBatch.length})</span>
                     </div>
+                    <button
+                      onClick={() => navigate(`/analysis-batch/${assayType}`)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Create Analysis Batch
+                    </button>
                   </div>
                   <div className="space-y-1">
                     {sortSamplesByPriority(samplesByPhase.readyForBatch).slice(0, 3).map(sample => 
@@ -2410,9 +2679,43 @@ const App = () => {
                       <h4 className="text-sm font-semibold text-gray-900">On Instrument</h4>
                       <span className="text-xs text-gray-500">({analyticalBatches.length})</span>
                     </div>
+                    <button
+                      onClick={() => navigate(`/analysis-batch/${assayType}`)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Upload Results
+                    </button>
                   </div>
                   <div className="space-y-2">
                     {analyticalBatches.map(batch => renderAnalyticalBatch(batch, allSamples))}
+                  </div>
+                </div>
+              )}
+
+              {/* Awaiting Instrument Data */}
+              {samplesByPhase.dataReady.length > 0 && (
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="text-sm font-semibold text-gray-900">Awaiting Instrument Data</h4>
+                      <span className="text-xs text-gray-500">({samplesByPhase.dataReady.length})</span>
+                    </div>
+                    <button
+                      onClick={() => navigate(`/primary-review/${assayType}`)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Review Queue
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {sortSamplesByPriority(samplesByPhase.dataReady).slice(0, 3).map(sample => 
+                      renderSampleRowCompact(sample)
+                    )}
+                    {samplesByPhase.dataReady.length > 3 && (
+                      <div className="text-xs text-gray-500 text-center py-2">
+                        +{samplesByPhase.dataReady.length - 3} more samples
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
