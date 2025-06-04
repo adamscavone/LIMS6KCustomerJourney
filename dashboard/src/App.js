@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Eye, BarChart3, Calendar, Beaker, Grid, List, Package, FlaskConical, Building2, AlertCircle, CalendarDays, CalendarClock, ArrowRight } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, BarChart3, Calendar, Beaker, Grid, List, Package, FlaskConical, Building2, AlertCircle, CalendarDays, CalendarClock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const App = () => {
@@ -7,6 +7,8 @@ const App = () => {
   const [expandedBatches, setExpandedBatches] = useState({});
   const [expandedOrders, setExpandedOrders] = useState({});
   const [expandedDPMCustomers, setExpandedDPMCustomers] = useState({});
+  const [expandedWorkflowStatuses, setExpandedWorkflowStatuses] = useState({});
+  const [expandedDateSections, setExpandedDateSections] = useState({});
   const [viewModes, setViewModes] = useState({
     cannabinoids: 'order',
     terpenes: 'order',
@@ -164,10 +166,11 @@ const App = () => {
         dueDate: today,
         goalDate: today,
         reportingDue: tomorrow,
-        status: 'secondary_review',
+        status: 'needs_confirmation',
         priority: 'rush',
         prepDue: yesterday,
-        analysisDue: today
+        analysisDue: today,
+        notes: 'Initial result: 23.5% THC (expected: 18-20%). Requires confirmation run.'
       },
       {
         id: 'S003',
@@ -1357,6 +1360,7 @@ const App = () => {
       case 'micro_in_progress': return 'bg-pink-100 text-pink-800';
       case 'micro_primary_review': return 'bg-teal-100 text-teal-800';
       case 'micro_secondary_review': return 'bg-cyan-100 text-cyan-800';
+      case 'needs_confirmation': return 'bg-red-100 text-red-800 border-2 border-red-400';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -1371,8 +1375,9 @@ const App = () => {
       case 'analyzed': return 'Awaiting Review';
       case 'primary_review': return 'Primary Review';
       case 'secondary_review': return 'Secondary Review';
-      case 'ready_to_report': return 'Ready to Report';
+      case 'ready_to_report': return 'Secondary Review Complete';
       case 'reported': return 'Reported';
+      case 'needs_confirmation': return 'Needs Confirmation';
       default: return status.replace('_', ' ').toUpperCase();
     }
   };
@@ -1414,7 +1419,7 @@ const App = () => {
   ];
 
   const workflowStatusLabels = {
-    'ready_to_report': 'Ready to Report',
+    'ready_to_report': 'Secondary Review Complete',
     'secondary_review_pending': 'Secondary Review Pending',
     'primary_review_pending': 'Primary Review Pending',
     'awaiting_instrument_data': 'Awaiting Instrument Data',
@@ -1459,6 +1464,22 @@ const App = () => {
     setExpandedDPMCustomers(prev => ({
       ...prev,
       [customer]: !prev[customer]
+    }));
+  };
+
+  const toggleWorkflowStatusExpansion = (assayType, statusGroup) => {
+    const key = `${assayType}-${statusGroup}`;
+    setExpandedWorkflowStatuses(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const toggleDateSectionExpansion = (assayType, section) => {
+    const key = `${assayType}-${section}`;
+    setExpandedDateSections(prev => ({
+      ...prev,
+      [key]: !prev[key]
     }));
   };
 
@@ -1685,11 +1706,7 @@ const App = () => {
           <div className="col-span-3"></div>
           
           {/* Action */}
-          <div className="col-span-1 flex justify-center">
-            <button className="p-1 text-gray-400 hover:text-gray-600">
-              <Eye className="w-3 h-3" />
-            </button>
-          </div>
+          <div className="col-span-1"></div>
         </div>
       </div>
     );
@@ -1749,11 +1766,7 @@ const App = () => {
             </div>
             
             {/* Action */}
-            <div className="col-span-2 flex justify-center">
-              <button className="p-1 text-gray-400 hover:text-gray-600">
-                <Eye className="w-3 h-3" />
-              </button>
-            </div>
+            <div className="col-span-2"></div>
           </div>
         </div>
         
@@ -1799,10 +1812,15 @@ const App = () => {
           </div>
           
           {/* Column 7: Priority Chip (fixed narrow column) */}
-          <div className="col-span-1 flex justify-center">
+          <div className="col-span-1 flex justify-center space-x-1">
             {priorityLabel && (
               <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded-full ${priorityColor}`}>
                 {priorityLabel}
+              </span>
+            )}
+            {sample.status === 'needs_confirmation' && (
+              <span className="inline-flex px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-800 border border-red-300" title={sample.notes}>
+                CONF
               </span>
             )}
           </div>
@@ -1829,11 +1847,7 @@ const App = () => {
           <div className="col-span-2"></div>
           
           {/* Column 12: Actions (fixed narrow) */}
-          <div className="col-span-1 flex justify-center">
-            <button className="p-2 text-gray-400 hover:text-gray-600">
-              <Eye className="w-4 h-4" />
-            </button>
-          </div>
+          <div className="col-span-1"></div>
         </div>
         
         {/* Timeline breakdown */}
@@ -1989,11 +2003,7 @@ const App = () => {
             </div>
             
             {/* Column 12: Actions */}
-            <div className="col-span-1 flex justify-center">
-              <button className="p-2 text-gray-400 hover:text-gray-600">
-                <Eye className="w-4 h-4" />
-              </button>
-            </div>
+            <div className="col-span-1"></div>
           </div>
         </div>
         
@@ -2069,7 +2079,7 @@ const App = () => {
     
     // Group samples by workflow phase for Sample View
     const samplesByPhase = {
-      prepNeeded: allSamples.filter(s => s.status === 'ready_for_prep'),
+      prepNeeded: allSamples.filter(s => s.status === 'ready_for_prep' || s.status === 'needs_confirmation'),
       readyForBatch: allSamples.filter(s => s.status === 'prepped'),
       inProgress: allSamples.filter(s => ['prep', 'analysis'].includes(s.status)),
       dataReady: allSamples.filter(s => s.status === 'analyzed')
@@ -2126,13 +2136,7 @@ const App = () => {
             
             <div className="flex items-center space-x-4">
               {/* Navigation Button */}
-              <button
-                onClick={() => navigate(`/prep-batch/${assayType}`)}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-              >
-                Manage Prep Batches
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </button>
+              {/* Sample Prep button moved to individual workflow status sections */}
               
               {/* View Mode Toggle */}
               <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
@@ -2171,16 +2175,22 @@ const App = () => {
               {/* Due Today (includes Overdue) - Grouped by Status */}
               {ordersByDueDate.dueToday.length > 0 && (
                 <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
+                  <button
+                    onClick={() => toggleDateSectionExpansion(assayType, 'dueToday')}
+                    className="flex items-center justify-between mb-3 w-full text-left hover:text-gray-900"
+                  >
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-red-600 rounded-full border-2 border-red-800"></div>
+                      {expandedDateSections[`${assayType}-dueToday`] ? 
+                        <ChevronDown className="w-4 h-4 text-gray-400" /> : 
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      }
                       <h4 className="text-sm font-semibold text-gray-900">Due Today</h4>
                       <span className="text-xs text-gray-500">({ordersByDueDate.dueToday.length} orders)</span>
                     </div>
-                  </div>
+                  </button>
                   
                   {/* Group orders by workflow status */}
-                  {(() => {
+                  {expandedDateSections[`${assayType}-dueToday`] && (() => {
                     const ordersByStatus = {};
                     
                     // Group orders by their worst-case sample status
@@ -2210,29 +2220,61 @@ const App = () => {
                         return null;
                       }
                       
+                      const isExpanded = expandedWorkflowStatuses[`${assayType}-${statusGroup}`] === true;
+                      
                       return (
                         <div key={statusGroup} className="mb-4">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <div className={`w-2 h-2 rounded-full ${
-                              statusGroup === 'ready_to_report' ? 'bg-green-600' :
-                              statusGroup.includes('review') ? 'bg-blue-600' :
-                              statusGroup.includes('instrument') || statusGroup === 'on_instrument' ? 'bg-orange-600' :
-                              statusGroup === 'prep_complete' ? 'bg-purple-600' :
-                              statusGroup === 'in_prep' ? 'bg-indigo-600' :
-                              'bg-gray-600'
-                            }`}></div>
-                            <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              {workflowStatusLabels[statusGroup]} ({ordersByStatus[statusGroup].length})
-                            </h5>
+                          <div className="flex items-center justify-between mb-2">
+                            <button
+                              onClick={() => toggleWorkflowStatusExpansion(assayType, statusGroup)}
+                              className="flex items-center space-x-1 text-left hover:text-gray-900"
+                            >
+                              {isExpanded ? 
+                                <ChevronDown className="w-3 h-3 text-gray-400" /> : 
+                                <ChevronRight className="w-3 h-3 text-gray-400" />
+                              }
+                              <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                {workflowStatusLabels[statusGroup]} ({ordersByStatus[statusGroup].length})
+                              </h5>
+                            </button>
+                            {/* Context-specific navigation buttons */}
+                            <div className="w-28">
+                              {statusGroup === 'available_for_prep' && (
+                                <button
+                                  onClick={() => navigate(`/prep-batch/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Sample Prep
+                                </button>
+                              )}
+                              {statusGroup === 'on_instrument' && (
+                                <button
+                                  onClick={() => navigate(`/analysis-batch/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-orange-600 text-white rounded text-xs font-medium hover:bg-orange-700 transition-colors"
+                                >
+                                  Upload Results
+                                </button>
+                              )}
+                              {statusGroup === 'secondary_review_pending' && (
+                                <button
+                                  onClick={() => navigate(`/secondary-review/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 transition-colors"
+                                >
+                                  Review Queue
+                                </button>
+                              )}
+                            </div>
                           </div>
-                          <div className="space-y-1 ml-4">
-                            {ordersByStatus[statusGroup].slice(0, 3).map(order => renderOrderRowCompact(order))}
-                            {ordersByStatus[statusGroup].length > 3 && (
-                              <div className="text-xs text-gray-500 text-center py-1">
-                                +{ordersByStatus[statusGroup].length - 3} more
-                              </div>
-                            )}
-                          </div>
+                          {isExpanded && (
+                            <div className="ml-4 space-y-1">
+                              {ordersByStatus[statusGroup].slice(0, 3).map(order => renderOrderRowCompact(order))}
+                              {ordersByStatus[statusGroup].length > 3 && (
+                                <div className="text-xs text-gray-500 text-center py-1">
+                                  +{ordersByStatus[statusGroup].length - 3} more
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     }).filter(Boolean);
@@ -2243,21 +2285,29 @@ const App = () => {
               {/* Due Tomorrow */}
               {ordersByDueDate.dueTomorrow.length > 0 && (
                 <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
+                  <button
+                    onClick={() => toggleDateSectionExpansion(assayType, 'dueTomorrow')}
+                    className="flex items-center justify-between mb-3 w-full text-left hover:text-gray-900"
+                  >
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-orange-600 rounded-full border-2 border-orange-800"></div>
+                      {expandedDateSections[`${assayType}-dueTomorrow`] ? 
+                        <ChevronDown className="w-4 h-4 text-gray-400" /> : 
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      }
                       <h4 className="text-sm font-semibold text-gray-900">Due Tomorrow</h4>
                       <span className="text-xs text-gray-500">({ordersByDueDate.dueTomorrow.length} orders)</span>
                     </div>
-                  </div>
-                  <div className="space-y-1">
-                    {ordersByDueDate.dueTomorrow.slice(0, 5).map(order => renderOrderRowCompact(order))}
-                    {ordersByDueDate.dueTomorrow.length > 5 && (
-                      <div className="text-xs text-gray-500 text-center py-2">
-                        +{ordersByDueDate.dueTomorrow.length - 5} more orders
-                      </div>
-                    )}
-                  </div>
+                  </button>
+                  {expandedDateSections[`${assayType}-dueTomorrow`] && (
+                    <div className="space-y-1">
+                      {ordersByDueDate.dueTomorrow.slice(0, 5).map(order => renderOrderRowCompact(order))}
+                      {ordersByDueDate.dueTomorrow.length > 5 && (
+                        <div className="text-xs text-gray-500 text-center py-2">
+                          +{ordersByDueDate.dueTomorrow.length - 5} more orders
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -2266,7 +2316,6 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-600 rounded-full border-2 border-blue-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">
                         Due {new Date(getBusinessDayAfterTomorrow()).toLocaleDateString('en-US', { weekday: 'long' })}
                       </h4>
@@ -2292,7 +2341,6 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-red-600 rounded-full border-2 border-red-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">Awaiting Prep</h4>
                       <span className="text-xs text-gray-500">({samplesByPhase.prepNeeded.length})</span>
                     </div>
@@ -2315,7 +2363,6 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-amber-600 rounded-full border-2 border-amber-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">Checked Out for Prep</h4>
                       <span className="text-xs text-gray-500">({samplesByPhase.inProgress.length})</span>
                     </div>
@@ -2338,7 +2385,6 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-orange-600 rounded-full border-2 border-orange-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">Ready for Analysis</h4>
                       <span className="text-xs text-gray-500">({samplesByPhase.readyForBatch.length})</span>
                     </div>
@@ -2361,7 +2407,6 @@ const App = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-600 rounded-full border-2 border-blue-800"></div>
                       <h4 className="text-sm font-semibold text-gray-900">On Instrument</h4>
                       <span className="text-xs text-gray-500">({analyticalBatches.length})</span>
                     </div>
