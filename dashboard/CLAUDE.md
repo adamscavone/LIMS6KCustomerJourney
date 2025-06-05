@@ -62,6 +62,19 @@ This dashboard manages laboratory testing workflows for cannabis samples with th
 
 Each sample moves through phases: Sample Receipt → Sample Prep → Analysis → Data Review → Reporting
 
+#### Quality Control & Batch Objects
+
+The LIMS tracks critical "batch objects" for quality control and traceability:
+- **Instruments**: Equipment used for analysis (HPLC, LCMS, ICPMS)
+- **Durable Equipment**: Calibrated pipettes, balances, dispensers
+- **Chemicals/Reagents**: Purchased and prepared solutions
+- **Calibration Standards**: Reference materials with concentration data
+- **Quality Controls**: Blanks, spikes, duplicates, calibration verifications
+  - All QCs have pass/fail criteria based on recovery percentages
+  - System tracks bracketing requirements for CCVs
+  - Negative controls (blanks) expected to yield "Not Detected"
+  - Positive controls validate method performance
+
 ### Development Notes
 
 - **Routing**: React Router v6 implemented with routes:
@@ -209,13 +222,21 @@ Each sample moves through phases: Sample Receipt → Sample Prep → Analysis �
    - Emphasizes that secondary review is the final quality checkpoint
    - Better reflects actual laboratory workflow terminology
 
-6. **Visual Hierarchy**:
+6. **Primary Review Workflow**:
+   - Added "Primary Review Pending" as a workflow status in Order View
+   - Appears after "Awaiting Instrument Data" and before "Secondary Review Pending"
+   - Includes context-specific "Primary Review" navigation button
+   - Unlike prep batches (which require single analyst continuity), analysis batches can be transferred between analysts
+   - Primary reviewer is typically the analyst who started the analysis batch, but handoffs are allowed
+   - This reflects reality of 12+ hour instrument runs and shift changes
+
+7. **Visual Hierarchy**:
    - Removed colored indicator circles from date group headers
    - Minimal indentation (ml-4) for content within sections
    - Spindown indicators are small (w-3 h-3) and left-aligned
    - Clean, professional appearance focused on data density
 
-7. **Eye Icon Removal**:
+8. **Eye Icon Removal**:
    - Removed all eye icons as their purpose was unclear
    - Simplified interface by removing non-essential UI elements
    - Future: Consider adding explicit "View Details" text if needed

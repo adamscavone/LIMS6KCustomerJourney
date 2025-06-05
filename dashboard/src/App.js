@@ -2390,6 +2390,14 @@ const App = () => {
                                   Upload Results
                                 </button>
                               )}
+                              {statusGroup === 'primary_review_pending' && (
+                                <button
+                                  onClick={() => navigate(`/primary-review/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Primary Review
+                                </button>
+                              )}
                               {statusGroup === 'secondary_review_pending' && (
                                 <button
                                   onClick={() => navigate(`/secondary-review/${assayType}`)}
@@ -2481,6 +2489,41 @@ const App = () => {
                                 {workflowStatusLabels[statusGroup]} ({ordersByStatus[statusGroup].length})
                               </h5>
                             </button>
+                            {/* Context-specific navigation buttons */}
+                            <div className="w-28">
+                              {statusGroup === 'available_for_prep' && (
+                                <button
+                                  onClick={() => navigate(`/prep-batch/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Sample Prep
+                                </button>
+                              )}
+                              {statusGroup === 'on_instrument' && (
+                                <button
+                                  onClick={() => navigate(`/analysis-batch/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Upload Results
+                                </button>
+                              )}
+                              {statusGroup === 'primary_review_pending' && (
+                                <button
+                                  onClick={() => navigate(`/primary-review/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Primary Review
+                                </button>
+                              )}
+                              {statusGroup === 'secondary_review_pending' && (
+                                <button
+                                  onClick={() => navigate(`/secondary-review/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Review Queue
+                                </button>
+                              )}
+                            </div>
                           </div>
                           {isExpanded && (
                             <div className="ml-4 space-y-1">
@@ -2566,6 +2609,41 @@ const App = () => {
                                 {workflowStatusLabels[statusGroup]} ({ordersByStatus[statusGroup].length})
                               </h5>
                             </button>
+                            {/* Context-specific navigation buttons */}
+                            <div className="w-28">
+                              {statusGroup === 'available_for_prep' && (
+                                <button
+                                  onClick={() => navigate(`/prep-batch/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Sample Prep
+                                </button>
+                              )}
+                              {statusGroup === 'on_instrument' && (
+                                <button
+                                  onClick={() => navigate(`/analysis-batch/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Upload Results
+                                </button>
+                              )}
+                              {statusGroup === 'primary_review_pending' && (
+                                <button
+                                  onClick={() => navigate(`/primary-review/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Primary Review
+                                </button>
+                              )}
+                              {statusGroup === 'secondary_review_pending' && (
+                                <button
+                                  onClick={() => navigate(`/secondary-review/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Review Queue
+                                </button>
+                              )}
+                            </div>
                           </div>
                           {isExpanded && (
                             <div className="ml-4 space-y-1">
