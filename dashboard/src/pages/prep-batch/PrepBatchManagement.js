@@ -116,12 +116,19 @@ const PrepBatchManagement = () => {
   ];
 
     // Mock data for active prep batches
-    const initialActivePrepBatches = [
+    const assayPrefixMap = {
+      'cannabinoids': 'CAN',
+      'terpenes': 'TERP',
+      'pesticides': 'PEST'
+    };
+    const assayPrefix = assayPrefixMap[assayType] || 'CAN';
+    
+    const initialActivePrepBatches = assayType === 'cannabinoids' ? [
     {
-      id: 'PB-2025-001',
+      id: 'PB-CAN-2025-0001',
       analyst: 'Dr. Emily Chen',
       createdAt: '2025-01-06 08:30',
-      sop: 'SOP-CANN-PREP-v3.2',
+      sop: 'SOP-CANNABINOIDS-PREP-v3.2',
       status: 'open',
       samples: [
         {
@@ -141,10 +148,10 @@ const PrepBatchManagement = () => {
       ]
     },
     {
-      id: 'PB-2025-002',
+      id: 'PB-CAN-2025-0002',
       analyst: 'James Rodriguez',
       createdAt: '2025-01-06 09:15',
-      sop: 'SOP-CANN-PREP-v3.2',
+      sop: 'SOP-CANNABINOIDS-PREP-v3.2',
       status: 'ready_for_analysis',
       samples: [
         {
@@ -171,10 +178,10 @@ const PrepBatchManagement = () => {
     },
     // Additional In Prep batches
     {
-      id: 'PB-2025-003',
+      id: 'PB-CAN-2025-0003',
       analyst: 'Dr. Lisa Park',
       createdAt: '2025-01-06 10:30',
-      sop: 'SOP-CANN-PREP-v3.2',
+      sop: 'SOP-CANNABINOIDS-PREP-v3.2',
       status: 'open',
       samples: [
         {
@@ -194,10 +201,10 @@ const PrepBatchManagement = () => {
       ]
     },
     {
-      id: 'PB-2025-004',
+      id: 'PB-CAN-2025-0004',
       analyst: 'Tech Johnson',
       createdAt: '2025-01-06 11:00',
-      sop: 'SOP-CANN-PREP-v3.2',
+      sop: 'SOP-CANNABINOIDS-PREP-v3.2',
       status: 'open',
       samples: [
         {
@@ -211,10 +218,10 @@ const PrepBatchManagement = () => {
       ]
     },
     {
-      id: 'PB-2025-005',
+      id: 'PB-CAN-2025-0005',
       analyst: 'Dr. Mike Chen',
       createdAt: '2025-01-06 11:30',
-      sop: 'SOP-CANN-PREP-v3.2',
+      sop: 'SOP-CANNABINOIDS-PREP-v3.2',
       status: 'open',
       samples: [
         {
@@ -241,11 +248,11 @@ const PrepBatchManagement = () => {
     },
     // Additional Ready for Analysis batches
     {
-      id: 'PB-2025-006',
+      id: 'PB-CAN-2025-0006',
       analyst: 'Dr. Emily Watson',
       createdAt: '2025-01-06 08:00',
       completedAt: '2025-01-06 10:30',
-      sop: 'SOP-CANN-PREP-v3.2',
+      sop: 'SOP-CANNABINOIDS-PREP-v3.2',
       status: 'ready_for_analysis',
       samples: [
         {
@@ -265,11 +272,11 @@ const PrepBatchManagement = () => {
       ]
     },
     {
-      id: 'PB-2025-007',
+      id: 'PB-CAN-2025-0007',
       analyst: 'Tech Williams',
       createdAt: '2025-01-06 07:30',
       completedAt: '2025-01-06 09:45',
-      sop: 'SOP-CANN-PREP-v3.2',
+      sop: 'SOP-CANNABINOIDS-PREP-v3.2',
       status: 'ready_for_analysis',
       samples: [
         {
@@ -299,11 +306,11 @@ const PrepBatchManagement = () => {
       ]
     },
     {
-      id: 'PB-2025-008',
+      id: 'PB-CAN-2025-0008',
       analyst: 'Dr. Alex Thompson',
       createdAt: '2025-01-06 06:00',
       completedAt: '2025-01-06 08:30',
-      sop: 'SOP-CANN-PREP-v3.2',
+      sop: 'SOP-CANNABINOIDS-PREP-v3.2',
       status: 'ready_for_analysis',
       samples: [
         {
@@ -316,7 +323,7 @@ const PrepBatchManagement = () => {
         { type: 'Analytical Balance', id: 'AB-0130', calibrationDue: '2025-02-15' }
       ]
     }
-  ];
+  ] : assayType === 'terpenes' ? [] : []; // Empty arrays for other assay types
 
   // Mock analysis batches
   const initialAnalysisBatches = [
@@ -326,7 +333,7 @@ const PrepBatchManagement = () => {
       createdAt: '2025-01-06 12:00',
       instrument: 'LC-MS/MS-01',
       totalSamples: 8,
-      prepBatchIds: ['PB-2025-009', 'PB-2025-010']
+      prepBatchIds: ['PB-CAN-2025-0009', 'PB-CAN-2025-0010']
     },
     {
       id: 'AB-CB-240106-002',
@@ -334,14 +341,14 @@ const PrepBatchManagement = () => {
       createdAt: '2025-01-06 11:45',
       instrument: 'LC-MS/MS-02',
       totalSamples: 12,
-      prepBatchIds: ['PB-2025-011', 'PB-2025-012', 'PB-2025-013']
+      prepBatchIds: ['PB-CAN-2025-0011', 'PB-CAN-2025-0012', 'PB-CAN-2025-0013']
     }
   ];
 
     setAvailableSamplesState(initialAvailableSamples);
     setActivePrepBatchesState(initialActivePrepBatches);
     setAnalysisBatches(initialAnalysisBatches);
-  }, []);
+  }, [assayType]);
 
   const toggleBatchExpansion = (batchId) => {
     setExpandedBatches(prev => ({
@@ -536,14 +543,28 @@ const PrepBatchManagement = () => {
     const currentUser = "Dr. Sarah Chen"; // Mock logged-in user
     const sopForPipeline = `SOP-${assayType.toUpperCase()}-PREP-v3.2`; // Pipeline-specific SOP
     
+    // Generate batch ID with assay type prefix
+    const assayPrefixMap = {
+      'cannabinoids': 'CAN',
+      'terpenes': 'TERP',
+      'pesticides': 'PEST'
+    };
+    const assayPrefix = assayPrefixMap[assayType] || 'CAN';
+    const batchNumber = String(activePrepBatchesState.length + 1).padStart(4, '0');
+    const batchId = `PB-${assayPrefix}-2025-${batchNumber}`;
+
     const newBatch = {
-      id: `PB-2025-${String(activePrepBatchesState.length + 1).padStart(3, '0')}`,
+      id: batchId,
       analyst: currentUser,
       createdAt: new Date().toLocaleString(),
       sop: sopForPipeline,
       status: 'open',
       samples: samplesToAdd,
-      equipment: []
+      equipment: [
+        { type: 'Balance', id: 'BAL-001', calibrationDue: '2025-02-01' },
+        { type: 'Pipette', id: 'PIP-002', calibrationDue: '2025-01-15' },
+        { type: 'Sonicator', id: 'SON-001', calibrationDue: '2025-03-01' }
+      ]
     };
 
     // Add new batch to state
@@ -763,6 +784,17 @@ const PrepBatchManagement = () => {
                         </span>
                         {batch.status === 'open' && (
                           <div className="flex space-x-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/bench-sheet/${batch.id}`);
+                              }}
+                              className="px-2 py-1 text-xs rounded bg-purple-600 text-white hover:bg-purple-700 flex items-center space-x-1"
+                              title="Create or edit bench sheet for this batch"
+                            >
+                              <Clipboard className="w-3 h-3" />
+                              <span>Bench Sheet</span>
+                            </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();

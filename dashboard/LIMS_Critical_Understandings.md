@@ -1,6 +1,35 @@
 # LIMS Critical Understandings
 *Extracted from SOPs and quality_controls.md for LIMS6000 development*
 
+## Data Integrity Rules
+
+### No Null Values Policy
+All data fields in LIMS records must contain a value. This critical rule ensures:
+- Complete audit trails for regulatory compliance
+- No ambiguity between "not entered" and "not applicable"
+- Consistent data export and reporting
+- Prevention of calculation errors from null values
+
+**Implementation Requirements:**
+1. All optional fields must default to "N/A" when not applicable
+2. User interfaces must provide "Fill Empty with N/A" functionality
+3. Validation must reject records with null/empty fields
+4. Database constraints must enforce NOT NULL with "N/A" defaults
+
+This applies to:
+- Bench sheets (sample weights, dilution factors, comments, product types)
+- Analytical batch records
+- Review checklists
+- Equipment logs
+- Reagent tracking
+
+**Bench Sheet Specific Requirements:**
+1. Sample weights cannot be negative (validation enforced)
+2. Extraction volumes cannot be negative (validation enforced)
+3. Product type required for all non-QC samples
+4. LCB (Laboratory Control Blank) samples may have N/A for weight
+5. All comment fields must be filled (use N/A if no comment needed)
+
 ## Core Laboratory Workflow Principles
 
 ### 1. Batch Object Traceability
@@ -95,6 +124,7 @@ Every analytical process requires comprehensive tracking of "batch objects":
 - Clear visual hierarchy with minimal redundancy
 - Collapsible sections for data density
 - Pipeline-specific view modes (Order vs Sample)
+- Responsive layouts optimized for various screen sizes (15" laptops to desktops)
 
 #### Error Prevention
 - Single analyst per prep batch enforcement

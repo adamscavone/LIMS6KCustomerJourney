@@ -147,6 +147,24 @@ const App = () => {
     return date.toISOString().split('T')[0];
   };
 
+  // Helper function to get the next Saturday
+  const getNextSaturday = () => {
+    const date = new Date();
+    const dayOfWeek = date.getDay();
+    const daysUntilSaturday = (6 - dayOfWeek + 7) % 7 || 7; // If today is Saturday, get next Saturday
+    date.setDate(date.getDate() + daysUntilSaturday);
+    return date.toISOString().split('T')[0];
+  };
+
+  // Helper function to get next Monday
+  const getNextMonday = () => {
+    const date = new Date();
+    const dayOfWeek = date.getDay();
+    const daysUntilMonday = (1 - dayOfWeek + 7) % 7 || 7; // If today is Monday, get next Monday
+    date.setDate(date.getDate() + daysUntilMonday);
+    return date.toISOString().split('T')[0];
+  };
+
   // Get various dates for mock data
   const today = new Date().toISOString().split('T')[0];
   const yesterday = getBusinessDaysAgo(1);
@@ -155,6 +173,8 @@ const App = () => {
   const tomorrow = getBusinessDaysFromNow(1);
   const twoDaysFromNow = getBusinessDaysFromNow(2);
   const threeDaysFromNow = getBusinessDaysFromNow(3);
+  const saturday = getNextSaturday();
+  const monday = getNextMonday();
 
   // Mock data representing realistic sample loads
   // Updated to align with manifests.csv structure
@@ -650,6 +670,92 @@ const App = () => {
         prepDue: today,
         analysisDue: today,
         reportingDue: tomorrow
+      },
+      // Saturday Due Samples
+      {
+        id: 'S031',
+        orderId: 'ORD-2024-1190',
+        client: 'Weekend Wellness',
+        sampleName: 'WW-Saturday-Special-01',
+        receivedOn: threeDaysAgo,
+        coaDueDate: saturday,
+        goalDate: tomorrow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: saturday
+      },
+      {
+        id: 'S032',
+        orderId: 'ORD-2024-1190',
+        client: 'Weekend Wellness',
+        sampleName: 'WW-Saturday-Special-02',
+        receivedOn: threeDaysAgo,
+        coaDueDate: saturday,
+        goalDate: tomorrow,
+        status: 'in_prep',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: saturday
+      },
+      {
+        id: 'S033',
+        orderId: 'ORD-2024-1191',
+        client: 'Saturday Strains Co',
+        sampleName: 'SSC-Blue-Dream-SAT',
+        receivedOn: twoDaysAgo,
+        coaDueDate: saturday,
+        goalDate: tomorrow,
+        status: 'prepped',
+        priority: 'rush',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: saturday
+      },
+      // Monday Due Samples
+      {
+        id: 'S034',
+        orderId: 'ORD-2024-1192',
+        client: 'Monday Morning Meds',
+        sampleName: 'MMM-Sour-Diesel-01',
+        receivedOn: yesterday,
+        coaDueDate: monday,
+        goalDate: saturday,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: saturday,
+        reportingDue: monday
+      },
+      {
+        id: 'S035',
+        orderId: 'ORD-2024-1192',
+        client: 'Monday Morning Meds',
+        sampleName: 'MMM-Sour-Diesel-02',
+        receivedOn: yesterday,
+        coaDueDate: monday,
+        goalDate: saturday,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: saturday,
+        reportingDue: monday
+      },
+      {
+        id: 'S036',
+        orderId: 'ORD-2024-1193',
+        client: 'Start of Week Strains',
+        sampleName: 'SWS-Purple-Haze-MON',
+        receivedOn: today,
+        coaDueDate: monday,
+        goalDate: saturday,
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: tomorrow,
+        analysisDue: saturday,
+        reportingDue: monday
       }
     ],
     terpenes: [
@@ -982,6 +1088,64 @@ const App = () => {
         prepDue: today,
         analysisDue: tomorrow,
         reportingDue: twoDaysFromNow
+      },
+      // Saturday Due Samples
+      {
+        id: 'T024',
+        orderId: 'ORD-2024-1194',
+        client: 'Saturday Scents',
+        sampleName: 'SS-Myrcene-Weekend-01',
+        receivedOn: twoDaysAgo,
+        coaDueDate: saturday,
+        goalDate: tomorrow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: saturday
+      },
+      {
+        id: 'T025',
+        orderId: 'ORD-2024-1194',
+        client: 'Saturday Scents',
+        sampleName: 'SS-Myrcene-Weekend-02',
+        receivedOn: twoDaysAgo,
+        coaDueDate: saturday,
+        goalDate: tomorrow,
+        status: 'primary_review',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: saturday
+      },
+      // Monday Due Samples
+      {
+        id: 'T026',
+        orderId: 'ORD-2024-1195',
+        client: 'Monday Terpenes Inc',
+        sampleName: 'MTI-Limonene-Start-01',
+        receivedOn: today,
+        coaDueDate: monday,
+        goalDate: saturday,
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: tomorrow,
+        analysisDue: saturday,
+        reportingDue: monday
+      },
+      {
+        id: 'T027',
+        orderId: 'ORD-2024-1195',
+        client: 'Monday Terpenes Inc',
+        sampleName: 'MTI-Limonene-Start-02',
+        receivedOn: today,
+        coaDueDate: monday,
+        goalDate: saturday,
+        status: 'ready_for_prep',
+        priority: 'rush',
+        prepDue: tomorrow,
+        analysisDue: saturday,
+        reportingDue: monday
       }
     ],
     pesticides: [
@@ -1337,6 +1501,92 @@ const App = () => {
         prepDue: today,
         analysisDue: today,
         reportingDue: tomorrow
+      },
+      // Saturday Due Samples
+      {
+        id: 'P021',
+        orderId: 'ORD-2024-1196',
+        client: 'Weekend Pesticide Testing',
+        sampleName: 'WPT-Saturday-Batch-01',
+        receivedOn: threeDaysAgo,
+        coaDueDate: saturday,
+        goalDate: tomorrow,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: saturday
+      },
+      {
+        id: 'P022',
+        orderId: 'ORD-2024-1196',
+        client: 'Weekend Pesticide Testing',
+        sampleName: 'WPT-Saturday-Batch-02',
+        receivedOn: threeDaysAgo,
+        coaDueDate: saturday,
+        goalDate: tomorrow,
+        status: 'analysis',
+        priority: 'standard',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: saturday
+      },
+      {
+        id: 'P023',
+        orderId: 'ORD-2024-1197',
+        client: 'Saturday Safety Labs',
+        sampleName: 'SSL-Pesticide-Check-SAT',
+        receivedOn: twoDaysAgo,
+        coaDueDate: saturday,
+        goalDate: tomorrow,
+        status: 'secondary_review',
+        priority: 'rush',
+        prepDue: today,
+        analysisDue: tomorrow,
+        reportingDue: saturday
+      },
+      // Monday Due Samples
+      {
+        id: 'P024',
+        orderId: 'ORD-2024-1198',
+        client: 'Monday Mycotoxin Testing',
+        sampleName: 'MMT-Aflatoxin-01',
+        receivedOn: yesterday,
+        coaDueDate: monday,
+        goalDate: saturday,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: saturday,
+        reportingDue: monday
+      },
+      {
+        id: 'P025',
+        orderId: 'ORD-2024-1198',
+        client: 'Monday Mycotoxin Testing',
+        sampleName: 'MMT-Aflatoxin-02',
+        receivedOn: yesterday,
+        coaDueDate: monday,
+        goalDate: saturday,
+        status: 'ready_for_prep',
+        priority: 'standard',
+        prepDue: tomorrow,
+        analysisDue: saturday,
+        reportingDue: monday
+      },
+      {
+        id: 'P026',
+        orderId: 'ORD-2024-1199',
+        client: 'Start Week Safety Co',
+        sampleName: 'SWSC-Pesticide-MON',
+        receivedOn: today,
+        coaDueDate: monday,
+        goalDate: saturday,
+        status: 'in_prep',
+        priority: 'rush',
+        prepDue: tomorrow,
+        analysisDue: saturday,
+        reportingDue: monday
       }
     ]
   };
@@ -2239,18 +2489,22 @@ const App = () => {
     
     const ordersByDueDate = viewModes[assayType] === 'order' ? (() => {
       const orders = groupSamplesByOrder(allSamples);
-      const today = new Date().toISOString().split('T')[0];
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      const todayDate = new Date().toISOString().split('T')[0];
+      const tomorrowDate = new Date();
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+      const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
       const dayAfterTomorrow = getBusinessDayAfterTomorrow();
+      const saturdayDate = saturday;
+      const mondayDate = monday;
       
       return {
         dueToday: orders.filter(order => {
           const urgency = getDueDateUrgency(order.earliestDueDate);
-          return urgency.label === 'OVERDUE' || order.earliestDueDate === today;
+          return urgency.label === 'OVERDUE' || order.earliestDueDate === todayDate;
         }),
         dueTomorrow: orders.filter(order => order.earliestDueDate === tomorrowStr),
+        dueSaturday: orders.filter(order => order.earliestDueDate === saturdayDate),
+        dueMonday: orders.filter(order => order.earliestDueDate === mondayDate),
         dueDayAfter: orders.filter(order => order.earliestDueDate === dayAfterTomorrow)
       };
     })() : null;
@@ -2406,6 +2660,14 @@ const App = () => {
                                   Review Queue
                                 </button>
                               )}
+                              {statusGroup === 'ready_to_report' && (
+                                <button
+                                  onClick={() => navigate(`/review-queue/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Review Queue
+                                </button>
+                              )}
                             </div>
                           </div>
                           {isExpanded && (
@@ -2447,6 +2709,242 @@ const App = () => {
                     
                     // Group orders by their worst-case sample status
                     ordersByDueDate.dueTomorrow.forEach(order => {
+                      // Find the most critical (earliest in workflow) status among all samples in the order
+                      let mostCriticalStatus = null;
+                      let mostCriticalIndex = workflowStatusOrder.length;
+                      
+                      order.samples.forEach(sample => {
+                        const statusGroup = getWorkflowStatusGroup(sample.status);
+                        const statusIndex = workflowStatusOrder.indexOf(statusGroup);
+                        if (statusIndex < mostCriticalIndex) {
+                          mostCriticalIndex = statusIndex;
+                          mostCriticalStatus = statusGroup;
+                        }
+                      });
+                      
+                      if (!ordersByStatus[mostCriticalStatus]) {
+                        ordersByStatus[mostCriticalStatus] = [];
+                      }
+                      ordersByStatus[mostCriticalStatus].push(order);
+                    });
+                    
+                    // Render groups in workflow order
+                    return workflowStatusOrder.map(statusGroup => {
+                      if (!ordersByStatus[statusGroup] || ordersByStatus[statusGroup].length === 0) {
+                        return null;
+                      }
+                      
+                      const isExpanded = expandedWorkflowStatuses[`${assayType}-${statusGroup}`] === true;
+                      
+                      return (
+                        <div key={statusGroup} className="mb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <button
+                              onClick={() => toggleWorkflowStatusExpansion(assayType, statusGroup)}
+                              className="flex items-center space-x-1 text-left hover:text-gray-900"
+                            >
+                              {isExpanded ? 
+                                <ChevronDown className="w-3 h-3 text-gray-400" /> : 
+                                <ChevronRight className="w-3 h-3 text-gray-400" />
+                              }
+                              <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                {workflowStatusLabels[statusGroup]} ({ordersByStatus[statusGroup].length})
+                              </h5>
+                            </button>
+                            {/* Context-specific navigation buttons */}
+                            <div className="w-28">
+                              {statusGroup === 'available_for_prep' && (
+                                <button
+                                  onClick={() => navigate(`/prep-batch/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Sample Prep
+                                </button>
+                              )}
+                              {statusGroup === 'on_instrument' && (
+                                <button
+                                  onClick={() => navigate(`/analysis-batch/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Upload Results
+                                </button>
+                              )}
+                              {statusGroup === 'primary_review_pending' && (
+                                <button
+                                  onClick={() => navigate(`/primary-review/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Primary Review
+                                </button>
+                              )}
+                              {statusGroup === 'secondary_review_pending' && (
+                                <button
+                                  onClick={() => navigate(`/secondary-review/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Review Queue
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          {isExpanded && (
+                            <div className="ml-4 space-y-1">
+                              {ordersByStatus[statusGroup].slice(0, 3).map(order => renderOrderRowCompact(order))}
+                              {ordersByStatus[statusGroup].length > 3 && (
+                                <div className="text-xs text-gray-500 text-center py-1">
+                                  +{ordersByStatus[statusGroup].length - 3} more
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }).filter(Boolean);
+                  })()}
+                </div>
+              )}
+
+              {/* Due Saturday */}
+              {ordersByDueDate.dueSaturday.length > 0 && (
+                <div className="p-4">
+                  <button
+                    onClick={() => toggleDateSectionExpansion(assayType, 'dueSaturday')}
+                    className="flex items-center justify-between mb-3 w-full text-left hover:text-gray-900"
+                  >
+                    <div className="flex items-center space-x-2">
+                      {expandedDateSections[`${assayType}-dueSaturday`] ? 
+                        <ChevronDown className="w-4 h-4 text-gray-400" /> : 
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      }
+                      <h4 className="text-sm font-semibold text-gray-900">Due Saturday</h4>
+                      <span className="text-xs text-gray-500">({ordersByDueDate.dueSaturday.length} orders)</span>
+                    </div>
+                  </button>
+                  
+                  {/* Group orders by workflow status */}
+                  {expandedDateSections[`${assayType}-dueSaturday`] && (() => {
+                    const ordersByStatus = {};
+                    
+                    // Group orders by their worst-case sample status
+                    ordersByDueDate.dueSaturday.forEach(order => {
+                      // Find the most critical (earliest in workflow) status among all samples in the order
+                      let mostCriticalStatus = null;
+                      let mostCriticalIndex = workflowStatusOrder.length;
+                      
+                      order.samples.forEach(sample => {
+                        const statusGroup = getWorkflowStatusGroup(sample.status);
+                        const statusIndex = workflowStatusOrder.indexOf(statusGroup);
+                        if (statusIndex < mostCriticalIndex) {
+                          mostCriticalIndex = statusIndex;
+                          mostCriticalStatus = statusGroup;
+                        }
+                      });
+                      
+                      if (!ordersByStatus[mostCriticalStatus]) {
+                        ordersByStatus[mostCriticalStatus] = [];
+                      }
+                      ordersByStatus[mostCriticalStatus].push(order);
+                    });
+                    
+                    // Render groups in workflow order
+                    return workflowStatusOrder.map(statusGroup => {
+                      if (!ordersByStatus[statusGroup] || ordersByStatus[statusGroup].length === 0) {
+                        return null;
+                      }
+                      
+                      const isExpanded = expandedWorkflowStatuses[`${assayType}-${statusGroup}`] === true;
+                      
+                      return (
+                        <div key={statusGroup} className="mb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <button
+                              onClick={() => toggleWorkflowStatusExpansion(assayType, statusGroup)}
+                              className="flex items-center space-x-1 text-left hover:text-gray-900"
+                            >
+                              {isExpanded ? 
+                                <ChevronDown className="w-3 h-3 text-gray-400" /> : 
+                                <ChevronRight className="w-3 h-3 text-gray-400" />
+                              }
+                              <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                {workflowStatusLabels[statusGroup]} ({ordersByStatus[statusGroup].length})
+                              </h5>
+                            </button>
+                            {/* Context-specific navigation buttons */}
+                            <div className="w-28">
+                              {statusGroup === 'available_for_prep' && (
+                                <button
+                                  onClick={() => navigate(`/prep-batch/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Sample Prep
+                                </button>
+                              )}
+                              {statusGroup === 'on_instrument' && (
+                                <button
+                                  onClick={() => navigate(`/analysis-batch/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Upload Results
+                                </button>
+                              )}
+                              {statusGroup === 'primary_review_pending' && (
+                                <button
+                                  onClick={() => navigate(`/primary-review/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Primary Review
+                                </button>
+                              )}
+                              {statusGroup === 'secondary_review_pending' && (
+                                <button
+                                  onClick={() => navigate(`/secondary-review/${assayType}`)}
+                                  className="w-full px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Review Queue
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          {isExpanded && (
+                            <div className="ml-4 space-y-1">
+                              {ordersByStatus[statusGroup].slice(0, 3).map(order => renderOrderRowCompact(order))}
+                              {ordersByStatus[statusGroup].length > 3 && (
+                                <div className="text-xs text-gray-500 text-center py-1">
+                                  +{ordersByStatus[statusGroup].length - 3} more
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }).filter(Boolean);
+                  })()}
+                </div>
+              )}
+
+              {/* Due Monday */}
+              {ordersByDueDate.dueMonday.length > 0 && (
+                <div className="p-4">
+                  <button
+                    onClick={() => toggleDateSectionExpansion(assayType, 'dueMonday')}
+                    className="flex items-center justify-between mb-3 w-full text-left hover:text-gray-900"
+                  >
+                    <div className="flex items-center space-x-2">
+                      {expandedDateSections[`${assayType}-dueMonday`] ? 
+                        <ChevronDown className="w-4 h-4 text-gray-400" /> : 
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      }
+                      <h4 className="text-sm font-semibold text-gray-900">Due Monday</h4>
+                      <span className="text-xs text-gray-500">({ordersByDueDate.dueMonday.length} orders)</span>
+                    </div>
+                  </button>
+                  
+                  {/* Group orders by workflow status */}
+                  {expandedDateSections[`${assayType}-dueMonday`] && (() => {
+                    const ordersByStatus = {};
+                    
+                    // Group orders by their worst-case sample status
+                    ordersByDueDate.dueMonday.forEach(order => {
                       // Find the most critical (earliest in workflow) status among all samples in the order
                       let mostCriticalStatus = null;
                       let mostCriticalIndex = workflowStatusOrder.length;

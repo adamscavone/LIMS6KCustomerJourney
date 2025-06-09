@@ -6,7 +6,8 @@
       "Bash(sed:*)",
       "Bash(npm install:*)",
       "Bash(mkdir:*)",
-      "Bash(npm start)"
+      "Bash(npm start)",
+      "Bash(npm run:*)"
     ],
     "deny": []
   }

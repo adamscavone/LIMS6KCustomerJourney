@@ -18,6 +18,8 @@ Navigate to http://localhost:3000 to view the dashboard.
 - **Main Dashboard** (`/`): Overview of all pipelines with review batches and sample tracking
 - **Prep Batch Management** (`/prep-batch/:assayType`): Create and manage preparation batches
 - **Analysis Batch View** (`/analysis-batch/:assayType/:batchId`): Queue batches for instruments and upload results
+- **Review Queue** (`/review-queue/:assayType`): Comprehensive review interface for primary, secondary, and completed reviews
+- **Bench Sheet** (`/bench-sheet/:prepBatchId`): Sample preparation data capture with auto-population from prep batches
 
 ### Pipeline-Specific View Modes
 - **Order View**: Date-based grouping with workflow status subdivisions
@@ -62,6 +64,9 @@ This design acknowledges that instruments operate independently and require manu
 - Pipeline-specific SOPs (e.g., SOP-CANNABINOIDS-PREP-v3.2)
 - Business day calculations exclude weekends
 - Status progression must follow defined workflow
+- No null values allowed - all fields must contain data or "N/A"
+- Negative values prevented for weights and volumes
+- Product type required for all non-QC samples
 
 ### Accessibility Features
 - Colorblind-friendly palette (blue for success, orange for warnings)

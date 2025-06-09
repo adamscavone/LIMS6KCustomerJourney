@@ -30,6 +30,8 @@ This is a React 18 dashboard prototype for a Laboratory Information Management S
    - Modular components for specific workflows:
      - `PrepBatchManagement.js`: Sample preparation batch management
      - `AnalysisBatchView.js`: Instrument analysis and result upload
+     - `ReviewQueue.js`: Comprehensive analytical batch review interface
+     - `BenchSheet.js`: Bench sheet creation for prep batches
    - React Router v6 for navigation between views
 
 2. **Mock Data Pattern**: Extensive mock data simulating real laboratory workflows:
@@ -83,6 +85,8 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
   - `/analysis-batch/:assayType/:batchId` - Analysis batch view
   - `/analysis-batch/:assayType` - Upload results for instruments
   - `/secondary-review/:assayType` - Secondary review queue
+  - `/review-queue/:assayType` - Comprehensive review queue (primary, secondary, completed)
+  - `/bench-sheet/:prepBatchId` - Bench sheet creation and editing
 - **Navigation**: Seamless flow from dashboard → prep → analysis → review
 - **Mock Data**: Comprehensive dataset with ~73 samples showing all workflow states
 - **No Authentication**: Prototype assumes logged-in user ("Dr. Sarah Chen")
@@ -177,6 +181,10 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
    - **Analysis Batch View**:
      - Left column (8 units): Batch details + results upload
      - Right column (4 units): Instrument selection + summary
+   - **Bench Sheet**:
+     - Mobile/Tablet: Equipment and Reagents at top, followed by main content
+     - Desktop: Main content (2/3) with Equipment and Reagents sidebar (1/3)
+     - Responsive grid using Tailwind's lg: breakpoint modifiers
 
 ### Important Business Rules
 
@@ -187,8 +195,9 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
 5. **Status Progression**: Samples must follow defined workflow (cannot skip steps)
 6. **Business Days**: All date calculations exclude weekends
 7. **Air Gap Handling**: Explicit workflow for instrument integration and result upload
+8. **No Null Values Rule**: All data fields in bench sheets, analytical batches, and review records must contain a value - empty/inapplicable fields must be filled with "N/A" rather than left null. This ensures data integrity and compliance.
 
-### Recent Design Decisions (December 2024)
+### Recent Design Decisions (December 2024 - January 2025)
 
 1. **Collapsible Interface**: 
    - All sections start collapsed by default for cleaner initial view
@@ -241,6 +250,25 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
    - Simplified interface by removing non-essential UI elements
    - Future: Consider adding explicit "View Details" text if needed
 
+9. **Bench Sheet Improvements** (January 2025):
+   - **Responsive Layout**: Equipment and Reagents sections moved to top on mobile/tablet screens
+   - **Product Type Column**: Added comprehensive dropdown with 50+ cannabis product types
+   - **Auto-population**: Bench sheet automatically populates with prep batch samples
+   - **Validation Enhancements**: 
+     - Prevents negative values for weights and extraction volumes
+     - Requires all fields to be filled (no null values allowed)
+     - Product type required for actual samples (not QC samples)
+   - **Layout Optimization**: Removed redundant "Prep Batch Info" section from sidebar
+   - **Mobile-First Design**: Optimized for 15-inch laptops and smaller screens
+
+10. **Review Queue Implementation**:
+    - **Comprehensive Interface**: Single queue for primary, secondary, and completed reviews
+    - **Automated QC Validation**: Pass/fail evaluation visible for all quality checks
+    - **Manual Verification**: Checklist for visual verification and documentation
+    - **Role-Based Views**: Different interface elements for primary vs secondary reviewers
+    - **Fill Empty with N/A**: Quick-fill buttons for optional comment fields
+    - **Digital Lab Assets**: Tracking of method files and calibration files
+
 # Project-Specific Guidelines
 
 1. **Mock Data Consistency**: Ensure mock data statuses match their UI grouping headers
@@ -249,6 +277,8 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
 4. **Business Logic**: Enforce single analyst per batch, automatic checkout, partial completion
 5. **Navigation Flow**: Dashboard → Prep Batch → Analysis Batch → Review (clear path)
 6. **Air Gap**: Acknowledge and handle the disconnect between LIMS and instruments
+7. **Data Integrity**: Never allow null values in data records - all empty fields must be filled with "N/A"
+8. **User Convenience**: Provide "Fill Empty with N/A" buttons where appropriate to expedite data entry
 
 ### Test Categories and Compliance
 
