@@ -5,7 +5,8 @@
       "Bash(awk:*)",
       "Bash(rg:*)",
       "Bash(find:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npm start)"
     ],
     "deny": []
   }

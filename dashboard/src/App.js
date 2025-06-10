@@ -3314,33 +3314,6 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Welcome</h1>
-              <p className="text-sm text-gray-600">Dr. Sarah Chen • {getCurrentDate()}</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => navigate('/receiving')}
-                className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-purple-700"
-              >
-                Receiving
-              </button>
-              <div className="flex items-center text-sm text-gray-600">
-                <Clock className="w-4 h-4 mr-1" />
-                Last updated: {getCurrentTime()}
-              </div>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
-                Refresh Data
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './index.css';
+import Layout from './components/Layout';
 import App from './App';
 import PrepBatchManagement from './pages/prep-batch/PrepBatchManagement';
 import AnalysisBatchView from './pages/analysis-batch/AnalysisBatchView';
@@ -14,15 +15,17 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/prep-batch/:assayType" element={<PrepBatchManagement />} />
-        <Route path="/analysis-batch/:assayType/:batchId" element={<AnalysisBatchView />} />
-        <Route path="/review-queue/:assayType" element={<ReviewQueue />} />
-        <Route path="/bench-sheet/:prepBatchId" element={<BenchSheet />} />
-        <Route path="/receiving" element={<ReceivingDashboard />} />
-        <Route path="/receiving/process/:manifestId" element={<SampleProcessing />} />
-      </Routes>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<App />} />
+          <Route path="/prep-batch/:assayType" element={<PrepBatchManagement />} />
+          <Route path="/analysis-batch/:assayType/:batchId" element={<AnalysisBatchView />} />
+          <Route path="/review-queue/:assayType" element={<ReviewQueue />} />
+          <Route path="/bench-sheet/:prepBatchId" element={<BenchSheet />} />
+          <Route path="/receiving" element={<ReceivingDashboard />} />
+          <Route path="/receiving/process/:manifestId" element={<SampleProcessing />} />
+        </Routes>
+      </Layout>
     </BrowserRouter>
   </React.StrictMode>
 );
