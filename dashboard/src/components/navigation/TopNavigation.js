@@ -10,7 +10,8 @@ import {
   Microscope,
   ClipboardCheck,
   Settings,
-  User
+  User,
+  Truck
 } from 'lucide-react';
 
 const TopNavigation = () => {
@@ -62,6 +63,12 @@ const TopNavigation = () => {
   };
 
   const navigationItems = [
+    {
+      id: 'sampling',
+      label: 'Sampling',
+      icon: Truck,
+      path: '/sampling'
+    },
     {
       id: 'receiving',
       label: 'Receiving',
@@ -154,14 +161,25 @@ const TopNavigation = () => {
               <span className="text-sm font-medium">Home</span>
             </Link>
             {navigationItems.map((item) => (
-              <DropdownNavItem
-                key={item.id}
-                item={item}
-                isOpen={activeDropdown === item.id}
-                onToggle={() => handleDropdownToggle(item.id)}
-                activeSubDropdown={activeSubDropdown}
-                onSubDropdownToggle={handleSubDropdownToggle}
-              />
+              item.path && !item.items ? (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  className="flex items-center space-x-1.5 px-3 py-2 rounded-md transition-colors text-sm font-medium hover:bg-gray-50 text-gray-700"
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </Link>
+              ) : (
+                <DropdownNavItem
+                  key={item.id}
+                  item={item}
+                  isOpen={activeDropdown === item.id}
+                  onToggle={() => handleDropdownToggle(item.id)}
+                  activeSubDropdown={activeSubDropdown}
+                  onSubDropdownToggle={handleSubDropdownToggle}
+                />
+              )
             ))}
           </div>
 

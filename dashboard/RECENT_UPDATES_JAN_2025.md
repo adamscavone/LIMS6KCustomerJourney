@@ -94,6 +94,29 @@ src/
 3. **BENCH_SHEET_GUIDE.md**: New comprehensive guide for bench sheet functionality
 4. **readme.md**: Updated with new routes and business rules
 
+### 6. Sample Receiving Dashboard Implementation
+- **Route**: `/receiving`
+- **Key Features**:
+  - **Streamlined Interface**: Removed search bar and client filter for focused workflow
+  - **Functional Manifest Expansion**: Click spindown arrow next to client name to open receiving interface
+  - **CC Order ID Display**: Shows at same level as Manifest Number when receiving
+  - **Expand All Samples**: One-click expansion of all sample details
+  - **Comprehensive Assay Selection**:
+    - Chemistry panel: Cannabinoids, Terpenes, Pesticides, Mycotoxins, Heavy Metals, Elemental Analysis, Total Nitrogen, Total Sulfur, Residual Solvents
+    - Microbial panel: Salmonella, STEC, Total Aerobic Bacteria, Total Coliforms, Total Yeast & Mold, BTGN
+    - Other tests: Plant Pathogens, Plant Sex, Foreign Matter, Moisture Content, Water Activity
+  - **Potency Target Management**:
+    - Default analyte: Total THC (highest priority)
+    - Full cannabinoid panel: Total THC, CBD, CBC, CBDa, CBDV, CBG, CBGa, CBN, delta8-THC, delta9-THC, THCa, THCV, THCVa
+    - Default Units (mg/g or %) on same row as Potency Targets header
+  - **Sample Weights/Qtys**: Side-by-side container with Potency Targets
+    - Supports "each" as unit for individual items
+    - Compact layout with abbreviated labels
+  - **Manifest-Level Actions**:
+    - "Rush All" button to apply rush status to all samples
+    - "DPM Early Start All" button for batch DPM early start assignment
+  - **Test Category Support**: Full Ohio compliance test categories with tooltips
+
 ## Future Enhancements Identified
 1. Integration with barcode scanners for sample tracking
 2. Direct balance integration for automatic weight capture
@@ -101,3 +124,5 @@ src/
 4. Audit trail visualization
 5. Bulk operations for common tasks
 6. Advanced search and filtering capabilities
+7. METRC API integration for automated manifest retrieval
+8. Batch receiving operations for high-volume labs

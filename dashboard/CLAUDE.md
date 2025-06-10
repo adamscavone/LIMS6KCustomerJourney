@@ -81,6 +81,7 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
 
 - **Routing**: React Router v6 implemented with routes:
   - `/` - Main dashboard
+  - `/receiving` - Sample Receiving Dashboard for manifest intake
   - `/prep-batch/:assayType` - Prep batch management
   - `/analysis-batch/:assayType/:batchId` - Analysis batch view
   - `/analysis-batch/:assayType` - Upload results for instruments
@@ -268,6 +269,22 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
     - **Role-Based Views**: Different interface elements for primary vs secondary reviewers
     - **Fill Empty with N/A**: Quick-fill buttons for optional comment fields
     - **Digital Lab Assets**: Tracking of method files and calibration files
+
+11. **Sample Receiving Dashboard** (January 2025):
+    - **Streamlined Interface**: Removed search bar and client filter for cleaner workflow
+    - **Functional Spindown**: Clicking arrow next to client name expands receiving interface
+    - **CC Order ID Placement**: Displayed at same hierarchy level as Manifest Number
+    - **Expand All Samples**: Button to expand all sample details at once
+    - **Ohio Assay Organization**:
+      - Chemistry: Cannabinoids/Terpenes, Pesticides/Mycotoxins, Heavy Metals/Elemental Analysis, Total Nitrogen/Total Sulfur, Residual Solvents
+      - Microbial: Salmonella/STEC, Total Aerobic/Total Coliforms, Total Yeast & Mold/BTGN
+      - Other: Plant Pathogens, Plant Sex, Foreign Matter, Moisture Content, Water Activity
+    - **Potency Target Entry**: 
+      - Default analyte set to "Total THC" (top priority)
+      - Comprehensive cannabinoid list: Total THC, CBD, CBC, CBDa, CBDV, CBG, CBGa, CBN, delta8-THC, delta9-THC, THCa, THCV, THCVa
+      - Default Units (mg/g or %) positioned on same row as Potency Targets header
+    - **Sample Weights/Qtys**: Side-by-side container with Potency Targets, includes "each" option for unit samples
+    - **Manifest-Level Actions**: "Rush All" and "DPM Early Start All" buttons for batch operations
 
 # Project-Specific Guidelines
 

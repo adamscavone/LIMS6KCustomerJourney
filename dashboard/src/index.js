@@ -10,6 +10,7 @@ import ReviewQueue from './pages/review-queue/ReviewQueue';
 import BenchSheet from './pages/bench-sheet/BenchSheet';
 import ReceivingDashboard from './pages/receiving/ReceivingDashboard';
 import SampleProcessing from './pages/receiving/SampleProcessing';
+import SamplingDashboard from './pages/sampling/SamplingDashboard';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -18,6 +19,7 @@ root.render(
       <Layout>
         <Routes>
           <Route path="/" element={<App />} />
+          <Route path="/sampling" element={<SamplingDashboard />} />
           <Route path="/prep-batch/:assayType" element={<PrepBatchManagement />} />
           <Route path="/analysis-batch/:assayType/:batchId" element={<AnalysisBatchView />} />
           <Route path="/review-queue/:assayType" element={<ReviewQueue />} />

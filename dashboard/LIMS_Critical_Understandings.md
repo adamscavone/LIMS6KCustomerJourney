@@ -176,4 +176,40 @@ Every analytical process requires comprehensive tracking of "batch objects":
 - "Batch objects" include all equipment, standards, and personnel involved
 - "ReportableResultValue" instead of "AverageResult"
 
+## Sample Receiving Workflow
+
+### Interface Design Principles
+1. **Streamlined Entry**: No search bars or filters - focus on manifest processing
+2. **Progressive Disclosure**: Click spindown arrow to expand receiving interface
+3. **Batch Operations**: Manifest-level "Rush All" and "DPM Early Start All" buttons
+4. **Visual Hierarchy**: CC Order ID at same level as Manifest Number
+
+### Assay Organization (Ohio)
+- **Chemistry Panel**: 
+  - Row 1: Cannabinoids | Pesticides | Heavy Metals | Total Nitrogen
+  - Row 2: Terpenes | Mycotoxins | Elemental Analysis | Total Sulfur
+  - Standalone: Residual Solvents
+- **Microbial Panel**:
+  - Column 1: Salmonella (top), STEC (bottom)
+  - Column 2: Total Aerobic (top), Total Coliforms (bottom)
+  - Column 3: Total Yeast & Mold (top), BTGN (bottom)
+- **Other Tests**: Plant Pathogens, Plant Sex, Foreign Matter, Moisture Content, Water Activity
+
+### Potency Target Management
+1. **Default Analyte**: Total THC (highest priority)
+2. **Cannabinoid Priority Order**: Total THC → CBD → all others alphabetically
+3. **Unit Selection**: Default Units (mg/g or %) on same row as header
+4. **Side-by-Side Layout**: Potency Targets and Sample Weights/Qtys as equal containers
+
+### Sample Weight/Quantity Handling
+- **Unit Options**: g, mg, kg, oz, lb, each
+- **"Each" Support**: For individual items (still requires gross weight)
+- **Compact Display**: Abbreviated labels (Shipped, Source Pkg, Gross Wt)
+- **Validation**: No negative values allowed
+
+### Test Category Integration
+- **Ohio Categories**: Full compliance list with tooltips explaining Metrc requirements
+- **DPM Early Start**: Special handling for Dispensary Plant Material microbial testing
+- **Category-Specific Defaults**: Auto-select assays based on test category
+
 This document should guide LIMS6000 development to ensure all critical laboratory operations are properly supported while maintaining flexibility for future requirements.

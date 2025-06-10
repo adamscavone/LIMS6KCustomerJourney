@@ -30,7 +30,10 @@ The navigation follows the existing LIMS design patterns:
 
 ### 4. **Navigation Structure**
 Implemented the complete navigation hierarchy:
-- **Receiving**: Links to existing receiving dashboard
+- **Receiving**: Links to Sample Receiving Dashboard (/receiving)
+  - Streamlined interface for manifest intake
+  - No search bar or filters for focused workflow
+  - Functional spindown arrows for manifest expansion
 - **Reporting**: Links to main dashboard (samples due today/tomorrow)
 - **Prep**: Direct links to prep batch management for each assay type
 - **Analytics**: Upload results for each assay type
@@ -72,5 +75,17 @@ The navigation has been implemented with:
 - Fallback to dashboard (/) for unimplemented features
 - Visual consistency with existing LIMS design
 - Accessibility best practices
+
+## Recent Updates (January 2025)
+
+### Sample Receiving Dashboard Integration
+The navigation now includes a fully functional Sample Receiving Dashboard with:
+- **Route**: `/receiving` accessible from the Receiving menu
+- **Streamlined Interface**: Removed search and filter for focused workflow
+- **Progressive Disclosure**: Click spindown arrows to expand manifest details
+- **Comprehensive Assay Selection**: Full Ohio compliance test panel
+- **Potency Target Management**: Default Total THC with complete cannabinoid list
+- **Side-by-Side Layout**: Potency Targets and Sample Weights/Qtys containers
+- **Batch Operations**: "Rush All" and "DPM Early Start All" manifest-level actions
 
 The implementation is production-ready and follows all specified requirements while maintaining consistency with the existing LIMS application design patterns.

@@ -28,10 +28,8 @@ const ReceivingDashboard = () => {
   const [drivers, setDrivers] = useState([]);
   const [expandedManifests, setExpandedManifests] = useState({});
   const [selectedManifest, setSelectedManifest] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
-  const [clientFilter, setClientFilter] = useState('');
   const [expandedReceiving, setExpandedReceiving] = useState({});
   const [manifestData, setManifestData] = useState({});
   const [expandedSamples, setExpandedSamples] = useState({});
@@ -313,18 +311,18 @@ const ReceivingDashboard = () => {
     })}`;
   };
 
-  // Get unique clients for filter dropdown
-  const uniqueClients = [...new Set(manifests.map(m => m.customerFacility))].sort();
-
-  const filteredManifests = manifests.filter(manifest => {
-    const matchesSearch = manifest.manifestId.includes(searchTerm) ||
-      manifest.customerFacility.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      manifest.customerFacilityLicense.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesClient = !clientFilter || manifest.customerFacility === clientFilter;
-    
-    return matchesSearch && matchesClient;
-  });
+  const expandAllSamples = () => {
+    const newExpandedSamples = {};
+    manifests.forEach(manifest => {
+      if (expandedReceiving[manifest.manifestId]) {
+        manifest.samples.forEach((_, idx) => {
+          const key = `${manifest.manifestId}-${idx}`;
+          newExpandedSamples[key] = true;
+        });
+      }
+    });
+    setExpandedSamples(newExpandedSamples);
+  };
 
   const handleReceiveClick = (manifest) => {
     setExpandedReceiving(prev => ({
@@ -347,19 +345,25 @@ const ReceivingDashboard = () => {
           testCategory: sample.testCategory || 'Dispensary Plant Material',
           assays: {
             cannabinoids: false,
+            terpenes: false,
             pesticides: false,
+            mycotoxins: false,
             heavyMetals: false,
-            stec: false,
+            elementalAnalysis: false,
+            totalNitrogen: false,
+            totalSulfur: false,
             salmonella: false,
+            stec: false,
+            totalAerobicBacteria: false,
             totalColiforms: false,
             totalYeastMold: false,
-            totalAerobicBacteria: false,
             btgn: false,
-            mycotoxins: false,
-            terpenes: false,
+            plantPathogens: false,
+            plantSex: false,
+            foreignMatter: false,
+            moistureContent: false,
             waterActivity: false,
-            moisture: false,
-            foreignMatter: false
+            residualSolvents: false
           },
           retest: false,
           shippedQty: sample.grossWeight || '',
@@ -370,9 +374,10 @@ const ReceivingDashboard = () => {
           grossWtUnit: 'g',
           uom: 'mg/g',
           potencyTargets: [
-            { analyte: '', target: '', rangeLow: '', rangeHigh: '' }
+            { analyte: 'Total THC', target: '', rangeLow: '', rangeHigh: '' }
           ],
-          dpmEarlyStart: sample.requiresDPMEarlyStart || false
+          dpmEarlyStart: sample.requiresDPMEarlyStart || false,
+          rush: false
         };
       });
       
@@ -547,34 +552,6 @@ const ReceivingDashboard = () => {
           ))}
         </div>
 
-        {/* Search and Filter Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex space-x-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search by manifest ID, license number..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div className="relative">
-              <select
-                value={clientFilter}
-                onChange={(e) => setClientFilter(e.target.value)}
-                className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-10 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Clients</option>
-                {uniqueClients.map(client => (
-                  <option key={client} value={client}>{client}</option>
-                ))}
-              </select>
-              <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-            </div>
-          </div>
-        </div>
 
         {/* Manifests List */}
         <div className="bg-white rounded-lg shadow-sm">
@@ -582,24 +559,40 @@ const ReceivingDashboard = () => {
             <h2 className="text-lg font-semibold text-gray-900">Inbound Manifests</h2>
           </div>
           <div className="divide-y divide-gray-200">
-            {filteredManifests.map(manifest => (
+            {manifests.map(manifest => (
               <div key={manifest.manifestId} className="p-6">
                 <div 
-                  className="flex items-center justify-between cursor-pointer"
-                  onClick={() => toggleManifestExpansion(manifest.manifestId)}
+                  className="flex items-center justify-between"
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center">
-                      {expandedManifests[manifest.manifestId] ? 
+                  <div className="flex items-center space-x-4 flex-1">
+                    <button
+                      onClick={() => {
+                        if (!expandedReceiving[manifest.manifestId]) {
+                          toggleManifestExpansion(manifest.manifestId);
+                        }
+                        handleReceiveClick(manifest);
+                      }}
+                      className="flex items-center hover:bg-gray-100 rounded p-1"
+                    >
+                      {expandedReceiving[manifest.manifestId] ? 
                         <ChevronDown className="w-5 h-5 text-gray-400" /> : 
                         <ChevronRight className="w-5 h-5 text-gray-400" />
                       }
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
+                    </button>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-4">
                         <h3 className="text-lg font-medium text-gray-900">
                           {manifest.customerFacility}
                         </h3>
+                        <button
+                          onClick={() => toggleManifestExpansion(manifest.manifestId)}
+                          className="flex items-center text-gray-400 hover:text-gray-600"
+                        >
+                          {expandedManifests[manifest.manifestId] && !expandedReceiving[manifest.manifestId] ? 
+                            <ChevronDown className="w-4 h-4" /> : 
+                            <ChevronRight className="w-4 h-4" />
+                          }
+                        </button>
                         {getPriorityIcon(manifest.priority)}
                         {manifest.hasDPMEarlyStart && (
                           <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
@@ -609,6 +602,12 @@ const ReceivingDashboard = () => {
                       </div>
                       <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
                         <span>Manifest #{manifest.manifestId}</span>
+                        {manifestData[manifest.manifestId]?.ccOrderId && (
+                          <>
+                            <span>•</span>
+                            <span>CC Order ID: {manifestData[manifest.manifestId].ccOrderId}</span>
+                          </>
+                        )}
                         <span>•</span>
                         <span>{manifest.packageCount} samples</span>
                         <span>•</span>
@@ -618,15 +617,6 @@ const ReceivingDashboard = () => {
                       </div>
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleReceiveClick(manifest);
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                  >
-                    Receive
-                  </button>
                 </div>
 
                 {/* Expanded Sample Details (View Only) */}
@@ -670,26 +660,73 @@ const ReceivingDashboard = () => {
                 {expandedReceiving[manifest.manifestId] && (
                   <div className="mt-4 border-t border-gray-200 pt-4">
                     {/* Order Information */}
-                    <div className="mb-4 flex items-center space-x-4">
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700">CC Order ID (Manifest Level):</label>
-                        <input
-                          type="text"
-                          value={manifestData[manifest.manifestId]?.ccOrderId || ''}
-                          onChange={(e) => handleManifestDataChange(manifest.manifestId, 'ccOrderId', e.target.value)}
-                          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Enter Confident Cannabis Order ID for entire manifest"
-                        />
+                    <div className="mb-4">
+                      <div className="flex items-center space-x-4 mb-3">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700">CC Order ID:</label>
+                          <input
+                            type="text"
+                            value={manifestData[manifest.manifestId]?.ccOrderId || ''}
+                            onChange={(e) => handleManifestDataChange(manifest.manifestId, 'ccOrderId', e.target.value)}
+                            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter Confident Cannabis Order ID"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700">Notes:</label>
+                          <input
+                            type="text"
+                            value={manifestData[manifest.manifestId]?.notes || ''}
+                            onChange={(e) => handleManifestDataChange(manifest.manifestId, 'notes', e.target.value)}
+                            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter any notes about this manifest"
+                          />
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700">Notes:</label>
-                        <input
-                          type="text"
-                          value={manifestData[manifest.manifestId]?.notes || ''}
-                          onChange={(e) => handleManifestDataChange(manifest.manifestId, 'notes', e.target.value)}
-                          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Enter any notes about this manifest"
-                        />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <button
+                            onClick={() => {
+                              // Apply rush to all samples
+                              const updatedData = { ...manifestData[manifest.manifestId] };
+                              Object.keys(updatedData.samples || {}).forEach(idx => {
+                                updatedData.samples[idx].rush = true;
+                              });
+                              setManifestData(prev => ({
+                                ...prev,
+                                [manifest.manifestId]: updatedData
+                              }));
+                            }}
+                            className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm flex items-center"
+                          >
+                            <Zap className="w-4 h-4 mr-1" />
+                            Rush All
+                          </button>
+                          <button
+                            onClick={() => {
+                              // Apply DPM Early Start to all DPM samples
+                              const updatedData = { ...manifestData[manifest.manifestId] };
+                              Object.keys(updatedData.samples || {}).forEach(idx => {
+                                if (updatedData.samples[idx].testCategory?.includes('Dispensary Plant Material')) {
+                                  updatedData.samples[idx].dpmEarlyStart = true;
+                                }
+                              });
+                              setManifestData(prev => ({
+                                ...prev,
+                                [manifest.manifestId]: updatedData
+                              }));
+                            }}
+                            className="px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
+                          >
+                            DPM Early Start All
+                          </button>
+                        </div>
+                        <button
+                          onClick={expandAllSamples}
+                          className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
+                        >
+                          Expand All Samples
+                        </button>
                       </div>
                     </div>
                     
@@ -728,13 +765,12 @@ const ReceivingDashboard = () => {
                                     </div>
                                     
                                     <div>
-                                      <label className="text-xs text-gray-500">CC ID:</label>
                                       <input
                                         type="text"
                                         value={sampleData.ccId || ''}
                                         onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'ccId', e.target.value)}
-                                        className="mt-1 w-full px-2 py-1 border border-gray-300 rounded text-xs"
-                                        placeholder="Sample CC ID"
+                                        className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                                        placeholder="CC ID"
                                       />
                                     </div>
                                     
@@ -787,6 +823,12 @@ const ReceivingDashboard = () => {
                                 </div>
                                 
                                 <div className="flex items-center space-x-2">
+                                  {sampleData.rush && (
+                                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded flex items-center">
+                                      <Zap className="w-3 h-3 mr-1" />
+                                      RUSH
+                                    </span>
+                                  )}
                                   {sampleData.dpmEarlyStart && (
                                     <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded flex items-center">
                                       <Zap className="w-3 h-3 mr-1" />
@@ -837,55 +879,101 @@ const ReceivingDashboard = () => {
                                 </div>
                                 
                                 {/* Assay Groups */}
-                                <div className="space-y-3">
+                                <div className="grid grid-cols-3 gap-3">
                                   {/* Chemistry Assays */}
                                   <div className="border border-gray-200 rounded-lg p-3">
                                     <h5 className="text-xs font-medium text-gray-600 mb-2">Chemistry</h5>
-                                    <div className="grid grid-cols-4 gap-3">
+                                    <div className="grid grid-cols-4 gap-2">
+                                      <div>
+                                        <label className="flex items-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.cannabinoids || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'cannabinoids', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Cannabinoids</span>
+                                        </label>
+                                        <label className="flex items-center mt-1">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.terpenes || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'terpenes', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Terpenes</span>
+                                        </label>
+                                      </div>
+                                      <div>
+                                        <label className="flex items-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.pesticides || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'pesticides', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Pesticides</span>
+                                        </label>
+                                        <label className="flex items-center mt-1">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.mycotoxins || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'mycotoxins', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Mycotoxins</span>
+                                        </label>
+                                      </div>
+                                      <div>
+                                        <label className="flex items-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.heavyMetals || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'heavyMetals', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Heavy Metals</span>
+                                        </label>
+                                        <label className="flex items-center mt-1">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.elementalAnalysis || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'elementalAnalysis', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Elemental Analysis</span>
+                                        </label>
+                                      </div>
+                                      <div>
+                                        <label className="flex items-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.totalNitrogen || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalNitrogen', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Total Nitrogen</span>
+                                        </label>
+                                        <label className="flex items-center mt-1">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.totalSulfur || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalSulfur', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Total Sulfur</span>
+                                        </label>
+                                      </div>
+                                    </div>
+                                    <div className="mt-2">
                                       <label className="flex items-center">
                                         <input
                                           type="checkbox"
-                                          checked={sampleData.assays?.cannabinoids || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'cannabinoids', e.target.checked)}
+                                          checked={sampleData.assays?.residualSolvents || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'residualSolvents', e.target.checked)}
                                           className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                         />
-                                        <span className="text-sm">Cannabinoids</span>
-                                      </label>
-                                      <label className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={sampleData.assays?.terpenes || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'terpenes', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <span className="text-sm">Terpenes</span>
-                                      </label>
-                                      <label className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={sampleData.assays?.pesticides || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'pesticides', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <span className="text-sm">Pesticides</span>
-                                      </label>
-                                      <label className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={sampleData.assays?.mycotoxins || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'mycotoxins', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <span className="text-sm">Mycotoxins</span>
-                                      </label>
-                                      <label className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={sampleData.assays?.heavyMetals || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'heavyMetals', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <span className="text-sm">Heavy Metals</span>
+                                        <span className="text-sm">Residual Solvents</span>
                                       </label>
                                     </div>
                                   </div>
@@ -893,85 +981,91 @@ const ReceivingDashboard = () => {
                                   {/* Microbial Assays */}
                                   <div className="border border-gray-200 rounded-lg p-3">
                                     <h5 className="text-xs font-medium text-gray-600 mb-2">Microbial</h5>
-                                    <div className="grid grid-cols-4 gap-3">
-                                      <label className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={sampleData.assays?.stec || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'stec', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <span className="text-sm">STEC</span>
-                                      </label>
-                                      <label className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={sampleData.assays?.salmonella || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'salmonella', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <span className="text-sm">Salmonella</span>
-                                      </label>
-                                      <label className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={sampleData.assays?.totalColiforms || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalColiforms', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <span className="text-sm">Total Coliforms</span>
-                                      </label>
-                                      <label className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={sampleData.assays?.totalYeastMold || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalYeastMold', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <span className="text-sm">Total Yeast & Mold</span>
-                                      </label>
-                                      <label className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={sampleData.assays?.totalAerobicBacteria || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalAerobicBacteria', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <span className="text-sm">Total Aerobic Bacteria</span>
-                                      </label>
-                                      <label className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={sampleData.assays?.btgn || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'btgn', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <span className="text-sm">BTGN</span>
-                                      </label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                      <div>
+                                        <label className="flex items-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.salmonella || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'salmonella', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Salmonella</span>
+                                        </label>
+                                        <label className="flex items-center mt-1">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.stec || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'stec', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">STEC</span>
+                                        </label>
+                                      </div>
+                                      <div>
+                                        <label className="flex items-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.totalAerobicBacteria || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalAerobicBacteria', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Total Aerobic</span>
+                                        </label>
+                                        <label className="flex items-center mt-1">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.totalColiforms || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalColiforms', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Total Coliforms</span>
+                                        </label>
+                                      </div>
+                                      <div>
+                                        <label className="flex items-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.totalYeastMold || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalYeastMold', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">Total Yeast & Mold</span>
+                                        </label>
+                                        <label className="flex items-center mt-1">
+                                          <input
+                                            type="checkbox"
+                                            checked={sampleData.assays?.btgn || false}
+                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'btgn', e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          />
+                                          <span className="text-sm">BTGN</span>
+                                        </label>
+                                      </div>
                                     </div>
                                   </div>
                                   
                                   {/* Other Assays */}
                                   <div className="border border-gray-200 rounded-lg p-3">
                                     <h5 className="text-xs font-medium text-gray-600 mb-2">Other</h5>
-                                    <div className="grid grid-cols-4 gap-3">
+                                    <div className="space-y-1">
                                       <label className="flex items-center">
                                         <input
                                           type="checkbox"
-                                          checked={sampleData.assays?.waterActivity || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'waterActivity', e.target.checked)}
+                                          checked={sampleData.assays?.plantPathogens || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'plantPathogens', e.target.checked)}
                                           className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                         />
-                                        <span className="text-sm">Water Activity</span>
+                                        <span className="text-sm">Plant Pathogens</span>
                                       </label>
                                       <label className="flex items-center">
                                         <input
                                           type="checkbox"
-                                          checked={sampleData.assays?.moisture || false}
-                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'moisture', e.target.checked)}
+                                          checked={sampleData.assays?.plantSex || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'plantSex', e.target.checked)}
                                           className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                         />
-                                        <span className="text-sm">Moisture</span>
+                                        <span className="text-sm">Plant Sex</span>
                                       </label>
                                       <label className="flex items-center">
                                         <input
@@ -982,175 +1076,214 @@ const ReceivingDashboard = () => {
                                         />
                                         <span className="text-sm">Foreign Matter</span>
                                       </label>
+                                      <label className="flex items-center">
+                                        <input
+                                          type="checkbox"
+                                          checked={sampleData.assays?.moistureContent || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'moistureContent', e.target.checked)}
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        />
+                                        <span className="text-sm">Moisture Content</span>
+                                      </label>
+                                      <label className="flex items-center">
+                                        <input
+                                          type="checkbox"
+                                          checked={sampleData.assays?.waterActivity || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'waterActivity', e.target.checked)}
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        />
+                                        <span className="text-sm">Water Activity</span>
+                                      </label>
                                     </div>
                                   </div>
                                 </div>
                                 
-                                {/* Units of Measure */}
-                                <div className="mt-4">
-                                  <label className="text-xs text-gray-500 block">Default Units of Measure:</label>
-                                  <div className="flex space-x-2 mt-1">
-                                    <label className="inline-flex items-center">
-                                      <input
-                                        type="radio"
-                                        value="mg/g"
-                                        checked={sampleData.uom === 'mg/g'}
-                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'uom', e.target.value)}
-                                        className="form-radio h-3 w-3 text-blue-600"
-                                      />
-                                      <span className="ml-1 text-xs">mg/g</span>
-                                    </label>
-                                    <label className="inline-flex items-center">
-                                      <input
-                                        type="radio"
-                                        value="%"
-                                        checked={sampleData.uom === '%'}
-                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'uom', e.target.value)}
-                                        className="form-radio h-3 w-3 text-blue-600"
-                                      />
-                                      <span className="ml-1 text-xs">%</span>
-                                    </label>
-                                  </div>
-                                </div>
-                                
-                                {/* Potency Targets */}
-                                <div className="mt-4">
-                                  <h4 className="text-sm font-medium text-gray-700 mb-2">Potency Targets</h4>
-                                  <div className="space-y-2">
-                                    {(sampleData.potencyTargets || [{ analyte: '', target: '', rangeLow: '', rangeHigh: '' }]).map((target, targetIdx) => (
-                                      <div key={targetIdx} className="flex items-center space-x-2">
-                                        <select
-                                          value={target.analyte || ''}
-                                          onChange={(e) => {
-                                            const newTargets = [...(sampleData.potencyTargets || [])];
-                                            newTargets[targetIdx] = { ...newTargets[targetIdx], analyte: e.target.value };
-                                            handleSampleDataChange(manifest.manifestId, idx, 'potencyTargets', newTargets);
-                                          }}
-                                          className="text-xs px-2 py-1 border border-gray-300 rounded"
-                                        >
-                                          <option value="">Select Analyte...</option>
-                                          <option value="THC">THC</option>
-                                          <option value="Total THC">Total THC</option>
-                                          <option value="CBD">CBD</option>
-                                          <option value="Total CBD">Total CBD</option>
-                                          <option value="CBG">CBG</option>
-                                          <option value="CBN">CBN</option>
-                                          <option value="CBC">CBC</option>
-                                        </select>
-                                        <input
-                                          type="text"
-                                          value={target.target || ''}
-                                          onChange={(e) => {
-                                            const newTargets = [...(sampleData.potencyTargets || [])];
-                                            newTargets[targetIdx] = { ...newTargets[targetIdx], target: e.target.value };
-                                            handleSampleDataChange(manifest.manifestId, idx, 'potencyTargets', newTargets);
-                                          }}
-                                          className="w-16 px-2 py-1 border border-gray-300 rounded text-xs"
-                                          placeholder="Target"
-                                        />
-                                        <span className="text-xs text-gray-500">OR</span>
-                                        <input
-                                          type="text"
-                                          value={target.rangeLow || ''}
-                                          onChange={(e) => {
-                                            const newTargets = [...(sampleData.potencyTargets || [])];
-                                            newTargets[targetIdx] = { ...newTargets[targetIdx], rangeLow: e.target.value };
-                                            handleSampleDataChange(manifest.manifestId, idx, 'potencyTargets', newTargets);
-                                          }}
-                                          className="w-16 px-2 py-1 border border-gray-300 rounded text-xs"
-                                          placeholder="Low"
-                                        />
-                                        <span className="text-xs">-</span>
-                                        <input
-                                          type="text"
-                                          value={target.rangeHigh || ''}
-                                          onChange={(e) => {
-                                            const newTargets = [...(sampleData.potencyTargets || [])];
-                                            newTargets[targetIdx] = { ...newTargets[targetIdx], rangeHigh: e.target.value };
-                                            handleSampleDataChange(manifest.manifestId, idx, 'potencyTargets', newTargets);
-                                          }}
-                                          className="w-16 px-2 py-1 border border-gray-300 rounded text-xs"
-                                          placeholder="High"
-                                        />
-                                        {targetIdx === (sampleData.potencyTargets || []).length - 1 && (
-                                          <button
-                                            onClick={() => {
-                                              const newTargets = [...(sampleData.potencyTargets || []), { analyte: '', target: '', rangeLow: '', rangeHigh: '' }];
+                                {/* Potency Targets and Sample Weights side-by-side */}
+                                <div className="mt-4 grid grid-cols-2 gap-4">
+                                  {/* Potency Targets Container */}
+                                  <div className="border border-gray-200 rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <h4 className="text-sm font-medium text-gray-700">Potency Targets</h4>
+                                      {/* Units of Measure on same row */}
+                                      <div className="flex items-center space-x-2">
+                                        <label className="text-xs text-gray-500">Default Units:</label>
+                                        <label className="inline-flex items-center">
+                                          <input
+                                            type="radio"
+                                            value="mg/g"
+                                            checked={sampleData.uom === 'mg/g'}
+                                            onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'uom', e.target.value)}
+                                            className="form-radio h-3 w-3 text-blue-600"
+                                          />
+                                          <span className="ml-1 text-xs">mg/g</span>
+                                        </label>
+                                        <label className="inline-flex items-center">
+                                          <input
+                                            type="radio"
+                                            value="%"
+                                            checked={sampleData.uom === '%'}
+                                            onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'uom', e.target.value)}
+                                            className="form-radio h-3 w-3 text-blue-600"
+                                          />
+                                          <span className="ml-1 text-xs">%</span>
+                                        </label>
+                                      </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                      {(sampleData.potencyTargets || [{ analyte: 'Total THC', target: '', rangeLow: '', rangeHigh: '' }]).map((target, targetIdx) => (
+                                        <div key={targetIdx} className="flex items-center space-x-2">
+                                          <select
+                                            value={target.analyte || ''}
+                                            onChange={(e) => {
+                                              const newTargets = [...(sampleData.potencyTargets || [])];
+                                              newTargets[targetIdx] = { ...newTargets[targetIdx], analyte: e.target.value };
                                               handleSampleDataChange(manifest.manifestId, idx, 'potencyTargets', newTargets);
                                             }}
-                                            className="text-blue-600 hover:text-blue-700 text-xs"
+                                            className="text-xs px-2 py-1 border border-gray-300 rounded"
                                           >
-                                            + Add Target
-                                          </button>
-                                        )}
-                                      </div>
-                                    ))}
+                                            <option value="">Select Analyte...</option>
+                                            <option value="Total THC">Total THC</option>
+                                            <option value="CBD">CBD</option>
+                                            <option value="CBC">CBC</option>
+                                            <option value="CBDa">CBDa</option>
+                                            <option value="CBDV">CBDV</option>
+                                            <option value="CBG">CBG</option>
+                                            <option value="CBGa">CBGa</option>
+                                            <option value="CBN">CBN</option>
+                                            <option value="delta8-THC">delta8-THC</option>
+                                            <option value="delta9-THC">delta9-THC</option>
+                                            <option value="THCa">THCa</option>
+                                            <option value="THCV">THCV</option>
+                                            <option value="THCVa">THCVa</option>
+                                          </select>
+                                          <input
+                                            type="text"
+                                            value={target.target || ''}
+                                            onChange={(e) => {
+                                              const newTargets = [...(sampleData.potencyTargets || [])];
+                                              newTargets[targetIdx] = { ...newTargets[targetIdx], target: e.target.value };
+                                              handleSampleDataChange(manifest.manifestId, idx, 'potencyTargets', newTargets);
+                                            }}
+                                            className="w-16 px-2 py-1 border border-gray-300 rounded text-xs"
+                                            placeholder="Target"
+                                          />
+                                          <span className="text-xs text-gray-500">OR</span>
+                                          <input
+                                            type="text"
+                                            value={target.rangeLow || ''}
+                                            onChange={(e) => {
+                                              const newTargets = [...(sampleData.potencyTargets || [])];
+                                              newTargets[targetIdx] = { ...newTargets[targetIdx], rangeLow: e.target.value };
+                                              handleSampleDataChange(manifest.manifestId, idx, 'potencyTargets', newTargets);
+                                            }}
+                                            className="w-16 px-2 py-1 border border-gray-300 rounded text-xs"
+                                            placeholder="Low"
+                                          />
+                                          <span className="text-xs">-</span>
+                                          <input
+                                            type="text"
+                                            value={target.rangeHigh || ''}
+                                            onChange={(e) => {
+                                              const newTargets = [...(sampleData.potencyTargets || [])];
+                                              newTargets[targetIdx] = { ...newTargets[targetIdx], rangeHigh: e.target.value };
+                                              handleSampleDataChange(manifest.manifestId, idx, 'potencyTargets', newTargets);
+                                            }}
+                                            className="w-16 px-2 py-1 border border-gray-300 rounded text-xs"
+                                            placeholder="High"
+                                          />
+                                          {targetIdx === (sampleData.potencyTargets || []).length - 1 && (
+                                            <button
+                                              onClick={() => {
+                                                const newTargets = [...(sampleData.potencyTargets || []), { analyte: '', target: '', rangeLow: '', rangeHigh: '' }];
+                                                handleSampleDataChange(manifest.manifestId, idx, 'potencyTargets', newTargets);
+                                              }}
+                                              className="text-blue-600 hover:text-blue-700 text-xs"
+                                            >
+                                              + Add
+                                            </button>
+                                          )}
+                                          {targetIdx > 0 && (
+                                            <button
+                                              onClick={() => {
+                                                const newTargets = [...(sampleData.potencyTargets || [])];
+                                                newTargets.splice(targetIdx, 1);
+                                                handleSampleDataChange(manifest.manifestId, idx, 'potencyTargets', newTargets);
+                                              }}
+                                              className="text-red-600 hover:text-red-700 text-xs"
+                                            >
+                                              ×
+                                            </button>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                                
-                                {/* Weight Fields - Deprioritized to bottom */}
-                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                  <h5 className="text-xs text-gray-500 mb-2">Sample Weights</h5>
-                                  <div className="space-y-2">
-                                    <div className="flex items-center space-x-2">
-                                      <label className="text-xs text-gray-500 w-32">Shipped Quantity:</label>
-                                      <input
-                                        type="number"
-                                        value={sampleData.shippedQty || ''}
-                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'shippedQty', e.target.value)}
-                                        className="w-24 px-2 py-1 border border-gray-300 rounded text-xs"
-                                      />
-                                      <select
-                                        value={sampleData.shippedQtyUnit || 'g'}
-                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'shippedQtyUnit', e.target.value)}
-                                        className="px-2 py-1 border border-gray-300 rounded text-xs"
-                                      >
-                                        <option value="g">g</option>
-                                        <option value="mg">mg</option>
-                                        <option value="kg">kg</option>
-                                        <option value="oz">oz</option>
-                                        <option value="lb">lb</option>
-                                      </select>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                      <label className="text-xs text-gray-500 w-32">Source Package Weight:</label>
-                                      <input
-                                        type="number"
-                                        value={sampleData.srcPkgWgt || ''}
-                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'srcPkgWgt', e.target.value)}
-                                        className="w-24 px-2 py-1 border border-gray-300 rounded text-xs"
-                                      />
-                                      <select
-                                        value={sampleData.srcPkgWgtUnit || 'g'}
-                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'srcPkgWgtUnit', e.target.value)}
-                                        className="px-2 py-1 border border-gray-300 rounded text-xs"
-                                      >
-                                        <option value="g">g</option>
-                                        <option value="mg">mg</option>
-                                        <option value="kg">kg</option>
-                                        <option value="oz">oz</option>
-                                        <option value="lb">lb</option>
-                                      </select>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                      <label className="text-xs text-gray-500 w-32">Gross Weight:</label>
-                                      <input
-                                        type="number"
-                                        value={sampleData.grossWt || ''}
-                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'grossWt', e.target.value)}
-                                        className="w-24 px-2 py-1 border border-gray-300 rounded text-xs"
-                                      />
-                                      <select
-                                        value={sampleData.grossWtUnit || 'g'}
-                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'grossWtUnit', e.target.value)}
-                                        className="px-2 py-1 border border-gray-300 rounded text-xs"
-                                      >
-                                        <option value="g">g</option>
-                                        <option value="mg">mg</option>
-                                        <option value="kg">kg</option>
-                                        <option value="oz">oz</option>
-                                        <option value="lb">lb</option>
-                                      </select>
+                                  
+                                  {/* Sample Weights/Qtys Container */}
+                                  <div className="border border-gray-200 rounded-lg p-3">
+                                    <h5 className="text-sm font-medium text-gray-700 mb-2">Sample Weights/Qtys.</h5>
+                                    <div className="space-y-2">
+                                      <div className="flex items-center space-x-2">
+                                        <label className="text-xs text-gray-500 w-20">Shipped:</label>
+                                        <input
+                                          type="number"
+                                          value={sampleData.shippedQty || ''}
+                                          onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'shippedQty', e.target.value)}
+                                          className="w-20 px-2 py-1 border border-gray-300 rounded text-xs"
+                                        />
+                                        <select
+                                          value={sampleData.shippedQtyUnit || 'g'}
+                                          onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'shippedQtyUnit', e.target.value)}
+                                          className="px-2 py-1 border border-gray-300 rounded text-xs"
+                                        >
+                                          <option value="g">g</option>
+                                          <option value="mg">mg</option>
+                                          <option value="kg">kg</option>
+                                          <option value="oz">oz</option>
+                                          <option value="lb">lb</option>
+                                          <option value="each">each</option>
+                                        </select>
+                                      </div>
+                                      <div className="flex items-center space-x-2">
+                                        <label className="text-xs text-gray-500 w-20">Source Pkg:</label>
+                                        <input
+                                          type="number"
+                                          value={sampleData.srcPkgWgt || ''}
+                                          onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'srcPkgWgt', e.target.value)}
+                                          className="w-20 px-2 py-1 border border-gray-300 rounded text-xs"
+                                        />
+                                        <select
+                                          value={sampleData.srcPkgWgtUnit || 'g'}
+                                          onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'srcPkgWgtUnit', e.target.value)}
+                                          className="px-2 py-1 border border-gray-300 rounded text-xs"
+                                        >
+                                          <option value="g">g</option>
+                                          <option value="mg">mg</option>
+                                          <option value="kg">kg</option>
+                                          <option value="oz">oz</option>
+                                          <option value="lb">lb</option>
+                                        </select>
+                                      </div>
+                                      <div className="flex items-center space-x-2">
+                                        <label className="text-xs text-gray-500 w-20">Gross Wt:</label>
+                                        <input
+                                          type="number"
+                                          value={sampleData.grossWt || ''}
+                                          onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'grossWt', e.target.value)}
+                                          className="w-20 px-2 py-1 border border-gray-300 rounded text-xs"
+                                        />
+                                        <select
+                                          value={sampleData.grossWtUnit || 'g'}
+                                          onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'grossWtUnit', e.target.value)}
+                                          className="px-2 py-1 border border-gray-300 rounded text-xs"
+                                        >
+                                          <option value="g">g</option>
+                                          <option value="mg">mg</option>
+                                          <option value="kg">kg</option>
+                                          <option value="oz">oz</option>
+                                          <option value="lb">lb</option>
+                                        </select>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -1162,27 +1295,25 @@ const ReceivingDashboard = () => {
                     </div>
                     
                     {/* Action Buttons */}
-                    <div className="mt-4 flex justify-between">
+                    <div className="mt-4 flex justify-end space-x-3">
+                      <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                        Generate Confident Cannabis Order
+                      </button>
+                      <button className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                        Refresh Manifest
+                      </button>
                       <button
                         onClick={() => handleReceiveManifest(manifest.manifestId)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
                       >
                         Receive Manifest
                       </button>
-                      <div className="space-x-3">
-                        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                          Generate Confident Cannabis Order
-                        </button>
-                        <button className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
-                          Refresh Manifest
-                        </button>
-                        <button
-                          onClick={() => setExpandedReceiving(prev => ({...prev, [manifest.manifestId]: false}))}
-                          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => setExpandedReceiving(prev => ({...prev, [manifest.manifestId]: false}))}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
                 )}
