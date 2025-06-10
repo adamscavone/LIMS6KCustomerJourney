@@ -63,20 +63,15 @@ const BenchSheet = () => {
     'Matrix Spike Duplicate'
   ];
   
-  const productTypes = [
-    'Ad Hoc - Experimental', 'Badder', 'Balm', 'Beverage', 'Butane Hash Oil',
-    'Bits', 'Bitz', 'Brownies', 'Buckeye', 'Budder', 'Candy', 'Capsules',
-    'Caramels', 'Carmel Turtle', 'Chocolate', 'Chocolate (Caramel)/ Choc. Caramel Bites',
-    'Crude', 'Coconut Oil', 'CO2', 'Concentrates', 'Cookies', 'Crumble',
-    'Diamonds', 'Distillate', 'Emulsions', 'Fat-based Confectionaries', 'FECO',
-    'Flower', 'Freeze Pop Sauce', 'Fudge (quechers)', 'Ghee', 'Granolas',
-    'Gummies', 'Gummy', 'Gummy Tincture', 'Hard Candies', 'Hash', 'Hash Oil',
-    'Hashtroid', 'Honeys', 'hot coco mix', 'Hot Sauce', 'Ice Hash', 'Ice Water Hash',
-    'Infused Beverage', 'Infused Sugar for Coco Mix (Distillate)', 'Infusion Powder',
-    'Isolate', 'Kief', 'Plant Tissue', 'Lip Balm', 'Lotion', 'Marshmallow Fluff',
-    'Massage Oil', 'MCT Oil', 'Mello Bar', 'Meteor Bites', 'Mints', 'Mouth Spray',
-    'Muscle Spray'
-  ];
+  // Map product categories to sample types
+  const productCategoryToSampleType = {
+    'Bulk Flower/Buds': 'Flower',
+    'Bulk Concentrate': 'Concentrate',
+    'Edible': 'Edible',
+    'Topical': 'Topical',
+    'Tincture': 'Tincture',
+    'Vape Cartridge': 'Vape Cartridge'
+  };
   
   const userOptions = [
     'Dr. Sarah Chen',
@@ -269,7 +264,7 @@ const BenchSheet = () => {
           sampleId: sample.limsId,
           sampleName: sample.sampleName,
           client: sample.client,
-          productType: sample.productCategory || 'Flower',
+          productType: productCategoryToSampleType[sample.productCategory] || sample.productCategory || 'Flower',
           replicateNumber: 1,
           sampleWeight: '',
           dilutionFactor: '',
@@ -304,8 +299,8 @@ const BenchSheet = () => {
   }, [batchMetadata.sampleMatrix]);
   
   const updateSample = (id, field, value) => {
-    // Prevent negative values for weight and extraction volume
-    if ((field === 'sampleWeight' || field === 'extractionVolume') && value !== '') {
+    // Prevent negative values for weight, extraction volume, and dilution factor
+    if ((field === 'sampleWeight' || field === 'extractionVolume' || field === 'dilutionFactor') && value !== '') {
       const numValue = parseFloat(value);
       if (!isNaN(numValue) && numValue < 0) {
         return; // Don't update if negative
@@ -410,10 +405,7 @@ const BenchSheet = () => {
         errors.push(`${sampleLabel}: Comments are required (enter text or N/A)`);
       }
       
-      // Product type required for actual samples
-      if (sample.sampleType !== 'LCB' && sample.sampleType !== 'LCS' && !sample.productType) {
-        errors.push(`${sampleLabel}: Product type is required`);
-      }
+      // Sample type is now auto-populated from mock data, no validation needed
     });
     
     // Reagent validation
@@ -525,10 +517,7 @@ const BenchSheet = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Mobile/Tablet: Stack vertically. Desktop: Side by side */}
-        <div className="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
-          {/* Main Content - Left on desktop, full width on mobile */}
-          <div className="lg:order-1 lg:col-span-2 space-y-6">
+        <div className="space-y-6">
             {/* Batch Metadata */}
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Batch Information</h2>
@@ -609,6 +598,147 @@ const BenchSheet = () => {
                     </div>
                   </div>
                 </div>
+                
+                {/* Equipment Section */}
+                <div className="mt-6 border-t pt-6">
+                  <h3 className="text-md font-medium text-gray-900 mb-4">Equipment</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Balance ID <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={equipment.balanceId}
+                        onChange={(e) => setEquipment({...equipment, balanceId: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select balance...</option>
+                        {mockEquipment.balances.map(id => (
+                          <option key={id} value={id}>{id}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Waterbath ID
+                      </label>
+                      <select
+                        value={equipment.waterbathId}
+                        onChange={(e) => setEquipment({...equipment, waterbathId: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select waterbath...</option>
+                        <option value="N/A">N/A - Not Used</option>
+                        {mockEquipment.waterbaths.map(id => (
+                          <option key={id} value={id}>{id}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Sonicator ID
+                      </label>
+                      <select
+                        value={equipment.sonicatorId}
+                        onChange={(e) => setEquipment({...equipment, sonicatorId: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select sonicator...</option>
+                        <option value="N/A">N/A - Not Used</option>
+                        {mockEquipment.sonicators.map(id => (
+                          <option key={id} value={id}>{id}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Repeater ID
+                      </label>
+                      <select
+                        value={equipment.repeaterId}
+                        onChange={(e) => setEquipment({...equipment, repeaterId: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select repeater...</option>
+                        <option value="N/A">N/A - Not Used</option>
+                        {mockEquipment.repeaters.map(id => (
+                          <option key={id} value={id}>{id}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Reagents Section */}
+                <div className="mt-6 border-t pt-6">
+                  <h3 className="text-md font-medium text-gray-900 mb-4">Reagents</h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {reagents.map((reagent, index) => (
+                      <div key={reagent.id} className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          NCTL ID or Lot # {index === 0 && <span className="text-red-500">*</span>}
+                        </label>
+                        <select
+                          value={reagent.nctlId}
+                          onChange={(e) => updateReagent(reagent.id, e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select reagent...</option>
+                          {mockReagents.map(r => (
+                            <option key={r.nctlId} value={r.nctlId}>
+                              {r.nctlId} - {r.itemName}
+                            </option>
+                          ))}
+                        </select>
+                        
+                        {reagent.itemName && (
+                          <div className="text-sm">
+                            <p className="text-gray-700">{reagent.itemName}</p>
+                            <p className="text-gray-500">
+                              Expires: {reagent.expirationDate}
+                              {reagent.isExpired && (
+                                <span className="ml-2 text-red-600 font-medium">
+                                  <AlertTriangle className="w-4 h-4 inline" /> Expired
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        )}
+                        
+                        <div className="flex justify-end space-x-2">
+                          {index === reagents.length - 1 ? (
+                            <button
+                              onClick={addReagent}
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              <Plus className="w-4 h-4 inline" /> Add Another
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => removeReagent(reagent.id)}
+                              className="text-red-600 hover:text-red-800 text-sm"
+                            >
+                              <Trash2 className="w-4 h-4 inline" /> Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {reagents.some(r => r.isExpired) && (
+                    <div className="flex items-center space-x-2 p-3 bg-red-50 rounded-lg mt-4">
+                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                      <span className="text-sm text-red-800">
+                        Warning: Expired reagents selected. Please verify before proceeding.
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -642,7 +772,7 @@ const BenchSheet = () => {
                         Sample Name
                       </th>
                       <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Product Type
+                        Sample Type
                       </th>
                       <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Rep #
@@ -677,20 +807,9 @@ const BenchSheet = () => {
                           </span>
                         </td>
                         <td className="px-3 py-2">
-                          {sample.sampleType === 'LCB' || sample.sampleType === 'LCS' ? (
-                            <span className="text-sm text-gray-500">N/A</span>
-                          ) : (
-                            <select
-                              value={sample.productType || ''}
-                              onChange={(e) => updateSample(sample.id, 'productType', e.target.value)}
-                              className="w-full text-sm border border-gray-300 rounded px-2 py-1"
-                            >
-                              <option value="">Select type...</option>
-                              {productTypes.map(type => (
-                                <option key={type} value={type}>{type}</option>
-                              ))}
-                            </select>
-                          )}
+                          <span className="text-sm text-gray-900">
+                            {sample.sampleType === 'LCB' || sample.sampleType === 'LCS' ? 'N/A' : sample.productType || 'Flower'}
+                          </span>
                         </td>
                         <td className="px-3 py-2">
                           <input
@@ -716,6 +835,7 @@ const BenchSheet = () => {
                         <td className="px-3 py-2">
                           <input
                             type="number"
+                            min="0"
                             value={sample.dilutionFactor}
                             onChange={(e) => updateSample(sample.id, 'dilutionFactor', e.target.value)}
                             placeholder="1"
@@ -779,153 +899,6 @@ const BenchSheet = () => {
                 <span>Finalize & Submit</span>
               </button>
             </div>
-          </div>
-
-          {/* Equipment and Reagents - Top on mobile, right on desktop */}
-          <div className="lg:order-2 lg:col-span-1 space-y-6">
-            {/* Reagents */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Reagents</h2>
-              
-              <div className="space-y-3">
-                {reagents.map((reagent, index) => (
-                  <div key={reagent.id} className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      NCTL ID or Lot #
-                    </label>
-                    <select
-                      value={reagent.nctlId}
-                      onChange={(e) => updateReagent(reagent.id, e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select reagent...</option>
-                      {mockReagents.map(r => (
-                        <option key={r.nctlId} value={r.nctlId}>
-                          {r.nctlId} - {r.itemName}
-                        </option>
-                      ))}
-                    </select>
-                    
-                    {reagent.itemName && (
-                      <div className="text-sm">
-                        <p className="text-gray-700">{reagent.itemName}</p>
-                        <p className="text-gray-500">
-                          Expires: {reagent.expirationDate}
-                          {reagent.isExpired && (
-                            <span className="ml-2 text-red-600 font-medium">
-                              <AlertTriangle className="w-4 h-4 inline" /> Expired
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="flex justify-end space-x-2">
-                      {index === reagents.length - 1 ? (
-                        <button
-                          onClick={addReagent}
-                          className="text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                          <Plus className="w-4 h-4 inline" /> Add Another
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => removeReagent(reagent.id)}
-                          className="text-red-600 hover:text-red-800 text-sm"
-                        >
-                          <Trash2 className="w-4 h-4 inline" /> Remove
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                
-                {reagents.some(r => r.isExpired) && (
-                  <div className="flex items-center space-x-2 p-3 bg-red-50 rounded-lg">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                    <span className="text-sm text-red-800">
-                      Warning: Expired reagents selected. Please verify before proceeding.
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Equipment */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Equipment</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Balance ID <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={equipment.balanceId}
-                    onChange={(e) => setEquipment({...equipment, balanceId: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select balance...</option>
-                    {mockEquipment.balances.map(id => (
-                      <option key={id} value={id}>{id}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Waterbath ID
-                  </label>
-                  <select
-                    value={equipment.waterbathId}
-                    onChange={(e) => setEquipment({...equipment, waterbathId: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select waterbath...</option>
-                    <option value="N/A">N/A - Not Used</option>
-                    {mockEquipment.waterbaths.map(id => (
-                      <option key={id} value={id}>{id}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sonicator ID
-                  </label>
-                  <select
-                    value={equipment.sonicatorId}
-                    onChange={(e) => setEquipment({...equipment, sonicatorId: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select sonicator...</option>
-                    <option value="N/A">N/A - Not Used</option>
-                    {mockEquipment.sonicators.map(id => (
-                      <option key={id} value={id}>{id}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Repeater ID
-                  </label>
-                  <select
-                    value={equipment.repeaterId}
-                    onChange={(e) => setEquipment({...equipment, repeaterId: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select repeater...</option>
-                    <option value="N/A">N/A - Not Used</option>
-                    {mockEquipment.repeaters.map(id => (
-                      <option key={id} value={id}>{id}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-          </div>
         </div>
       </div>
     </div>

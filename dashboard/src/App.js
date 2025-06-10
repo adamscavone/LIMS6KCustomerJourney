@@ -3323,6 +3323,12 @@ const App = () => {
               <p className="text-sm text-gray-600">Dr. Sarah Chen • {getCurrentDate()}</p>
             </div>
             <div className="flex items-center space-x-4">
+              <button 
+                onClick={() => navigate('/receiving')}
+                className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-purple-700"
+              >
+                Receiving
+              </button>
               <div className="flex items-center text-sm text-gray-600">
                 <Clock className="w-4 h-4 mr-1" />
                 Last updated: {getCurrentTime()}
