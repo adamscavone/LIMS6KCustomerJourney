@@ -74,17 +74,6 @@ const TopNavigation = () => {
       ]
     },
     {
-      id: 'reporting',
-      label: 'Reporting',
-      icon: FileText,
-      items: [
-        { label: 'Samples Due Today', path: '/' },
-        { label: 'Samples Due Tomorrow', path: '/' },
-        { label: 'Turnaround Time Tracker', path: '/' },
-        { label: 'Pre-Reporting Review Queue', path: '/' }
-      ]
-    },
-    {
       id: 'prep',
       label: 'Prep',
       icon: FlaskConical,
@@ -95,7 +84,7 @@ const TopNavigation = () => {
       ]
     },
     {
-      id: 'analytics',
+      id: 'analysis',
       label: 'Analysis',
       icon: Microscope,
       items: [
@@ -112,6 +101,17 @@ const TopNavigation = () => {
         { label: 'Review Queue - Cannabinoids', path: '/review-queue/cannabinoids' },
         { label: 'Review Queue - Pesticides', path: '/review-queue/pesticides' },
         { label: 'Review Queue - Terpenes', path: '/review-queue/terpenes' }
+      ]
+    },
+    {
+      id: 'reporting',
+      label: 'Reporting',
+      icon: FileText,
+      items: [
+        { label: 'Samples Due Today', path: '/' },
+        { label: 'Samples Due Tomorrow', path: '/' },
+        { label: 'Turnaround Time Tracker', path: '/' },
+        { label: 'Pre-Reporting Review Queue', path: '/' }
       ]
     },
     {
