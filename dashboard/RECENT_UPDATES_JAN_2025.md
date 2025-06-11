@@ -116,6 +116,20 @@ src/
     - "Rush All" button to apply rush status to all samples
     - "DPM Early Start All" button for batch DPM early start assignment
   - **Test Category Support**: Full Ohio compliance test categories with tooltips
+  - **Smart Micro Due Date Calculation**:
+    - Individual turnaround time tracking for each microbial assay
+    - PCR methods (Salmonella) have 24-hour faster turnaround than culture-based methods
+    - Displays latest (most conservative) due date to ensure all tests can complete
+    - Visual indicator (amber warning icon) when assays have different timelines
+    - Detailed tooltip shows breakdown of all assay-specific due dates
+    - Automatically recalculates when test category or selected assays change
+    - Default assays pre-selected based on test category (e.g., all micro tests for DPM)
+  - **Enhanced Table Format**:
+    - De-containerized sample rows for cleaner, more compact display
+    - Professional headers with proper alignment
+    - Removed CC ID and Status columns from top-level view
+    - Chemistry assay checkboxes with fixed alignment and no text wrapping
+  - **Due Date Pickers**: Native HTML5 datetime-local inputs for both Micro Due and Chemistry Due fields
 
 ## Future Enhancements Identified
 1. Integration with barcode scanners for sample tracking

@@ -285,6 +285,16 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
       - Default Units (mg/g or %) positioned on same row as Potency Targets header
     - **Sample Weights/Qtys**: Side-by-side container with Potency Targets, includes "each" option for unit samples
     - **Manifest-Level Actions**: "Rush All" and "DPM Early Start All" buttons for batch operations
+    - **Smart Micro Due Dates**: 
+      - Calculates individual due dates for each microbial assay (PCR vs culture-based methods have different turnaround times)
+      - Shows latest (most conservative) due date in the field
+      - Visual indicator (amber warning icon) when assays have different timelines
+      - Hover tooltip shows breakdown of all microbial assay due dates
+      - Automatically recalculates when test category or selected assays change
+      - Default assays are pre-selected based on test category (e.g., all micro tests for DPM)
+    - **Due Date Pickers**: Both Micro Due and Chemistry Due use native datetime-local inputs for easy date/time selection
+    - **De-containerized Sample Table**: Clean table format with headers, no individual containers per sample
+    - **Chemistry Assay Alignment**: Fixed checkbox layout with consistent spacing and no text wrapping
 
 # Project-Specific Guidelines
 

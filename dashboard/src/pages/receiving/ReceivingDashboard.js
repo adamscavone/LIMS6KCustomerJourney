@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { 
   Truck, 
   Package, 
@@ -33,6 +33,459 @@ const ReceivingDashboard = () => {
   const [expandedReceiving, setExpandedReceiving] = useState({});
   const [manifestData, setManifestData] = useState({});
   const [expandedSamples, setExpandedSamples] = useState({});
+  
+  // Format date to MM/DD/YY HH:MM a.m./p.m.
+  const formatDueDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+    hours = hours % 12 || 12;
+    return `${month}/${day}/${year} ${hours}:${minutes} ${ampm}`;
+  };
+
+  // Convert date to datetime-local format (YYYY-MM-DDTHH:MM)
+  const toDateTimeLocal = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Convert datetime-local to ISO string
+  const fromDateTimeLocal = (dateTimeLocalStr) => {
+    if (!dateTimeLocalStr) return '';
+    return new Date(dateTimeLocalStr).toISOString();
+  };
+
+  // Calculate due date based on received date and target day/time
+  const calculateDueDate = (receivedDate, targetDay, time) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const currentDay = receivedDate.getDay();
+    const targetDayIndex = days.indexOf(targetDay);
+    let daysToAdd = targetDayIndex - currentDay;
+    
+    if (daysToAdd <= 0) {
+      daysToAdd += 7; // Move to next week
+    }
+    
+    const targetDate = new Date(receivedDate);
+    targetDate.setDate(targetDate.getDate() + daysToAdd);
+    
+    // Set the time
+    const [hour, minute] = time.split(':');
+    targetDate.setHours(parseInt(hour), parseInt(minute), 0, 0);
+    
+    return targetDate.toISOString();
+  };
+
+  // Get chemistry due date (assuming same as micro for most test categories)
+  const getChemistryDue = (testCategory, receivedDate) => {
+    // For now, using same logic as micro - you can customize this based on specific requirements
+    const microData = getMicroDueData(testCategory, receivedDate);
+    if (!microData) return null;
+    return calculateDueDate(receivedDate, microData.day, microData.time);
+  };
+
+  // Get all micro due dates for different assay types
+  const getMicroDueDates = (testCategory, receivedDate, selectedAssays = {}) => {
+    // Expanded data structure with individual assay timelines
+    const microAssayMap = {
+      'Ohio': {
+        'Research/Development': {
+          'Friday': {
+            'btgn': { day: 'Saturday', time: '23:59' },
+            'ecoli': { day: 'Saturday', time: '23:59' },
+            'salmonella': { day: 'Monday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Saturday', time: '23:59' },
+            'totalColiforms': { day: 'Saturday', time: '23:59' },
+            'totalYeastMold': { day: 'Tuesday', time: '23:59' }
+          },
+          'Monday': {
+            'btgn': { day: 'Tuesday', time: '23:59' },
+            'ecoli': { day: 'Tuesday', time: '23:59' },
+            'salmonella': { day: 'Wednesday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Tuesday', time: '23:59' },
+            'totalColiforms': { day: 'Tuesday', time: '23:59' },
+            'totalYeastMold': { day: 'Thursday', time: '23:59' }
+          },
+          'Tuesday': {
+            'btgn': { day: 'Wednesday', time: '23:59' },
+            'ecoli': { day: 'Wednesday', time: '23:59' },
+            'salmonella': { day: 'Thursday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Wednesday', time: '23:59' },
+            'totalColiforms': { day: 'Wednesday', time: '23:59' },
+            'totalYeastMold': { day: 'Friday', time: '23:59' }
+          },
+          'Wednesday': {
+            'btgn': { day: 'Thursday', time: '23:59' },
+            'ecoli': { day: 'Thursday', time: '23:59' },
+            'salmonella': { day: 'Friday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Thursday', time: '23:59' },
+            'totalColiforms': { day: 'Thursday', time: '23:59' },
+            'totalYeastMold': { day: 'Saturday', time: '23:59' }
+          },
+          'Thursday': {
+            'btgn': { day: 'Friday', time: '23:59' },
+            'ecoli': { day: 'Friday', time: '23:59' },
+            'salmonella': { day: 'Saturday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Friday', time: '23:59' },
+            'totalColiforms': { day: 'Friday', time: '23:59' },
+            'totalYeastMold': { day: 'Monday', time: '23:59' }
+          },
+          'Saturday': {
+            'btgn': { day: 'Monday', time: '23:59' },
+            'ecoli': { day: 'Monday', time: '23:59' },
+            'salmonella': { day: 'Tuesday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Monday', time: '23:59' },
+            'totalColiforms': { day: 'Monday', time: '23:59' },
+            'totalYeastMold': { day: 'Wednesday', time: '23:59' }
+          },
+          'Sunday': {
+            'btgn': { day: 'Monday', time: '23:59' },
+            'ecoli': { day: 'Monday', time: '23:59' },
+            'salmonella': { day: 'Tuesday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Monday', time: '23:59' },
+            'totalColiforms': { day: 'Monday', time: '23:59' },
+            'totalYeastMold': { day: 'Wednesday', time: '23:59' }
+          }
+        },
+        // Add other test categories as needed
+        'Dispensary Plant Material': {
+          'Friday': {
+            'btgn': { day: 'Saturday', time: '23:59' },
+            'ecoli': { day: 'Saturday', time: '23:59' },
+            'salmonella': { day: 'Monday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Saturday', time: '23:59' },
+            'totalColiforms': { day: 'Saturday', time: '23:59' },
+            'totalYeastMold': { day: 'Tuesday', time: '23:59' }
+          },
+          'Monday': {
+            'btgn': { day: 'Tuesday', time: '23:59' },
+            'ecoli': { day: 'Tuesday', time: '23:59' },
+            'salmonella': { day: 'Wednesday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Tuesday', time: '23:59' },
+            'totalColiforms': { day: 'Tuesday', time: '23:59' },
+            'totalYeastMold': { day: 'Thursday', time: '23:59' }
+          },
+          'Tuesday': {
+            'btgn': { day: 'Wednesday', time: '23:59' },
+            'ecoli': { day: 'Wednesday', time: '23:59' },
+            'salmonella': { day: 'Thursday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Wednesday', time: '23:59' },
+            'totalColiforms': { day: 'Wednesday', time: '23:59' },
+            'totalYeastMold': { day: 'Friday', time: '23:59' }
+          },
+          'Wednesday': {
+            'btgn': { day: 'Thursday', time: '23:59' },
+            'ecoli': { day: 'Thursday', time: '23:59' },
+            'salmonella': { day: 'Friday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Thursday', time: '23:59' },
+            'totalColiforms': { day: 'Thursday', time: '23:59' },
+            'totalYeastMold': { day: 'Saturday', time: '23:59' }
+          },
+          'Thursday': {
+            'btgn': { day: 'Friday', time: '23:59' },
+            'ecoli': { day: 'Friday', time: '23:59' },
+            'salmonella': { day: 'Saturday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Friday', time: '23:59' },
+            'totalColiforms': { day: 'Friday', time: '23:59' },
+            'totalYeastMold': { day: 'Monday', time: '23:59' }
+          },
+          'Saturday': {
+            'btgn': { day: 'Monday', time: '23:59' },
+            'ecoli': { day: 'Monday', time: '23:59' },
+            'salmonella': { day: 'Tuesday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Monday', time: '23:59' },
+            'totalColiforms': { day: 'Monday', time: '23:59' },
+            'totalYeastMold': { day: 'Wednesday', time: '23:59' }
+          },
+          'Sunday': {
+            'btgn': { day: 'Monday', time: '23:59' },
+            'ecoli': { day: 'Monday', time: '23:59' },
+            'salmonella': { day: 'Tuesday', time: '23:59' },
+            'totalAerobicBacteria': { day: 'Monday', time: '23:59' },
+            'totalColiforms': { day: 'Monday', time: '23:59' },
+            'totalYeastMold': { day: 'Wednesday', time: '23:59' }
+          }
+        }
+      },
+      'Michigan': {
+        // Similar structure for Michigan
+        'Raw Plant Material': {
+          'Friday': {
+            'totalYeastMold': { day: 'Tuesday', time: '8:00' },
+            'aspergillus': { day: 'Monday', time: '8:00' },
+            'ecoli': { day: 'Monday', time: '8:00' },
+            'salmonella': { day: 'Monday', time: '8:00' },
+            'totalColiforms': { day: 'Monday', time: '8:00' }
+          }
+          // Add other days as needed
+        }
+      }
+    };
+    
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const receivedDayName = days[receivedDate.getDay()];
+    const stateKey = selectedState === 'ohio' ? 'Ohio' : 'Michigan';
+    
+    const categoryMap = microAssayMap[stateKey]?.[testCategory]?.[receivedDayName];
+    if (!categoryMap) return null;
+    
+    // Get all relevant assays that are selected
+    const relevantAssays = {
+      'btgn': selectedAssays.btgn,
+      'ecoli': selectedAssays.stec, // Note: mapping STEC checkbox to ecoli
+      'salmonella': selectedAssays.salmonella,
+      'totalAerobicBacteria': selectedAssays.totalAerobicBacteria,
+      'totalColiforms': selectedAssays.totalColiforms,
+      'totalYeastMold': selectedAssays.totalYeastMold,
+      'aspergillus': selectedAssays.aspergillus // Michigan only
+    };
+    
+    // Calculate due dates for all selected assays
+    const dueDates = {};
+    let latestDate = null;
+    let hasMultipleTimelines = false;
+    const uniqueDates = new Set();
+    
+    Object.entries(relevantAssays).forEach(([assay, isSelected]) => {
+      if (isSelected && categoryMap[assay]) {
+        const dueDate = calculateDueDate(receivedDate, categoryMap[assay].day, categoryMap[assay].time);
+        dueDates[assay] = dueDate;
+        uniqueDates.add(dueDate);
+        
+        if (!latestDate || new Date(dueDate) > new Date(latestDate)) {
+          latestDate = dueDate;
+        }
+      }
+    });
+    
+    hasMultipleTimelines = uniqueDates.size > 1;
+    
+    return {
+      latestDate,
+      dueDates,
+      hasMultipleTimelines
+    };
+  };
+  
+  // Simplified function to get the micro due date (returns latest date)
+  const getMicroDue = (testCategory, receivedDate, selectedAssays = {}) => {
+    const result = getMicroDueDates(testCategory, receivedDate, selectedAssays);
+    return result?.latestDate || null;
+  };
+  
+  // Keep the old structure for backwards compatibility
+  const getMicroDueData = (testCategory, receivedDate) => {
+    const microNeededByMap = {
+      'Ohio': {
+        'Research/Development': {
+          'Friday': { day: 'Tuesday', time: '23:59' },
+          'Monday': { day: 'Thursday', time: '23:59' },
+          'Thursday': { day: 'Monday', time: '23:59' },
+          'Tuesday': { day: 'Friday', time: '23:59' },
+          'Wednesday': { day: 'Saturday', time: '23:59' },
+          'Saturday': { day: 'Wednesday', time: '23:59' },
+          'Sunday': { day: 'Wednesday', time: '23:59' }
+        },
+        'Dispensary Plant Material': {
+          'Friday': { day: 'Tuesday', time: '23:59' },
+          'Monday': { day: 'Wednesday', time: '23:59' },
+          'Thursday': { day: 'Monday', time: '23:59' },
+          'Tuesday': { day: 'Thursday', time: '23:59' },
+          'Wednesday': { day: 'Friday', time: '23:59' },
+          'Saturday': { day: 'Wednesday', time: '23:59' },
+          'Sunday': { day: 'Wednesday', time: '23:59' }
+        },
+        'Non-Solvent Product (Not Previously Tested)': {
+          'Friday': { day: 'Wednesday', time: '23:59' },
+          'Monday': { day: 'Thursday', time: '23:59' },
+          'Thursday': { day: 'Tuesday', time: '23:59' },
+          'Tuesday': { day: 'Friday', time: '23:59' },
+          'Wednesday': { day: 'Monday', time: '23:59' }
+        },
+        'Processed Product (Previously Tested)': {
+          'Friday': { day: 'Wednesday', time: '23:59' },
+          'Monday': { day: 'Thursday', time: '23:59' },
+          'Thursday': { day: 'Tuesday', time: '23:59' },
+          'Tuesday': { day: 'Friday', time: '23:59' },
+          'Wednesday': { day: 'Monday', time: '23:59' }
+        },
+        'Processor Plant Material': {
+          'Friday': { day: 'Tuesday', time: '23:59' },
+          'Monday': { day: 'Wednesday', time: '23:59' },
+          'Thursday': { day: 'Monday', time: '23:59' },
+          'Tuesday': { day: 'Thursday', time: '23:59' },
+          'Wednesday': { day: 'Friday', time: '23:59' }
+        },
+        'Solvent Based Marijuana Ingredient': {
+          'Friday': { day: 'Tuesday', time: '23:59' },
+          'Monday': { day: 'Wednesday', time: '23:59' },
+          'Thursday': { day: 'Monday', time: '23:59' },
+          'Tuesday': { day: 'Thursday', time: '23:59' },
+          'Wednesday': { day: 'Friday', time: '23:59' }
+        },
+        'Solvent Based Product (Not Previously Tested)': {
+          'Friday': { day: 'Wednesday', time: '23:59' },
+          'Monday': { day: 'Thursday', time: '23:59' },
+          'Thursday': { day: 'Tuesday', time: '23:59' },
+          'Tuesday': { day: 'Friday', time: '23:59' },
+          'Wednesday': { day: 'Monday', time: '23:59' }
+        },
+        'Voluntary Testing - Terpenes (Plant Material)': {
+          'Friday': { day: 'Tuesday', time: '23:59' },
+          'Monday': { day: 'Wednesday', time: '23:59' },
+          'Thursday': { day: 'Monday', time: '23:59' },
+          'Tuesday': { day: 'Thursday', time: '23:59' },
+          'Wednesday': { day: 'Friday', time: '23:59' }
+        },
+        'Voluntary Testing - Terpenes (Processed Products)': {
+          'Friday': { day: 'Tuesday', time: '23:59' },
+          'Monday': { day: 'Wednesday', time: '23:59' },
+          'Thursday': { day: 'Monday', time: '23:59' },
+          'Tuesday': { day: 'Thursday', time: '23:59' },
+          'Wednesday': { day: 'Friday', time: '23:59' }
+        },
+        'Dispensary Plant Material - STEC/Sal': {
+          'Friday': { day: 'Tuesday', time: '23:59' },
+          'Monday': { day: 'Wednesday', time: '23:59' },
+          'Thursday': { day: 'Monday', time: '23:59' },
+          'Tuesday': { day: 'Thursday', time: '23:59' },
+          'Wednesday': { day: 'Friday', time: '23:59' }
+        }
+      },
+      'Michigan': {
+        'Raw Plant Material': {
+          'Friday': { day: 'Tuesday', time: '8:00' },
+          'Monday': { day: 'Thursday', time: '8:00' },
+          'Saturday': { day: 'Wednesday', time: '8:00' },
+          'Sunday': { day: 'Wednesday', time: '8:00' },
+          'Thursday': { day: 'Monday', time: '19:00' },
+          'Tuesday': { day: 'Friday', time: '12:00' },
+          'Wednesday': { day: 'Saturday', time: '19:00' }
+        },
+        'Research/Development': {
+          'Friday': { day: 'Tuesday', time: '8:00' },
+          'Monday': { day: 'Wednesday', time: '8:00' },
+          'Saturday': { day: 'Wednesday', time: '12:00' },
+          'Sunday': { day: 'Wednesday', time: '12:00' },
+          'Thursday': { day: 'Monday', time: '8:00' },
+          'Tuesday': { day: 'Thursday', time: '8:00' },
+          'Wednesday': { day: 'Friday', time: '12:00' }
+        },
+        'Additional Tests': {
+          'Friday': { day: 'Tuesday', time: '19:00' },
+          'Monday': { day: 'Wednesday', time: '19:00' },
+          'Saturday': { day: 'Tuesday', time: '19:00' },
+          'Sunday': { day: 'Tuesday', time: '19:00' },
+          'Thursday': { day: 'Monday', time: '19:00' },
+          'Tuesday': { day: 'Thursday', time: '19:00' },
+          'Wednesday': { day: 'Friday', time: '19:00' }
+        },
+        'Infused Beverages': {
+          'Friday': { day: 'Tuesday', time: '8:00' },
+          'Monday': { day: 'Thursday', time: '8:00' },
+          'Saturday': { day: 'Wednesday', time: '8:00' },
+          'Sunday': { day: 'Wednesday', time: '8:00' },
+          'Thursday': { day: 'Monday', time: '19:00' },
+          'Tuesday': { day: 'Friday', time: '12:00' },
+          'Wednesday': { day: 'Saturday', time: '19:00' }
+        },
+        'Infused Edible': {
+          'Friday': { day: 'Tuesday', time: '8:00' },
+          'Monday': { day: 'Thursday', time: '8:00' },
+          'Saturday': { day: 'Wednesday', time: '8:00' },
+          'Sunday': { day: 'Wednesday', time: '8:00' },
+          'Thursday': { day: 'Monday', time: '19:00' },
+          'Tuesday': { day: 'Friday', time: '12:00' },
+          'Wednesday': { day: 'Saturday', time: '19:00' }
+        },
+        'Infused Non-Edible': {
+          'Friday': { day: 'Tuesday', time: '8:00' },
+          'Monday': { day: 'Thursday', time: '8:00' },
+          'Saturday': { day: 'Wednesday', time: '8:00' },
+          'Sunday': { day: 'Wednesday', time: '8:00' },
+          'Thursday': { day: 'Monday', time: '19:00' },
+          'Tuesday': { day: 'Friday', time: '12:00' },
+          'Wednesday': { day: 'Saturday', time: '19:00' }
+        },
+        'Inhalable Compound Concentrate': {
+          'Friday': { day: 'Tuesday', time: '8:00' },
+          'Monday': { day: 'Thursday', time: '8:00' },
+          'Saturday': { day: 'Wednesday', time: '8:00' },
+          'Sunday': { day: 'Wednesday', time: '8:00' },
+          'Thursday': { day: 'Monday', time: '19:00' },
+          'Tuesday': { day: 'Friday', time: '12:00' },
+          'Wednesday': { day: 'Saturday', time: '19:00' }
+        },
+        'Inhalable Compound Concentrate (each)': {
+          'Friday': { day: 'Tuesday', time: '8:00' },
+          'Monday': { day: 'Thursday', time: '8:00' },
+          'Saturday': { day: 'Wednesday', time: '8:00' },
+          'Sunday': { day: 'Wednesday', time: '8:00' },
+          'Thursday': { day: 'Monday', time: '19:00' },
+          'Tuesday': { day: 'Friday', time: '12:00' },
+          'Wednesday': { day: 'Saturday', time: '19:00' }
+        },
+        'Inhalable Concentrate': {
+          'Friday': { day: 'Tuesday', time: '19:00' },
+          'Monday': { day: 'Wednesday', time: '19:00' },
+          'Saturday': { day: 'Wednesday', time: '19:00' },
+          'Sunday': { day: 'Wednesday', time: '19:00' },
+          'Thursday': { day: 'Monday', time: '19:00' },
+          'Tuesday': { day: 'Thursday', time: '19:00' },
+          'Wednesday': { day: 'Friday', time: '19:00' }
+        },
+        'Non-Solvent Concentrate': {
+          'Friday': { day: 'Tuesday', time: '8:00' },
+          'Monday': { day: 'Thursday', time: '8:00' },
+          'Saturday': { day: 'Wednesday', time: '8:00' },
+          'Sunday': { day: 'Wednesday', time: '8:00' },
+          'Thursday': { day: 'Monday', time: '11:00' },
+          'Tuesday': { day: 'Friday', time: '12:00' },
+          'Wednesday': { day: 'Saturday', time: '11:00' }
+        },
+        'Vape Concentrate': {
+          'Friday': { day: 'Tuesday', time: '8:00' },
+          'Monday': { day: 'Thursday', time: '8:00' },
+          'Saturday': { day: 'Wednesday', time: '8:00' },
+          'Sunday': { day: 'Wednesday', time: '8:00' },
+          'Thursday': { day: 'Monday', time: '12:00' },
+          'Tuesday': { day: 'Friday', time: '12:00' },
+          'Wednesday': { day: 'Saturday', time: '12:00' }
+        },
+        'Tinctures': {
+          'Friday': { day: 'Tuesday', time: '8:00' },
+          'Monday': { day: 'Thursday', time: '8:00' },
+          'Saturday': { day: 'Wednesday', time: '8:00' },
+          'Sunday': { day: 'Wednesday', time: '8:00' },
+          'Thursday': { day: 'Monday', time: '19:00' },
+          'Tuesday': { day: 'Friday', time: '12:00' },
+          'Wednesday': { day: 'Saturday', time: '19:00' }
+        }
+      }
+    };
+    
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const receivedDayName = days[receivedDate.getDay()];
+    const stateKey = selectedState === 'ohio' ? 'Ohio' : 'Michigan';
+    
+    const categoryMap = microNeededByMap[stateKey];
+    if (!categoryMap || !categoryMap[testCategory] || !categoryMap[testCategory][receivedDayName]) {
+      return null;
+    }
+    
+    return categoryMap[testCategory][receivedDayName];
+  };
 
   // Mock data for demonstration
   useEffect(() => {
@@ -379,6 +832,27 @@ const ReceivingDashboard = () => {
           dpmEarlyStart: sample.requiresDPMEarlyStart || false,
           rush: false
         };
+        
+        // Calculate initial micro due date based on test category defaults
+        const testCat = sample.testCategory || 'Dispensary Plant Material';
+        // Default assays based on test category - for DPM, assume all microbial tests are needed
+        if (testCat.includes('Dispensary Plant Material')) {
+          initialData.samples[index].assays = {
+            ...initialData.samples[index].assays,
+            salmonella: true,
+            stec: true,
+            totalAerobicBacteria: true,
+            totalColiforms: true,
+            totalYeastMold: true,
+            btgn: true
+          };
+        }
+        
+        // Calculate micro due with selected assays
+        const microDueResult = getMicroDueDates(testCat, manifest.createdDate, initialData.samples[index].assays);
+        initialData.samples[index].microDue = microDueResult?.latestDate || '';
+        initialData.samples[index].microDueDetails = microDueResult;
+        initialData.samples[index].chemistryDue = getChemistryDue(testCat, manifest.createdDate) || '';
       });
       
       setManifestData(prev => ({
@@ -431,22 +905,35 @@ const ReceivingDashboard = () => {
   };
   
   const handleAssayChange = (manifestId, sampleIndex, assay, value) => {
-    setManifestData(prev => ({
-      ...prev,
-      [manifestId]: {
-        ...prev[manifestId],
-        samples: {
-          ...prev[manifestId].samples,
-          [sampleIndex]: {
-            ...prev[manifestId].samples[sampleIndex],
-            assays: {
-              ...prev[manifestId].samples[sampleIndex].assays,
-              [assay]: value
-            }
-          }
-        }
+    setManifestData(prev => {
+      const updatedManifest = { ...prev[manifestId] };
+      const updatedSample = { ...updatedManifest.samples[sampleIndex] };
+      const updatedAssays = { ...updatedSample.assays, [assay]: value };
+      updatedSample.assays = updatedAssays;
+      
+      // Recalculate micro due date based on selected assays
+      const manifest = manifests.find(m => m.manifestId === manifestId);
+      if (manifest) {
+        const microDueResult = getMicroDueDates(
+          updatedSample.testCategory || 'Dispensary Plant Material',
+          manifest.createdDate,
+          updatedAssays
+        );
+        
+        updatedSample.microDue = microDueResult?.latestDate || '';
+        updatedSample.microDueDetails = microDueResult;
       }
-    }));
+      
+      updatedManifest.samples = {
+        ...updatedManifest.samples,
+        [sampleIndex]: updatedSample
+      };
+      
+      return {
+        ...prev,
+        [manifestId]: updatedManifest
+      };
+    });
   };
   
   const handleReceiveManifest = (manifestId) => {
@@ -584,15 +1071,12 @@ const ReceivingDashboard = () => {
                         <h3 className="text-lg font-medium text-gray-900">
                           {manifest.customerFacility}
                         </h3>
-                        <button
-                          onClick={() => toggleManifestExpansion(manifest.manifestId)}
-                          className="flex items-center text-gray-400 hover:text-gray-600"
-                        >
-                          {expandedManifests[manifest.manifestId] && !expandedReceiving[manifest.manifestId] ? 
-                            <ChevronDown className="w-4 h-4" /> : 
-                            <ChevronRight className="w-4 h-4" />
-                          }
-                        </button>
+                        {manifestData[manifest.manifestId]?.ccOrderId && (
+                          <>
+                            <span className="text-gray-600">•</span>
+                            <span className="text-gray-700 font-medium">CC Order ID: {manifestData[manifest.manifestId].ccOrderId}</span>
+                          </>
+                        )}
                         {getPriorityIcon(manifest.priority)}
                         {manifest.hasDPMEarlyStart && (
                           <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
@@ -602,12 +1086,6 @@ const ReceivingDashboard = () => {
                       </div>
                       <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
                         <span>Manifest #{manifest.manifestId}</span>
-                        {manifestData[manifest.manifestId]?.ccOrderId && (
-                          <>
-                            <span>•</span>
-                            <span>CC Order ID: {manifestData[manifest.manifestId].ccOrderId}</span>
-                          </>
-                        )}
                         <span>•</span>
                         <span>{manifest.packageCount} samples</span>
                         <span>•</span>
@@ -621,36 +1099,69 @@ const ReceivingDashboard = () => {
 
                 {/* Expanded Sample Details (View Only) */}
                 {expandedManifests[manifest.manifestId] && !expandedReceiving[manifest.manifestId] && manifest.samples.length > 0 && (
-                  <div className="mt-4 ml-9">
+                  <div className="mt-4 ml-9 overflow-x-auto">
                     <table className="min-w-full">
-                      <thead>
-                        <tr className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          <th className="text-left py-2">METRC Tag</th>
-                          <th className="text-left py-2">Item Name</th>
-                          <th className="text-left py-2">Category</th>
-                          <th className="text-left py-2">Test Category</th>
-                          <th className="text-left py-2">Gross Weight</th>
+                      <thead className="bg-gray-50">
+                        <tr className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          <th className="text-left py-2 px-2">Sample #</th>
+                          <th className="text-left py-2 px-2">METRC Tag</th>
+                          <th className="text-left py-2 px-2">Strain</th>
+                          <th className="text-left py-2 px-2">Item Name</th>
+                          <th className="text-left py-2 px-2">Test Category</th>
+                          <th className="text-left py-2 px-2">Micro Due</th>
+                          <th className="text-left py-2 px-2">Chemistry Due</th>
+                          <th className="text-left py-2 px-2">Category</th>
+                          <th className="text-left py-2 px-2">Gross Weight</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {manifest.samples.map((sample, idx) => (
-                          <tr key={idx} className="text-sm">
-                            <td className="py-2 font-mono text-xs">{sample.metrcTag}</td>
-                            <td className="py-2">{sample.itemName}</td>
-                            <td className="py-2">{sample.itemCategory}</td>
-                            <td className="py-2">
-                              <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
-                                {sample.testCategory}
-                              </span>
-                              {sample.requiresDPMEarlyStart && (
-                                <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
-                                  Early Start
+                        {manifest.samples.map((sample, idx) => {
+                          // For view-only, show the latest due date assuming all microbial tests
+                          const defaultMicroAssays = {
+                            salmonella: true,
+                            stec: true,
+                            totalAerobicBacteria: true,
+                            totalColiforms: true,
+                            totalYeastMold: true,
+                            btgn: true
+                          };
+                          const microDue = getMicroDue(sample.testCategory, manifest.createdDate, 
+                            sample.testCategory?.includes('Dispensary Plant Material') ? defaultMicroAssays : {});
+                          const chemistryDue = getChemistryDue(sample.testCategory, manifest.createdDate);
+                          return (
+                            <tr key={idx} className="text-sm hover:bg-gray-50">
+                              <td className="py-2 px-2 text-gray-600">{idx + 1}</td>
+                              <td className="py-2 px-2 font-mono text-xs">{sample.metrcTag}</td>
+                              <td className="py-2 px-2">{sample.strain || 'N/A'}</td>
+                              <td className="py-2 px-2">{sample.itemName}</td>
+                              <td className="py-2 px-2">
+                                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                                  {sample.testCategory}
                                 </span>
-                              )}
-                            </td>
-                            <td className="py-2">{sample.grossWeight} g</td>
-                          </tr>
-                        ))}
+                                {sample.requiresDPMEarlyStart && (
+                                  <span className="ml-1 inline-block px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                                    Early Start
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-2 px-2">
+                                {microDue ? (
+                                  <span className="text-xs font-medium text-blue-700">{formatDueDate(microDue)}</span>
+                                ) : (
+                                  <span className="text-xs text-gray-400">N/A</span>
+                                )}
+                              </td>
+                              <td className="py-2 px-2">
+                                {chemistryDue ? (
+                                  <span className="text-xs font-medium text-blue-700">{formatDueDate(chemistryDue)}</span>
+                                ) : (
+                                  <span className="text-xs text-gray-400">N/A</span>
+                                )}
+                              </td>
+                              <td className="py-2 px-2">{sample.grossWeight} g</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -730,121 +1241,148 @@ const ReceivingDashboard = () => {
                       </div>
                     </div>
                     
-                    {/* Sample Editing */}
-                    <div className="space-y-3">
-                      {manifest.samples.map((sample, idx) => {
-                        const sampleData = manifestData[manifest.manifestId]?.samples[idx] || {};
-                        const sampleKey = `${manifest.manifestId}-${idx}`;
-                        const isExpanded = expandedSamples[sampleKey];
-                        
-                        return (
-                          <div key={idx} className="border border-gray-200 rounded-lg">
-                            {/* Sample Header Row */}
-                            <div className="bg-gray-50 p-3">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-6 flex-1">
-                                  <button
-                                    onClick={() => toggleSampleExpansion(manifest.manifestId, idx)}
-                                    className="flex items-center text-sm hover:bg-gray-200 rounded p-1"
-                                  >
-                                    {isExpanded ? 
-                                      <ChevronDown className="w-4 h-4 mr-2" /> : 
-                                      <ChevronRight className="w-4 h-4 mr-2" />
-                                    }
-                                    <span className="font-medium">Sample #{idx + 1}</span>
-                                  </button>
-                                  
-                                  <div className="flex-1 grid grid-cols-5 gap-4 items-center">
-                                    <div>
-                                      <div className="font-mono text-xs text-gray-600">{sample.metrcTag}</div>
-                                      <div className="text-xs text-gray-500">{sample.strain}</div>
-                                    </div>
-                                    
-                                    <div className="col-span-2">
-                                      <div className="text-sm">{sample.itemName}</div>
-                                    </div>
-                                    
-                                    <div>
+                    {/* Sample Table */}
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                          <tr className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            <th className="py-2 px-2 text-left"></th>
+                            <th className="py-2 px-2 text-left">#</th>
+                            <th className="py-2 px-2 text-left">METRC Tag</th>
+                            <th className="py-2 px-2 text-left">Strain</th>
+                            <th className="py-2 px-2 text-left">Item Name</th>
+                            <th className="py-2 px-2 text-left">Test Category</th>
+                            <th className="py-2 px-2 text-left">Micro Due</th>
+                            <th className="py-2 px-2 text-left">Chemistry Due</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {manifest.samples.map((sample, idx) => {
+                            const sampleData = manifestData[manifest.manifestId]?.samples[idx] || {};
+                            const sampleKey = `${manifest.manifestId}-${idx}`;
+                            const isExpanded = expandedSamples[sampleKey];
+                            
+                            return (
+                              <React.Fragment key={idx}>
+                                <tr className="hover:bg-gray-50 text-sm">
+                                  <td className="py-2 px-2">
+                                    <button
+                                      onClick={() => toggleSampleExpansion(manifest.manifestId, idx)}
+                                      className="hover:bg-gray-200 rounded p-1"
+                                    >
+                                      {isExpanded ? 
+                                        <ChevronDown className="w-4 h-4" /> : 
+                                        <ChevronRight className="w-4 h-4" />
+                                      }
+                                    </button>
+                                  </td>
+                                  <td className="py-2 px-2 text-gray-600">{idx + 1}</td>
+                                  <td className="py-2 px-2 font-mono text-xs">{sample.metrcTag}</td>
+                                  <td className="py-2 px-2 text-xs">{sample.strain || 'N/A'}</td>
+                                  <td className="py-2 px-2">{sample.itemName}</td>
+                                  <td className="py-2 px-2">
+                                    <select
+                                      value={sampleData.testCategory || 'Dispensary Plant Material'}
+                                      onChange={(e) => {
+                                        handleTestCategoryChange(manifest.manifestId, idx, e.target.value);
+                                        // Update due dates when test category changes
+                                        const sampleAssays = manifestData[manifest.manifestId]?.samples[idx]?.assays || {};
+                                        const microDueResult = getMicroDueDates(e.target.value, manifest.createdDate, sampleAssays);
+                                        const newChemDue = getChemistryDue(e.target.value, manifest.createdDate);
+                                        
+                                        setManifestData(prev => {
+                                          const updated = { ...prev };
+                                          if (updated[manifest.manifestId]?.samples[idx]) {
+                                            updated[manifest.manifestId].samples[idx].microDue = microDueResult?.latestDate || '';
+                                            updated[manifest.manifestId].samples[idx].microDueDetails = microDueResult;
+                                            updated[manifest.manifestId].samples[idx].chemistryDue = newChemDue || '';
+                                          }
+                                          return updated;
+                                        });
+                                      }}
+                                      className="text-xs px-2 py-1 border border-gray-300 rounded w-full max-w-[220px]"
+                                    >
+                                      {selectedState === 'ohio' ? (
+                                        <>
+                                          <option value="Dispensary Plant Material">Dispensary Plant Material</option>
+                                          <option value="Dispensary Plant Material - STEC/Sal">Dispensary Plant Material - STEC/Sal</option>
+                                          <option value="Non-Solvent Marijuana Ingredient">Non-Solvent Marijuana Ingredient</option>
+                                          <option value="Non-Solvent Product (Not Previously Tested)">Non-Solvent Product (Not Previously Tested)</option>
+                                          <option value="Processed Product (Previously Tested)">Processed Product (Previously Tested)</option>
+                                          <option value="Processor Plant Material">Processor Plant Material</option>
+                                          <option value="R&D Testing - Salmonella and STEC Contamination">R&D Testing - Salmonella and STEC Contamination</option>
+                                          <option value="Research/Development">Research/Development</option>
+                                          <option value="Solvent Based Marijuana Ingredient">Solvent Based Marijuana Ingredient</option>
+                                          <option value="Solvent Based Product (Not Previously Tested)">Solvent Based Product (Not Previously Tested)</option>
+                                          <option value="Voluntary Testing - Terpenes (Plant Material)">Voluntary Testing - Terpenes (Plant Material)</option>
+                                          <option value="Voluntary Testing - Terpenes (Processed Products)">Voluntary Testing - Terpenes (Processed Products)</option>
+                                          <option value="Miscellaneous R&D Testing">Miscellaneous R&D Testing</option>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <option value="Additional">Additional</option>
+                                          <option value="Flower">Flower</option>
+                                          <option value="Infused">Infused</option>
+                                          <option value="R&D Testing">R&D Testing</option>
+                                          <option value="R&D Testing (Infused Products)">R&D Testing (Infused Products)</option>
+                                          <option value="R&D Testing (Infused Beverages)">R&D Testing (Infused Beverages)</option>
+                                          <option value="Misc Genetics R&D Testing">Misc Genetics R&D Testing</option>
+                                        </>
+                                      )}
+                                    </select>
+                                  </td>
+                                  <td className="py-2 px-2">
+                                    <div className="flex items-center space-x-1">
                                       <input
-                                        type="text"
-                                        value={sampleData.ccId || ''}
-                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'ccId', e.target.value)}
-                                        className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
-                                        placeholder="CC ID"
+                                        type="datetime-local"
+                                        value={toDateTimeLocal(sampleData.microDue) || ''}
+                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'microDue', fromDateTimeLocal(e.target.value))}
+                                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs"
                                       />
-                                    </div>
-                                    
-                                    <div className="flex items-center space-x-2">
-                                      <label className="text-xs font-medium text-gray-700">Test Category</label>
-                                      <div className="relative group">
-                                        <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                                        <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
-                                          <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                                            Test Category is the Required Lab Test Batch value from Metrc
+                                      {sampleData.microDueDetails?.hasMultipleTimelines && (
+                                        <div className="relative group">
+                                          <AlertCircle className="w-4 h-4 text-amber-600 cursor-help flex-shrink-0" />
+                                          <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-72">
+                                            <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
+                                              <div className="font-semibold mb-1 border-b border-gray-700 pb-1">Microbial Due Dates:</div>
+                                              {Object.entries(sampleData.microDueDetails.dueDates || {}).map(([assay, date]) => {
+                                                const assayNames = {
+                                                  'salmonella': 'PCR (Salmonella)',
+                                                  'btgn': 'BTGN',
+                                                  'ecoli': 'E. coli/STEC',
+                                                  'totalAerobicBacteria': 'Total Aerobic',
+                                                  'totalColiforms': 'Total Coliforms',
+                                                  'totalYeastMold': 'Yeast & Mold'
+                                                };
+                                                return (
+                                                  <div key={assay} className="ml-2 py-0.5">
+                                                    • {assayNames[assay] || assay}: {formatDueDate(date)}
+                                                  </div>
+                                                );
+                                              })}
+                                              <div className="text-xs text-gray-400 mt-1 pt-1 border-t border-gray-700">
+                                                Showing latest due date in field
+                                              </div>
+                                            </div>
                                           </div>
                                         </div>
-                                      </div>
-                                      <span className="text-xs">:</span>
-                                      <select
-                                        value={sampleData.testCategory || 'Dispensary Plant Material'}
-                                        onChange={(e) => handleTestCategoryChange(manifest.manifestId, idx, e.target.value)}
-                                        className="text-xs px-1 py-1 border border-gray-300 rounded max-w-[200px]"
-                                      >
-                                        {selectedState === 'ohio' ? (
-                                          <>
-                                            <option value="Dispensary Plant Material">Dispensary Plant Material</option>
-                                            <option value="Dispensary Plant Material - STEC/Sal">Dispensary Plant Material - STEC/Sal</option>
-                                            <option value="Non-Solvent Marijuana Ingredient">Non-Solvent Marijuana Ingredient</option>
-                                            <option value="Non-Solvent Product (Not Previously Tested)">Non-Solvent Product (Not Previously Tested)</option>
-                                            <option value="Processed Product (Previously Tested)">Processed Product (Previously Tested)</option>
-                                            <option value="Processor Plant Material">Processor Plant Material</option>
-                                            <option value="R&D Testing - Salmonella and STEC Contamination">R&D Testing - Salmonella and STEC Contamination</option>
-                                            <option value="Research/Development">Research/Development</option>
-                                            <option value="Solvent Based Marijuana Ingredient">Solvent Based Marijuana Ingredient</option>
-                                            <option value="Solvent Based Product (Not Previously Tested)">Solvent Based Product (Not Previously Tested)</option>
-                                            <option value="Voluntary Testing - Terpenes (Plant Material)">Voluntary Testing - Terpenes (Plant Material)</option>
-                                            <option value="Voluntary Testing - Terpenes (Processed Products)">Voluntary Testing - Terpenes (Processed Products)</option>
-                                            <option value="Miscellaneous R&D Testing">Miscellaneous R&D Testing</option>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <option value="Additional">Additional</option>
-                                            <option value="Flower">Flower</option>
-                                            <option value="Infused">Infused</option>
-                                            <option value="R&D Testing">R&D Testing</option>
-                                            <option value="R&D Testing (Infused Products)">R&D Testing (Infused Products)</option>
-                                            <option value="R&D Testing (Infused Beverages)">R&D Testing (Infused Beverages)</option>
-                                            <option value="Misc Genetics R&D Testing">Misc Genetics R&D Testing</option>
-                                          </>
-                                        )}
-                                      </select>
+                                      )}
                                     </div>
-                                  </div>
-                                </div>
-                                
-                                <div className="flex items-center space-x-2">
-                                  {sampleData.rush && (
-                                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded flex items-center">
-                                      <Zap className="w-3 h-3 mr-1" />
-                                      RUSH
-                                    </span>
-                                  )}
-                                  {sampleData.dpmEarlyStart && (
-                                    <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded flex items-center">
-                                      <Zap className="w-3 h-3 mr-1" />
-                                      DPM EARLY START
-                                    </span>
-                                  )}
-                                  {sampleData.retest && (
-                                    <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded">RETEST</span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                                  </td>
+                                  <td className="py-2 px-2">
+                                    <input
+                                      type="datetime-local"
+                                      value={toDateTimeLocal(sampleData.chemistryDue) || ''}
+                                      onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'chemistryDue', fromDateTimeLocal(e.target.value))}
+                                      className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                                    />
+                                  </td>
+                                </tr>
                             
-                            {/* Expanded Section */}
-                            {isExpanded && (
-                              <div className="p-4 bg-white border-t border-gray-200">
+                                {/* Expanded Section */}
+                                {isExpanded && (
+                                  <tr>
+                                    <td colSpan="8" className="p-4 bg-gray-50">
                                 {/* Assays Header with Options */}
                                 <div className="flex items-center justify-between mb-3">
                                   <h4 className="text-sm font-medium text-gray-700">Assays</h4>
@@ -882,98 +1420,88 @@ const ReceivingDashboard = () => {
                                 <div className="grid grid-cols-3 gap-3">
                                   {/* Chemistry Assays */}
                                   <div className="border border-gray-200 rounded-lg p-3">
-                                    <h5 className="text-xs font-medium text-gray-600 mb-2">Chemistry</h5>
-                                    <div className="grid grid-cols-4 gap-2">
-                                      <div>
-                                        <label className="flex items-center">
-                                          <input
-                                            type="checkbox"
-                                            checked={sampleData.assays?.cannabinoids || false}
-                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'cannabinoids', e.target.checked)}
-                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                          />
-                                          <span className="text-sm">Cannabinoids</span>
-                                        </label>
-                                        <label className="flex items-center mt-1">
-                                          <input
-                                            type="checkbox"
-                                            checked={sampleData.assays?.terpenes || false}
-                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'terpenes', e.target.checked)}
-                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                          />
-                                          <span className="text-sm">Terpenes</span>
-                                        </label>
-                                      </div>
-                                      <div>
-                                        <label className="flex items-center">
-                                          <input
-                                            type="checkbox"
-                                            checked={sampleData.assays?.pesticides || false}
-                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'pesticides', e.target.checked)}
-                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                          />
-                                          <span className="text-sm">Pesticides</span>
-                                        </label>
-                                        <label className="flex items-center mt-1">
-                                          <input
-                                            type="checkbox"
-                                            checked={sampleData.assays?.mycotoxins || false}
-                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'mycotoxins', e.target.checked)}
-                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                          />
-                                          <span className="text-sm">Mycotoxins</span>
-                                        </label>
-                                      </div>
-                                      <div>
-                                        <label className="flex items-center">
-                                          <input
-                                            type="checkbox"
-                                            checked={sampleData.assays?.heavyMetals || false}
-                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'heavyMetals', e.target.checked)}
-                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                          />
-                                          <span className="text-sm">Heavy Metals</span>
-                                        </label>
-                                        <label className="flex items-center mt-1">
-                                          <input
-                                            type="checkbox"
-                                            checked={sampleData.assays?.elementalAnalysis || false}
-                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'elementalAnalysis', e.target.checked)}
-                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                          />
-                                          <span className="text-sm">Elemental Analysis</span>
-                                        </label>
-                                      </div>
-                                      <div>
-                                        <label className="flex items-center">
-                                          <input
-                                            type="checkbox"
-                                            checked={sampleData.assays?.totalNitrogen || false}
-                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalNitrogen', e.target.checked)}
-                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                          />
-                                          <span className="text-sm">Total Nitrogen</span>
-                                        </label>
-                                        <label className="flex items-center mt-1">
-                                          <input
-                                            type="checkbox"
-                                            checked={sampleData.assays?.totalSulfur || false}
-                                            onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalSulfur', e.target.checked)}
-                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                          />
-                                          <span className="text-sm">Total Sulfur</span>
-                                        </label>
-                                      </div>
-                                    </div>
-                                    <div className="mt-2">
-                                      <label className="flex items-center">
+                                    <h5 className="text-xs font-medium text-gray-600 mb-3">Chemistry</h5>
+                                    <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                                      <label className="flex items-center min-h-[24px]">
+                                        <input
+                                          type="checkbox"
+                                          checked={sampleData.assays?.cannabinoids || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'cannabinoids', e.target.checked)}
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                                        />
+                                        <span className="text-sm whitespace-nowrap">Cannabinoids</span>
+                                      </label>
+                                      <label className="flex items-center min-h-[24px]">
+                                        <input
+                                          type="checkbox"
+                                          checked={sampleData.assays?.pesticides || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'pesticides', e.target.checked)}
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                                        />
+                                        <span className="text-sm whitespace-nowrap">Pesticides</span>
+                                      </label>
+                                      <label className="flex items-center min-h-[24px]">
+                                        <input
+                                          type="checkbox"
+                                          checked={sampleData.assays?.terpenes || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'terpenes', e.target.checked)}
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                                        />
+                                        <span className="text-sm whitespace-nowrap">Terpenes</span>
+                                      </label>
+                                      <label className="flex items-center min-h-[24px]">
+                                        <input
+                                          type="checkbox"
+                                          checked={sampleData.assays?.mycotoxins || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'mycotoxins', e.target.checked)}
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                                        />
+                                        <span className="text-sm whitespace-nowrap">Mycotoxins</span>
+                                      </label>
+                                      <label className="flex items-center min-h-[24px]">
+                                        <input
+                                          type="checkbox"
+                                          checked={sampleData.assays?.heavyMetals || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'heavyMetals', e.target.checked)}
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                                        />
+                                        <span className="text-sm whitespace-nowrap">Heavy Metals</span>
+                                      </label>
+                                      <label className="flex items-center min-h-[24px]">
+                                        <input
+                                          type="checkbox"
+                                          checked={sampleData.assays?.totalNitrogen || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalNitrogen', e.target.checked)}
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                                        />
+                                        <span className="text-sm whitespace-nowrap">Total Nitrogen</span>
+                                      </label>
+                                      <label className="flex items-center min-h-[24px]">
+                                        <input
+                                          type="checkbox"
+                                          checked={sampleData.assays?.elementalAnalysis || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'elementalAnalysis', e.target.checked)}
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                                        />
+                                        <span className="text-sm whitespace-nowrap">Elemental</span>
+                                      </label>
+                                      <label className="flex items-center min-h-[24px]">
+                                        <input
+                                          type="checkbox"
+                                          checked={sampleData.assays?.totalSulfur || false}
+                                          onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'totalSulfur', e.target.checked)}
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                                        />
+                                        <span className="text-sm whitespace-nowrap">Total Sulfur</span>
+                                      </label>
+                                      <label className="flex items-center min-h-[24px]">
                                         <input
                                           type="checkbox"
                                           checked={sampleData.assays?.residualSolvents || false}
                                           onChange={(e) => handleAssayChange(manifest.manifestId, idx, 'residualSolvents', e.target.checked)}
-                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
                                         />
-                                        <span className="text-sm">Residual Solvents</span>
+                                        <span className="text-sm whitespace-nowrap">Residual Solvents</span>
                                       </label>
                                     </div>
                                   </div>
@@ -1287,11 +1815,14 @@ const ReceivingDashboard = () => {
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                     
                     {/* Action Buttons */}
