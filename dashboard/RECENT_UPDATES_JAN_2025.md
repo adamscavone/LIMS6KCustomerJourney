@@ -94,10 +94,24 @@ src/
 3. **BENCH_SHEET_GUIDE.md**: New comprehensive guide for bench sheet functionality
 4. **readme.md**: Updated with new routes and business rules
 
-### 6. Sample Receiving Dashboard Implementation
+### 6. Metrc Receiving Dashboard Implementation (Updated January 2025)
 - **Route**: `/receiving`
+- **Title**: Changed from "Sample Receiving Dashboard" to "Metrc Receiving"
 - **Key Features**:
-  - **Streamlined Interface**: Removed search bar and client filter for focused workflow
+  - **Decluttered Interface**: 
+    - Removed driver ETA containers completely
+    - Removed "Inbound Manifests" header
+    - Consolidated header with smaller padding and more compact controls
+    - Single toggle behavior - caret only opens receiving interface (no alternate views)
+  - **Enhanced Table Structure**:
+    - Added "Source Package" column with mock Metrc package tags
+    - Added "Item Category" column with proper Metrc categories (Buds, Pre-Roll, Edibles, etc.)
+    - Fixed column consistency between expanded and collapsed states
+    - Corrected data mapping issues (categories no longer show weights)
+  - **Simplified Tooltip Implementation**:
+    - Removed complex Micro Due tooltip due to z-index issues
+    - Added simple native HTML title tooltip: "This is a tooltip."
+    - Removed AlertCircle icons from individual rows
   - **Functional Manifest Expansion**: Click spindown arrow next to client name to open receiving interface
   - **CC Order ID Display**: Shows at same level as Manifest Number when receiving
   - **Expand All Samples**: One-click expansion of all sample details
@@ -115,21 +129,33 @@ src/
   - **Manifest-Level Actions**:
     - "Rush All" button to apply rush status to all samples
     - "DPM Early Start All" button for batch DPM early start assignment
-  - **Test Category Support**: Full Ohio compliance test categories with tooltips
+  - **Test Category Support**: Full Ohio compliance test categories
   - **Smart Micro Due Date Calculation**:
     - Individual turnaround time tracking for each microbial assay
     - PCR methods (Salmonella) have 24-hour faster turnaround than culture-based methods
     - Displays latest (most conservative) due date to ensure all tests can complete
-    - Visual indicator (amber warning icon) when assays have different timelines
-    - Detailed tooltip shows breakdown of all assay-specific due dates
     - Automatically recalculates when test category or selected assays change
     - Default assays pre-selected based on test category (e.g., all micro tests for DPM)
-  - **Enhanced Table Format**:
-    - De-containerized sample rows for cleaner, more compact display
-    - Professional headers with proper alignment
-    - Removed CC ID and Status columns from top-level view
-    - Chemistry assay checkboxes with fixed alignment and no text wrapping
   - **Due Date Pickers**: Native HTML5 datetime-local inputs for both Micro Due and Chemistry Due fields
+
+### 7. Sampling Dashboard Driver Display Redesign
+- **Route**: `/sampling`
+- **Key Changes**:
+  - **Replaced Individual Driver Containers**: Removed grid of 3-column driver cards
+  - **New Compact Table View**: 
+    - Shows only active drivers with assigned stops
+    - Columns: Driver, Stops, Next Stop, ETA, Route, Return
+    - "View Route" button expands detailed timeline below table
+  - **Route Details on Demand**:
+    - Expandable route timeline shows departure → stops → return
+    - Visual timeline with connecting lines between stops
+    - Inline unassign buttons for each stop
+  - **Summary Statistics Bar**:
+    - Active Drivers count
+    - Total Stops assigned
+    - Unassigned stops
+    - Average stops per driver
+  - **Scalability**: Handles 9+ drivers and 14+ stops without overwhelming interface
 
 ## Future Enhancements Identified
 1. Integration with barcode scanners for sample tracking

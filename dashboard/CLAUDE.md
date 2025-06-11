@@ -21,24 +21,31 @@ npm test
 
 ## Architecture Overview
 
-This is a React 18 dashboard prototype for a Laboratory Information Management System (LIMS) built for senior chemists managing cannabis testing workflows.
+This is a React 18 application for a Laboratory Information Management System (LIMS) built for multiple lab roles managing cannabis testing workflows. The system features a neutral overview landing page and role-specific dashboards.
 
 ### Key Architectural Decisions
 
 1. **Component Architecture**: 
-   - Main dashboard in `src/App.js` (expanded to ~2600 lines with comprehensive mock data)
+   - Landing page in `src/App.js` (imports Overview component)
+   - Overview page in `src/pages/overview/Overview.js`: Neutral landing page with all samples
+   - Prep dashboard in `src/pages/prep/PrepDashboard.js` (formerly App.js, ~2600 lines)
    - Modular components for specific workflows:
      - `PrepBatchManagement.js`: Sample preparation batch management
      - `AnalysisBatchView.js`: Instrument analysis and result upload
      - `ReviewQueue.js`: Comprehensive analytical batch review interface
      - `BenchSheet.js`: Bench sheet creation for prep batches
+     - `ReceivingDashboard.js`: Metrc manifest intake
+     - `SamplingDashboard.js`: Driver route management
    - React Router v6 for navigation between views
 
 2. **Mock Data Pattern**: Extensive mock data simulating real laboratory workflows:
-   - `mockSamples`: ~73 total samples across three pipelines with various statuses
+   - Sample IDs starting at 176243 and incrementing
+   - ~16 samples across three pipelines with various statuses
    - Status progression: `ready_for_prep` → `in_prep` → `prepped` → `analysis` → `analyzed` → `primary_review` → `secondary_review` → `ready_to_report`
    - Realistic order groupings (1-5 samples per order)
-   - Time-based organization (overdue, due today, due tomorrow, future)
+   - Time-based organization with dates between June 4-11, 2025
+   - Maximum 2 days overdue to reflect realistic lab operations
+   - No rush priority flags - focus on specific due dates
 
 3. **State Management**: 
    - React hooks (useState, useEffect) for local state
@@ -80,12 +87,13 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
 ### Development Notes
 
 - **Routing**: React Router v6 implemented with routes:
-  - `/` - Main dashboard
-  - `/receiving` - Sample Receiving Dashboard for manifest intake
+  - `/` - Overview page (all samples across all pipelines)
+  - `/prep` - Prep dashboard (pipeline-specific views)
+  - `/sampling` - Sampling dashboard for driver management
+  - `/receiving` - Metrc Receiving for manifest intake
   - `/prep-batch/:assayType` - Prep batch management
   - `/analysis-batch/:assayType/:batchId` - Analysis batch view
   - `/analysis-batch/:assayType` - Upload results for instruments
-  - `/secondary-review/:assayType` - Secondary review queue
   - `/review-queue/:assayType` - Comprehensive review queue (primary, secondary, completed)
   - `/bench-sheet/:prepBatchId` - Bench sheet creation and editing
 - **Navigation**: Seamless flow from dashboard → prep → analysis → review
@@ -198,7 +206,7 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
 7. **Air Gap Handling**: Explicit workflow for instrument integration and result upload
 8. **No Null Values Rule**: All data fields in bench sheets, analytical batches, and review records must contain a value - empty/inapplicable fields must be filled with "N/A" rather than left null. This ensures data integrity and compliance.
 
-### Recent Design Decisions (December 2024 - January 2025)
+### Recent Design Decisions (December 2024 - June 2025)
 
 1. **Collapsible Interface**: 
    - All sections start collapsed by default for cleaner initial view
@@ -270,8 +278,19 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
     - **Fill Empty with N/A**: Quick-fill buttons for optional comment fields
     - **Digital Lab Assets**: Tracking of method files and calibration files
 
-11. **Sample Receiving Dashboard** (January 2025):
-    - **Streamlined Interface**: Removed search bar and client filter for cleaner workflow
+11. **Metrc Receiving Dashboard** (January 2025):
+    - **Title Change**: Renamed from "Sample Receiving Dashboard" to "Metrc Receiving"
+    - **Decluttered Interface**: 
+      - Removed driver ETA containers entirely
+      - Removed "Inbound Manifests" section header
+      - Consolidated header with compact layout
+      - Single caret toggle behavior (no alternating view states)
+    - **Enhanced Table Structure**:
+      - Added "Source Package" column with mock Metrc package tags
+      - Added "Item Category" column with proper Metrc categories (Buds, Pre-Roll, Edibles, etc.)
+      - Fixed column consistency issues between expanded/collapsed states
+      - Corrected data mapping (categories no longer display weight values)
+    - **Simplified Tooltips**: Replaced complex z-indexed tooltips with native HTML title attributes
     - **Functional Spindown**: Clicking arrow next to client name expands receiving interface
     - **CC Order ID Placement**: Displayed at same hierarchy level as Manifest Number
     - **Expand All Samples**: Button to expand all sample details at once
@@ -288,13 +307,18 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
     - **Smart Micro Due Dates**: 
       - Calculates individual due dates for each microbial assay (PCR vs culture-based methods have different turnaround times)
       - Shows latest (most conservative) due date in the field
-      - Visual indicator (amber warning icon) when assays have different timelines
-      - Hover tooltip shows breakdown of all microbial assay due dates
       - Automatically recalculates when test category or selected assays change
       - Default assays are pre-selected based on test category (e.g., all micro tests for DPM)
     - **Due Date Pickers**: Both Micro Due and Chemistry Due use native datetime-local inputs for easy date/time selection
     - **De-containerized Sample Table**: Clean table format with headers, no individual containers per sample
     - **Chemistry Assay Alignment**: Fixed checkbox layout with consistent spacing and no text wrapping
+
+12. **Sampling Dashboard Driver Display Redesign**:
+    - **Compact Table View**: Replaced individual driver containers with scalable table format
+    - **Active Drivers Only**: Shows only drivers with assigned stops
+    - **Expandable Route Details**: "View Route" button reveals detailed timeline
+    - **Summary Statistics**: Shows active drivers, total stops, unassigned stops, avg stops/driver
+    - **Handles Scale**: Designed for 9+ drivers and 14+ stops without UI overflow
 
 # Project-Specific Guidelines
 
@@ -306,6 +330,22 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
 6. **Air Gap**: Acknowledge and handle the disconnect between LIMS and instruments
 7. **Data Integrity**: Never allow null values in data records - all empty fields must be filled with "N/A"
 8. **User Convenience**: Provide "Fill Empty with N/A" buttons where appropriate to expedite data entry
+
+13. **Laboratory Overview Implementation** (June 2025):
+    - **New Landing Page**: Neutral overview showing all samples across all pipelines
+    - **Sample Organization**: Chronological listing from earliest to latest received
+    - **Enhanced Metrics**:
+      - Total samples in-house
+      - Time-critical samples (overdue and due today)
+      - Pipeline distribution (Cannabinoids, Terpenes, Pesticides)
+      - Workflow status distribution across all phases
+    - **Date Formatting**:
+      - Received date: Shows only date (e.g., "Jun 11, 2025")
+      - Due date: Shows "Month Day HH:MM" in 24-hour format (e.g., "Jun 13 14:00")
+    - **Focus on Deadlines**: Removed "Rush" priority concept in favor of specific due dates
+    - **Navigation Changes**:
+      - Home button leads to overview page
+      - Original pipeline-specific dashboard moved to Prep → Prep Dashboard
 
 ### Test Categories and Compliance
 
@@ -328,3 +368,118 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
 - **R&D VIR**: Research & Development viral testing (HLV, Fusarium, Pythium)
 
 These test categories encode the specific analytes and reporting requirements, similar to foreign keys in a database.
+
+## Deployment to Azure Blob Storage
+
+### Prerequisites
+- Azure account with an active subscription
+- Azure Storage account created
+- Node.js and npm installed locally
+
+### Build Process
+```bash
+# Install dependencies
+npm install
+
+# Create production build
+npm run build
+```
+
+This creates an optimized production build in the `build/` directory.
+
+### Azure Blob Storage Setup
+
+1. **Create Storage Account** (if not already created):
+   - Go to Azure Portal → Storage accounts → Create
+   - Choose resource group, storage account name, and region
+   - Use Standard performance and LRS redundancy for cost efficiency
+
+2. **Enable Static Website Hosting**:
+   ```
+   Storage Account → Settings → Static website
+   - Enable static website hosting
+   - Index document name: index.html
+   - Error document path: index.html (for React Router support)
+   - Save
+   ```
+
+3. **Upload Build Files**:
+   - Option 1: Azure Portal
+     - Navigate to Storage Account → Containers → $web
+     - Upload all contents from `build/` directory
+   
+   - Option 2: Azure CLI
+     ```bash
+     az storage blob upload-batch \
+       --account-name <storage-account-name> \
+       --source ./build \
+       --destination '$web'
+     ```
+
+4. **Configure CORS** (if needed for API calls):
+   ```
+   Storage Account → Settings → CORS
+   - Add allowed origins: *
+   - Allowed methods: GET, POST, PUT, DELETE, OPTIONS
+   - Allowed headers: *
+   - Exposed headers: *
+   - Max age: 3600
+   ```
+
+5. **Access the Site**:
+   - Primary endpoint shown in Static website settings
+   - Format: `https://<storage-account-name>.z13.web.core.windows.net/`
+
+### Custom Domain (Optional)
+1. Storage Account → Settings → Custom domain
+2. Add CNAME record pointing to blob endpoint
+3. Enable HTTPS with CDN for SSL support
+
+### Continuous Deployment (Optional)
+Use GitHub Actions for automated deployment:
+
+```yaml
+name: Deploy to Azure Blob Storage
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install and Build
+      run: |
+        npm install
+        npm run build
+        
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Upload to blob storage
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az storage blob upload-batch \
+            --overwrite true \
+            --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
+            --source ./build \
+            --destination '$web'
+```
+
+### Important Notes
+- The site will be publicly accessible to anyone with the link
+- No authentication is built into the static site
+- For production use, consider adding Azure AD authentication
+- Monitor storage costs (typically minimal for static sites)
+- Enable CDN for better global performance

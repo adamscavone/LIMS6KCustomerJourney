@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './index.css';
 import Layout from './components/Layout';
 import App from './App';
+import PrepDashboard from './pages/prep/PrepDashboard';
 import PrepBatchManagement from './pages/prep-batch/PrepBatchManagement';
 import AnalysisBatchView from './pages/analysis-batch/AnalysisBatchView';
 import ReviewQueue from './pages/review-queue/ReviewQueue';
@@ -20,6 +21,7 @@ root.render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/sampling" element={<SamplingDashboard />} />
+          <Route path="/prep" element={<PrepDashboard />} />
           <Route path="/prep-batch/:assayType" element={<PrepBatchManagement />} />
           <Route path="/analysis-batch/:assayType/:batchId" element={<AnalysisBatchView />} />
           <Route path="/review-queue/:assayType" element={<ReviewQueue />} />

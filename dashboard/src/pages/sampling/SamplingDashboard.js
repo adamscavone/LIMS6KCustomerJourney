@@ -6,6 +6,8 @@ import {
   Calendar,
   ChevronRight,
   ChevronLeft,
+  ChevronUp,
+  ChevronDown,
   UserCheck,
   Navigation,
   Timer,
@@ -114,6 +116,7 @@ const SamplingDashboard = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [pickupDate, setPickupDate] = useState('');
   const [pickupTime, setPickupTime] = useState('');
+  const [expandedDriver, setExpandedDriver] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -271,6 +274,9 @@ const SamplingDashboard = () => {
     }
   };
 
+  // Get all scheduled pickups for the current date
+  const scheduledPickups = getDateSchedule().pickups;
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="w-full px-2 py-4">
@@ -390,91 +396,165 @@ const SamplingDashboard = () => {
           {/* Right Column - Driver Schedules */}
           <div className="col-span-8">
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Driver Schedules
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Driver Schedules
+                </h2>
+                <div className="text-sm text-gray-600">
+                  {drivers.filter(d => getDriverPickups(d).length > 0).length} active drivers • {scheduledPickups.filter(p => p.assignedDriver).length} total stops
+                </div>
+              </div>
               
-              {/* Driver Columns */}
-              <div className="grid grid-cols-3 gap-4">
-                {drivers.map(driver => {
-                  const pickups = getDriverPickups(driver);
-                  return (
-                    <div key={driver} className="border border-gray-200 rounded-lg">
-                      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <Truck className="w-4 h-4 mr-2 text-gray-400" />
-                            <span className="font-medium text-gray-900">{driver}</span>
+              {/* Compact Table View */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Driver</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Stops</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Next Stop</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">ETA</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Route</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Return</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {drivers
+                      .filter(driver => getDriverPickups(driver).length > 0)
+                      .map(driver => {
+                        const pickups = getDriverPickups(driver);
+                        const nextStop = pickups[0];
+                        return (
+                          <tr key={driver} className="hover:bg-gray-50">
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <Truck className="w-4 h-4 mr-2 text-gray-400" />
+                                <span className="text-sm font-medium text-gray-900">{driver}</span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <span className="text-sm text-gray-900">{pickups.length}</span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <div className="text-sm text-gray-900">{nextStop.client}</div>
+                              <div className="text-xs text-gray-500">{nextStop.city}</div>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <div className="flex items-center text-sm text-gray-900">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {nextStop.time}
+                              </div>
+                            </td>
+                            <td className="px-3 py-3">
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => setExpandedDriver(expandedDriver === driver ? null : driver)}
+                                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                                >
+                                  View Route
+                                  {expandedDriver === driver ? 
+                                    <ChevronUp className="w-3 h-3 ml-1" /> : 
+                                    <ChevronDown className="w-3 h-3 ml-1" />
+                                  }
+                                </button>
+                              </div>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <span className="text-sm text-gray-500">Calculate</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Expanded Route Details */}
+              {expandedDriver && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-medium text-gray-900">
+                      {expandedDriver}'s Route Details
+                    </h3>
+                    <button
+                      onClick={() => setExpandedDriver(null)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {/* Lab Start */}
+                    <div className="flex items-center text-xs text-gray-600">
+                      <div className="w-8 text-center font-medium">8:00</div>
+                      <MapPin className="w-3 h-3 mx-2 text-blue-600" />
+                      <span className="font-medium">NCTL Lab - Depart</span>
+                    </div>
+                    
+                    {/* Stops */}
+                    {getDriverPickups(expandedDriver).map((pickup, index) => (
+                      <div key={pickup.id} className="flex items-start text-xs">
+                        <div className="w-8 text-center font-medium text-gray-900">{pickup.time.slice(0, 5)}</div>
+                        <div className="mx-2">
+                          <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+                          {index < getDriverPickups(expandedDriver).length - 1 && (
+                            <div className="w-px h-8 bg-gray-300 ml-1.5 -mt-1"></div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <span className="font-medium text-gray-900">{pickup.client}</span>
+                              <div className="text-gray-600">{pickup.address}, {pickup.city}</div>
+                            </div>
+                            <button
+                              onClick={() => assignDriver(pickup.id, null)}
+                              className="text-gray-400 hover:text-red-600 p-1 ml-2"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
                           </div>
-                          <span className="text-xs text-gray-500">
-                            {pickups.length} stops
-                          </span>
                         </div>
                       </div>
-                      
-                      <div className="p-2 space-y-2 min-h-[400px] max-h-[600px] overflow-y-auto">
-                        {pickups.length === 0 ? (
-                          <p className="text-sm text-gray-500 text-center py-8">
-                            No pickups scheduled
-                          </p>
-                        ) : (
-                          <>
-                            {/* Lab Start */}
-                            <div className="p-2 bg-blue-50 rounded text-xs">
-                              <div className="flex items-center font-medium text-blue-900">
-                                <MapPin className="w-3 h-3 mr-1" />
-                                NCTL Lab
-                              </div>
-                              <div className="ml-4 text-blue-700">Depart: 8:00 AM</div>
-                            </div>
-                            
-                            {/* Pickups */}
-                            {pickups.map((pickup, index) => (
-                              <div key={pickup.id} className="p-2 bg-gray-50 rounded text-xs">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <div className="font-medium text-gray-900">
-                                      {index + 1}. {pickup.client}
-                                    </div>
-                                    <div className="text-gray-600 mt-1">
-                                      {pickup.address}
-                                    </div>
-                                    <div className="text-gray-600">
-                                      {pickup.city}, {pickup.zip}
-                                    </div>
-                                    <div className="flex items-center mt-1 text-gray-700">
-                                      <Clock className="w-3 h-3 mr-1" />
-                                      {pickup.time}
-                                    </div>
-                                  </div>
-                                  <button
-                                    onClick={() => {
-                                      assignDriver(pickup.id, null);
-                                    }}
-                                    className="text-gray-400 hover:text-red-600 p-1"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                            
-                            {/* Lab Return */}
-                            {pickups.length > 0 && (
-                              <div className="p-2 bg-blue-50 rounded text-xs">
-                                <div className="flex items-center font-medium text-blue-900">
-                                  <MapPin className="w-3 h-3 mr-1" />
-                                  Return to Lab
-                                </div>
-                                <div className="ml-4 text-blue-700">Est: Calculate</div>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
+                    ))}
+                    
+                    {/* Return */}
+                    <div className="flex items-center text-xs text-gray-600">
+                      <div className="w-8 text-center font-medium">TBD</div>
+                      <MapPin className="w-3 h-3 mx-2 text-blue-600" />
+                      <span className="font-medium">NCTL Lab - Return</span>
                     </div>
-                  );
-                })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Summary Stats */}
+              <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {drivers.filter(d => getDriverPickups(d).length > 0).length}
+                  </div>
+                  <div className="text-xs text-gray-500">Active Drivers</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {scheduledPickups.filter(p => p.assignedDriver).length}
+                  </div>
+                  <div className="text-xs text-gray-500">Total Stops</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {scheduledPickups.filter(p => !p.assignedDriver).length}
+                  </div>
+                  <div className="text-xs text-gray-500">Unassigned</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-semibold text-amber-600">
+                    {Math.round(scheduledPickups.filter(p => p.assignedDriver).length / 
+                      Math.max(1, drivers.filter(d => getDriverPickups(d).length > 0).length) * 10) / 10}
+                  </div>
+                  <div className="text-xs text-gray-500">Avg Stops/Driver</div>
+                </div>
               </div>
             </div>
           </div>

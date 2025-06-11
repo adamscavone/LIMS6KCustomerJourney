@@ -26,7 +26,6 @@ const ReceivingDashboard = () => {
   const [selectedState, setSelectedState] = useState('ohio');
   const [manifests, setManifests] = useState([]);
   const [drivers, setDrivers] = useState([]);
-  const [expandedManifests, setExpandedManifests] = useState({});
   const [selectedManifest, setSelectedManifest] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -723,12 +722,6 @@ const ReceivingDashboard = () => {
     setRefreshing(false);
   };
 
-  const toggleManifestExpansion = (manifestId) => {
-    setExpandedManifests(prev => ({
-      ...prev,
-      [manifestId]: !prev[manifestId]
-    }));
-  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -775,6 +768,67 @@ const ReceivingDashboard = () => {
       }
     });
     setExpandedSamples(newExpandedSamples);
+  };
+
+  // Generate mock source package tag
+  const generateMockSourcePackage = () => {
+    const prefix = '1A40603000002A1';
+    const random = Math.floor(Math.random() * 1000000).toString().padStart(9, '0');
+    return prefix + random;
+  };
+
+  // Get item category based on item name
+  const getItemCategory = (itemName) => {
+    // Map item names to Metrc item categories
+    const categoryMap = {
+      // Flower products
+      'Sundae Driver': 'Buds',
+      'Wedding Cake': 'Buds',
+      'Gelato': 'Buds',
+      'Purple Punch': 'Buds',
+      'Blue Dream': 'Buds',
+      'Sour Diesel': 'Buds',
+      'OG Kush': 'Buds',
+      'Gorilla Glue': 'Buds',
+      'Green Crack': 'Buds',
+      
+      // Pre-rolls
+      'Pre-Roll': 'Pre-Roll',
+      
+      // Edibles
+      'Chocolate Bar': 'Edibles',
+      'Gummies': 'Edibles',
+      'Cookies': 'Edibles',
+      
+      // Concentrates
+      'Wax': 'Concentrate',
+      'Shatter': 'Concentrate',
+      'Oil': 'Concentrate',
+      'Resin': 'Concentrate',
+      
+      // Vapes
+      'Vape Cartridge': 'Vape Cartridge',
+      'Vape Pen': 'Vape Cartridge',
+      
+      // Tinctures
+      'THC Tincture': 'Tincture',
+      'CBD Tincture': 'Tincture',
+      
+      // Other categories
+      'Topical': 'Topical',
+      'Capsules': 'Capsules',
+      'Shake': 'Shake/Trim'
+    };
+    
+    // Check for category keywords in item name
+    for (const [keyword, category] of Object.entries(categoryMap)) {
+      if (itemName.toLowerCase().includes(keyword.toLowerCase())) {
+        return category;
+      }
+    }
+    
+    // Default to Buds if no match
+    return 'Buds';
   };
 
   const handleReceiveClick = (manifest) => {
@@ -959,18 +1013,15 @@ const ReceivingDashboard = () => {
     <div className="min-h-screen bg-gray-100">
       <div className="w-full px-2 py-4">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Sample Receiving Dashboard</h1>
-              <p className="text-gray-600 mt-1">Monitor inbound samples and driver schedules</p>
-            </div>
-            <div className="flex items-center space-x-4">
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold text-gray-900">Metrc Receiving</h1>
+            <div className="flex items-center space-x-3">
               {/* State Toggle */}
-              <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+              <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setSelectedState('ohio')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     selectedState === 'ohio' 
                       ? 'bg-white text-blue-600 shadow-sm' 
                       : 'text-gray-600 hover:text-gray-900'
@@ -980,7 +1031,7 @@ const ReceivingDashboard = () => {
                 </button>
                 <button
                   onClick={() => setSelectedState('michigan')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     selectedState === 'michigan' 
                       ? 'bg-white text-blue-600 shadow-sm' 
                       : 'text-gray-600 hover:text-gray-900'
@@ -993,72 +1044,34 @@ const ReceivingDashboard = () => {
               {/* Refresh Button */}
               <button
                 onClick={handleRefresh}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                 disabled={refreshing}
               >
                 <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
               </button>
+              
+              {/* Last updated */}
+              <span className="text-xs text-gray-500">
+                {lastRefresh.toLocaleTimeString()}
+              </span>
             </div>
-          </div>
-          
-          {/* Last updated */}
-          <div className="text-sm text-gray-500">
-            Last updated: {lastRefresh.toLocaleTimeString()}
           </div>
         </div>
 
-        {/* Driver Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {drivers.map(driver => (
-            <div key={driver.id} className="bg-white rounded-lg shadow-sm p-4">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-semibold text-gray-900">{driver.name}</h3>
-                  <p className="text-sm text-gray-600">{driver.vehicle}</p>
-                </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(driver.status)}`}>
-                  {driver.status.replace('_', ' ')}
-                </span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600 mb-1">
-                <MapPin className="w-4 h-4 mr-1" />
-                {driver.currentLocation}
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center text-sm">
-                  <Clock className="w-4 h-4 mr-1 text-gray-400" />
-                  <span className="font-medium">ETA: {formatLocalTime(driver.eta)}</span>
-                </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <Package className="w-4 h-4 mr-1" />
-                  {driver.manifestCount} manifests
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
 
 
         {/* Manifests List */}
         <div className="bg-white rounded-lg shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Inbound Manifests</h2>
-          </div>
           <div className="divide-y divide-gray-200">
             {manifests.map(manifest => (
-              <div key={manifest.manifestId} className="p-6">
+              <div key={manifest.manifestId} className="p-4">
                 <div 
                   className="flex items-center justify-between"
                 >
                   <div className="flex items-center space-x-4 flex-1">
                     <button
-                      onClick={() => {
-                        if (!expandedReceiving[manifest.manifestId]) {
-                          toggleManifestExpansion(manifest.manifestId);
-                        }
-                        handleReceiveClick(manifest);
-                      }}
+                      onClick={() => handleReceiveClick(manifest)}
                       className="flex items-center hover:bg-gray-100 rounded p-1"
                     >
                       {expandedReceiving[manifest.manifestId] ? 
@@ -1097,75 +1110,6 @@ const ReceivingDashboard = () => {
                   </div>
                 </div>
 
-                {/* Expanded Sample Details (View Only) */}
-                {expandedManifests[manifest.manifestId] && !expandedReceiving[manifest.manifestId] && manifest.samples.length > 0 && (
-                  <div className="mt-4 ml-9 overflow-x-auto">
-                    <table className="min-w-full">
-                      <thead className="bg-gray-50">
-                        <tr className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          <th className="text-left py-2 px-2">Sample #</th>
-                          <th className="text-left py-2 px-2">METRC Tag</th>
-                          <th className="text-left py-2 px-2">Strain</th>
-                          <th className="text-left py-2 px-2">Item Name</th>
-                          <th className="text-left py-2 px-2">Test Category</th>
-                          <th className="text-left py-2 px-2">Micro Due</th>
-                          <th className="text-left py-2 px-2">Chemistry Due</th>
-                          <th className="text-left py-2 px-2">Category</th>
-                          <th className="text-left py-2 px-2">Gross Weight</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {manifest.samples.map((sample, idx) => {
-                          // For view-only, show the latest due date assuming all microbial tests
-                          const defaultMicroAssays = {
-                            salmonella: true,
-                            stec: true,
-                            totalAerobicBacteria: true,
-                            totalColiforms: true,
-                            totalYeastMold: true,
-                            btgn: true
-                          };
-                          const microDue = getMicroDue(sample.testCategory, manifest.createdDate, 
-                            sample.testCategory?.includes('Dispensary Plant Material') ? defaultMicroAssays : {});
-                          const chemistryDue = getChemistryDue(sample.testCategory, manifest.createdDate);
-                          return (
-                            <tr key={idx} className="text-sm hover:bg-gray-50">
-                              <td className="py-2 px-2 text-gray-600">{idx + 1}</td>
-                              <td className="py-2 px-2 font-mono text-xs">{sample.metrcTag}</td>
-                              <td className="py-2 px-2">{sample.strain || 'N/A'}</td>
-                              <td className="py-2 px-2">{sample.itemName}</td>
-                              <td className="py-2 px-2">
-                                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
-                                  {sample.testCategory}
-                                </span>
-                                {sample.requiresDPMEarlyStart && (
-                                  <span className="ml-1 inline-block px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
-                                    Early Start
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-2 px-2">
-                                {microDue ? (
-                                  <span className="text-xs font-medium text-blue-700">{formatDueDate(microDue)}</span>
-                                ) : (
-                                  <span className="text-xs text-gray-400">N/A</span>
-                                )}
-                              </td>
-                              <td className="py-2 px-2">
-                                {chemistryDue ? (
-                                  <span className="text-xs font-medium text-blue-700">{formatDueDate(chemistryDue)}</span>
-                                ) : (
-                                  <span className="text-xs text-gray-400">N/A</span>
-                                )}
-                              </td>
-                              <td className="py-2 px-2">{sample.grossWeight} g</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
                 
                 {/* Inline Receiving Interface */}
                 {expandedReceiving[manifest.manifestId] && (
@@ -1242,17 +1186,21 @@ const ReceivingDashboard = () => {
                     </div>
                     
                     {/* Sample Table */}
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto relative">
                       <table className="min-w-full">
                         <thead className="bg-gray-50 border-b border-gray-200">
                           <tr className="text-xs font-medium text-gray-700 uppercase tracking-wider">
                             <th className="py-2 px-2 text-left"></th>
                             <th className="py-2 px-2 text-left">#</th>
                             <th className="py-2 px-2 text-left">METRC Tag</th>
+                            <th className="py-2 px-2 text-left">Source Package</th>
                             <th className="py-2 px-2 text-left">Strain</th>
                             <th className="py-2 px-2 text-left">Item Name</th>
+                            <th className="py-2 px-2 text-left">Item Category</th>
                             <th className="py-2 px-2 text-left">Test Category</th>
-                            <th className="py-2 px-2 text-left">Micro Due</th>
+                            <th className="py-2 px-2 text-left">
+                              <span title="This is a tooltip.">Micro Due</span>
+                            </th>
                             <th className="py-2 px-2 text-left">Chemistry Due</th>
                           </tr>
                         </thead>
@@ -1278,8 +1226,10 @@ const ReceivingDashboard = () => {
                                   </td>
                                   <td className="py-2 px-2 text-gray-600">{idx + 1}</td>
                                   <td className="py-2 px-2 font-mono text-xs">{sample.metrcTag}</td>
+                                  <td className="py-2 px-2 font-mono text-xs">{sample.sourcePackage || generateMockSourcePackage()}</td>
                                   <td className="py-2 px-2 text-xs">{sample.strain || 'N/A'}</td>
                                   <td className="py-2 px-2">{sample.itemName}</td>
+                                  <td className="py-2 px-2 text-xs">{sample.itemCategory || getItemCategory(sample.itemName)}</td>
                                   <td className="py-2 px-2">
                                     <select
                                       value={sampleData.testCategory || 'Dispensary Plant Material'}
@@ -1332,42 +1282,12 @@ const ReceivingDashboard = () => {
                                     </select>
                                   </td>
                                   <td className="py-2 px-2">
-                                    <div className="flex items-center space-x-1">
-                                      <input
-                                        type="datetime-local"
-                                        value={toDateTimeLocal(sampleData.microDue) || ''}
-                                        onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'microDue', fromDateTimeLocal(e.target.value))}
-                                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs"
-                                      />
-                                      {sampleData.microDueDetails?.hasMultipleTimelines && (
-                                        <div className="relative group">
-                                          <AlertCircle className="w-4 h-4 text-amber-600 cursor-help flex-shrink-0" />
-                                          <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-72">
-                                            <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
-                                              <div className="font-semibold mb-1 border-b border-gray-700 pb-1">Microbial Due Dates:</div>
-                                              {Object.entries(sampleData.microDueDetails.dueDates || {}).map(([assay, date]) => {
-                                                const assayNames = {
-                                                  'salmonella': 'PCR (Salmonella)',
-                                                  'btgn': 'BTGN',
-                                                  'ecoli': 'E. coli/STEC',
-                                                  'totalAerobicBacteria': 'Total Aerobic',
-                                                  'totalColiforms': 'Total Coliforms',
-                                                  'totalYeastMold': 'Yeast & Mold'
-                                                };
-                                                return (
-                                                  <div key={assay} className="ml-2 py-0.5">
-                                                    • {assayNames[assay] || assay}: {formatDueDate(date)}
-                                                  </div>
-                                                );
-                                              })}
-                                              <div className="text-xs text-gray-400 mt-1 pt-1 border-t border-gray-700">
-                                                Showing latest due date in field
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
+                                    <input
+                                      type="datetime-local"
+                                      value={toDateTimeLocal(sampleData.microDue) || ''}
+                                      onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'microDue', fromDateTimeLocal(e.target.value))}
+                                      className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                                    />
                                   </td>
                                   <td className="py-2 px-2">
                                     <input
@@ -1382,10 +1302,20 @@ const ReceivingDashboard = () => {
                                 {/* Expanded Section */}
                                 {isExpanded && (
                                   <tr>
-                                    <td colSpan="8" className="p-4 bg-gray-50">
+                                    <td colSpan="10" className="p-4 bg-gray-50">
                                 {/* Assays Header with Options */}
                                 <div className="flex items-center justify-between mb-3">
-                                  <h4 className="text-sm font-medium text-gray-700">Assays</h4>
+                                  <div className="flex items-center">
+                                    <h4 className="text-sm font-medium text-gray-700">Assays</h4>
+                                    <div className="relative group ml-1">
+                                      <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                                      <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
+                                        <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 w-64">
+                                          DPM Early Start allows microbial testing to begin immediately for Dispensary Plant Material samples
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
                                   <div className="flex items-center space-x-4">
                                     <label className="flex items-center">
                                       <input
@@ -1404,14 +1334,6 @@ const ReceivingDashboard = () => {
                                         className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                                       />
                                       <span className="text-sm">DPM Early Start</span>
-                                      <div className="relative group ml-1">
-                                        <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                                        <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-10">
-                                          <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 w-64">
-                                            DPM Early Start allows microbial testing to begin immediately for Dispensary Plant Material samples
-                                          </div>
-                                        </div>
-                                      </div>
                                     </label>
                                   </div>
                                 </div>

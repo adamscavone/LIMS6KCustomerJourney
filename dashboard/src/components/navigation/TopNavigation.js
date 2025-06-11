@@ -85,6 +85,7 @@ const TopNavigation = () => {
       label: 'Prep',
       icon: FlaskConical,
       items: [
+        { label: 'Prep Dashboard', path: '/prep' },
         { label: 'Cannabinoids Prep', path: '/prep-batch/cannabinoids' },
         { label: 'Terpenes Prep', path: '/prep-batch/terpenes' },
         { label: 'Pesticides Prep', path: '/prep-batch/pesticides' }
