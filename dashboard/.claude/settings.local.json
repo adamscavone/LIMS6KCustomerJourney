@@ -13,7 +13,8 @@
       "Bash(rm:*)",
       "Bash(rg:*)",
       "Bash(cp:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": []
   }

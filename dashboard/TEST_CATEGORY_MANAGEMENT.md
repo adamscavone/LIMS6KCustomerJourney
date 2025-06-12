@@ -20,20 +20,97 @@
 
 ### State-Specific Test Categories
 
-#### Ohio Test Categories:
-- Dispensary Plant Material
-- Dispensary Plant Material - STEC/Sal
-- Non-Solvent Marijuana Ingredient
-- Non-Solvent Product (Not Previously Tested)
-- Processed Product (Previously Tested)
-- Processor Plant Material
-- R&D Testing - Salmonella and STEC Contamination
-- Research/Development
-- Solvent Based Marijuana Ingredient
-- Solvent Based Product (Not Previously Tested)
-- Voluntary Testing - Terpenes (Plant Material)
-- Voluntary Testing - Terpenes (Processed Products)
-- Miscellaneous R&D Testing
+#### Ohio Test Categories and Required Assays:
+
+**Dispensary Plant Material**
+Required assays:
+- Cannabinoids
+- Foreign Matter
+- Heavy Metals
+- STEC/Salmonella
+- Total Aerobic
+- BTGN
+- Total Coliforms
+- Total Yeast & Mold
+- Moisture Content
+- Mycotoxins
+- Pesticides
+- Water Activity
+- Terpenes
+
+**Dispensary Plant Material - STEC/Sal**
+Required assays:
+- STEC/Salmonella
+
+**Non-Solvent Marijuana Ingredient**
+Required assays:
+- Cannabinoids
+- Heavy Metals
+- Mycotoxins
+- Pesticides
+
+**Non-Solvent Product (Not Previously Tested)**
+Required assays:
+- Cannabinoids
+- Foreign Matter
+- Heavy Metals
+- STEC/Salmonella
+- Total Aerobic
+- BTGN
+- Total Coliforms
+- Total Yeast & Mold
+- Mycotoxins
+- Pesticides
+
+**Processed Product (Previously Tested)**
+Required assays:
+- Cannabinoids
+- Foreign Matter
+- STEC/Salmonella
+- Total Aerobic
+- BTGN
+- Total Coliforms
+- Total Yeast & Mold
+
+**Processor Plant Material**
+Required assays:
+- Cannabinoids
+- Foreign Matter
+- Moisture Content
+- Pesticides
+
+**Solvent Based Marijuana Ingredient**
+Required assays:
+- Cannabinoids
+- Heavy Metals
+- Mycotoxins
+- Pesticides
+- Residual Solvents
+
+**Solvent Based Product (Not Previously Tested)**
+Required assays:
+- Cannabinoids
+- Foreign Matter
+- Heavy Metals
+- STEC/Salmonella
+- Total Aerobic
+- BTGN
+- Total Coliforms
+- Total Yeast & Mold
+- Mycotoxins
+- Pesticides
+- Residual Solvents
+
+**Research/Development**
+- Custom assay selection based on research requirements
+
+**Voluntary Testing - Terpenes (Plant Material)**
+Required assays:
+- Terpenes
+
+**Voluntary Testing - Terpenes (Processed Products)**
+Required assays:
+- Terpenes
 
 #### Michigan Test Categories:
 - Additional
@@ -159,6 +236,9 @@ Example CC Test Package:
 3. DPM Early Start checkbox with tooltip explanation
 4. Multiple potency targets capability
 5. Assays checkboxes based on selected Test Category
+   - When a Test Category is selected, the corresponding required assays should be automatically checked
+   - Users can still manually select/deselect assays as needed
+   - Mock data should reflect the correct assay selections based on Test Category
 
 ## Status Flow in Metrc
 - Testing in Progress → Passed/Failed (based on results)
