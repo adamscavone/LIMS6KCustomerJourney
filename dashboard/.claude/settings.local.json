@@ -14,7 +14,8 @@
       "Bash(rg:*)",
       "Bash(cp:*)",
       "Bash(chmod:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

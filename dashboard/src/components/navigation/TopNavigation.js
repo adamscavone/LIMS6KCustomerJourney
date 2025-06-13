@@ -81,6 +81,30 @@ const TopNavigation = () => {
       ]
     },
     {
+      id: 'receiving1',
+      label: 'Receiving1',
+      icon: Package,
+      path: '/receiving1'
+    },
+    {
+      id: 'receiving2',
+      label: 'Receiving2',
+      icon: Package,
+      path: '/receiving2'
+    },
+    {
+      id: 'receiving3',
+      label: 'Receiving3',
+      icon: Package,
+      path: '/receiving3'
+    },
+    {
+      id: 'receiving4',
+      label: 'Receiving4',
+      icon: Package,
+      path: '/receiving4'
+    },
+    {
       id: 'prep',
       label: 'Prep',
       icon: FlaskConical,
