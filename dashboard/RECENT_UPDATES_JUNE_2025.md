@@ -109,3 +109,95 @@ For production deployments, consider adding:
 - CDN for global performance
 - Custom domain with SSL
 - Automated CI/CD pipeline
+
+## Receiving3 Guided Workflow Enhancements
+
+### Overview
+Major improvements to the Receiving3 component based on real-world laboratory operations feedback. The workflow now provides granular control over bulk actions while maintaining flexibility for edge cases.
+
+### Key Improvements
+
+#### 1. Checkbox Behavior Consistency
+- Rush sub-options (Rush All Micro, Rush All Potency) now show checkmarks when parent "Rush All" is selected
+- Matches the behavior of Terpenes checkboxes for visual consistency
+- Sub-options remain disabled when parent is selected
+
+#### 2. Manifest Details Reorganization
+- **Manifest Number**: Now editable to accommodate Metrc corrections
+- **Manifest Notes**: Moved to bottom of section for better flow
+- **Bulk Actions**: Grouped in clearly labeled sections
+
+#### 3. Enhanced Bulk Actions
+- **Rush Options**:
+  - "Rush All Assays for All Samples" - master control
+  - "Rush All Micro" - microbial tests only
+  - "Rush All Potency (Cannabinoids)" - cannabinoid testing only
+- **DPM Early Start**: Renamed from confusing "DPM Early Start All" to "Apply Early Start to All Dispensary Plant Material Samples"
+- **Terpenes**: Three levels of granularity (all, DPM only, flower only)
+
+#### 4. Sample Type Assignment
+- Header: "Assign Sample Type(s)" instead of "Sample Types"
+- Dropdown: "Select Type" instead of "Select default type..."
+- Apply to All: Disabled until a type is selected
+
+#### 5. Verbose Assay Deadline Management
+Complete redesign of Testing Requirements step with three-tier deadline system:
+
+##### Category Level
+- Microbial Testing (blue section)
+- Chemistry Testing (green section)
+- Other Testing (gray section)
+- Each with "Apply to All" functionality
+
+##### Assay Level
+- Individual deadline input for each selected assay
+- Auto-populated based on turnaround times:
+  - Salmonella: 3 days
+  - Total Yeast & Mold: 5 days
+  - Cannabinoids: 2 days by 5:00 PM
+  - Terpenes: 3 days by 5:00 PM
+  - And more...
+
+##### Manual Override
+- Any deadline can be manually adjusted
+- Changes are tracked for rush sample counting
+
+#### 6. Smart Rush Sample Detection
+Review & Submit now counts rush samples based on:
+- Explicit rush flags (Rush All, Rush Micro, Rush Potency)
+- Any assay with deadline earlier than default
+- Implemented via `hasEarlyDeadlines()` function
+
+### Technical Implementation
+
+#### New Helper Functions
+```javascript
+// Format datetime for HTML inputs
+formatDateTimeForInput(dateString)
+
+// Detect samples with early deadlines
+hasEarlyDeadlines(sampleData)
+
+// Apply deadline to all assays in category
+applyDeadlineToCategory(sampleIdx, category, deadline)
+```
+
+#### State Structure Updates
+```javascript
+assayDeadlines: {
+  salmonella: "2025-06-16T23:59:00",
+  cannabinoids: "2025-06-15T17:00:00",
+  // ... per-assay deadlines
+}
+```
+
+### Business Logic Documentation
+Created two new documentation files:
+1. **RECEIVING_WORKFLOW_DESIGN_DECISIONS.md** - Comprehensive design rationale
+2. **DPM_EARLY_START_LOGIC.md** - Specific business rules for Early Start workflow
+
+### Design Philosophy
+- **Flexibility Over Rigidity**: Acknowledges real-world edge cases
+- **Progressive Disclosure**: Complex options hidden until needed
+- **Real-World Alignment**: UI matches actual lab operations
+- **Clear Visual Indicators**: Status badges for quick identification

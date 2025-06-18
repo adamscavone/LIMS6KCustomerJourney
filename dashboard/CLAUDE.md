@@ -312,6 +312,14 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
     - **Due Date Pickers**: Both Micro Due and Chemistry Due use native datetime-local inputs for easy date/time selection
     - **De-containerized Sample Table**: Clean table format with headers, no individual containers per sample
     - **Chemistry Assay Alignment**: Fixed checkbox layout with consistent spacing and no text wrapping
+    - **Receiving3 Guided Workflow Enhancements** (June 2025):
+      - **Granular Rush Options**: "Rush All Assays", "Rush All Micro", "Rush All Potency" with proper checkbox inheritance
+      - **Clear DPM Early Start**: Renamed to "Apply Early Start to All Dispensary Plant Material Samples" with explanation
+      - **Flexible Test Categories**: Acknowledges air-gapped changes from Metrc with editable manifest number
+      - **Terpenes Bulk Actions**: Apply to all samples, DPM only, or flower samples only
+      - **Verbose Deadline Management**: Three-tier system (category → assay → manual override) with auto-population
+      - **Smart Rush Counting**: Includes any sample with deadlines earlier than default, not just flagged samples
+      - **Real-time Deadline Cascading**: Deadlines populate immediately at assay level based on turnaround times
 
 12. **Sampling Dashboard Driver Display Redesign**:
     - **Compact Table View**: Replaced individual driver containers with scalable table format

@@ -1,3 +1,23 @@
+/**
+ * Receiving3 - Guided Workflow for Metrc Manifest Processing
+ * 
+ * This component implements a step-by-step wizard for receiving cannabis samples from Metrc manifests.
+ * Key features:
+ * - Flexible test category management (acknowledges air-gapped Metrc changes)
+ * - Granular bulk actions for rush orders, DPM Early Start, and terpenes testing
+ * - Three-tier deadline management system (category → assay → manual override)
+ * - Auto-population of deadlines based on assay-specific turnaround times
+ * - Smart rush sample counting that includes early deadline detection
+ * 
+ * Design Philosophy:
+ * - Real-world lab operations drive UI decisions
+ * - Progressive disclosure reduces complexity
+ * - Flexibility over rigidity for edge cases
+ * - Clear visual indicators for sample status
+ * 
+ * @see RECEIVING_WORKFLOW_DESIGN_DECISIONS.md for detailed rationale
+ */
+
 import React, { useState, useEffect } from 'react';
 import { 
   Package, 
@@ -34,10 +54,16 @@ const Receiving3 = () => {
   const [manifests, setManifests] = useState([]);
   const [formData, setFormData] = useState({
     manifestNotes: '',
+    manifestNumber: '',
     defaultTestCategory: 'Dispensary Plant Material',
     defaultSampleType: '',
     rushAll: false,
-    dpmEarlyStartAll: false,
+    rushAllMicro: false,
+    rushAllPotency: false,
+    applyEarlyStartToDPM: false,
+    applyTerpenesToAll: false,
+    applyTerpenesToDPM: false,
+    applyTerpenesToFlower: false,
     samples: {}
   });
 
@@ -127,29 +153,59 @@ const Receiving3 = () => {
     }
   };
 
+  /**
+   * Initialize sample data when a manifest is selected
+   * This is where bulk actions from Step 2 are applied to all samples
+   */
   const selectManifest = (manifest) => {
     setSelectedManifest(manifest);
+    // Allow manifest number editing for Metrc corrections
+    setFormData(prev => ({ ...prev, manifestNumber: manifest.manifestNumber }));
     // Initialize sample data
     const sampleData = {};
     const defaultAssays = getDefaultAssays(formData.defaultTestCategory);
     
-    manifest.samples.forEach((_, idx) => {
-      const assays = defaultAssays;
+    manifest.samples.forEach((sample, idx) => {
+      let assays = { ...defaultAssays };
+      
+      // Apply terpenes based on bulk settings
+      if (formData.applyTerpenesToAll || 
+          (formData.applyTerpenesToDPM && formData.defaultTestCategory === 'Dispensary Plant Material') ||
+          (formData.applyTerpenesToFlower && (sample.itemCategory === 'Buds' || sample.itemCategory === 'Flower'))) {
+        assays.terpenes = true;
+      }
+      
+      const isRushMicro = formData.rushAll || formData.rushAllMicro;
+      const isRushChem = formData.rushAll || formData.rushAllPotency;
+      
       const groupedDeadlines = getGroupedDeadlines(
         manifest.createdDate, 
         assays, 
         formData.rushAll
       );
       
+      // Initialize assay deadlines for default assays
+      const assayDeadlines = {};
+      Object.entries(assays).forEach(([assayKey, isSelected]) => {
+        if (isSelected) {
+          const microAssays = ['salmonella', 'stec', 'totalYeastMold', 'aspergillus', 'totalAerobicBacteria', 'totalColiforms', 'btgn', 'ecoli'];
+          const isRushForAssay = microAssays.includes(assayKey) ? isRushMicro : isRushChem;
+          assayDeadlines[assayKey] = calculateAssayDeadline(manifest.createdDate, assayKey, isRushForAssay);
+        }
+      });
+      
       sampleData[idx] = {
         nctlSampleType: formData.defaultSampleType,
         testCategory: formData.defaultTestCategory,
         assays: assays,
         isRush: formData.rushAll,
-        dpmEarlyStart: formData.dpmEarlyStartAll,
-        microDue: getSuggestedMicroDeadline(manifest.createdDate, assays, formData.rushAll),
-        chemistryDue: getSuggestedChemistryDeadline(manifest.createdDate, assays, formData.rushAll),
-        groupedDeadlines: groupedDeadlines
+        isRushMicro: isRushMicro,
+        isRushPotency: isRushChem,
+        dpmEarlyStart: formData.applyEarlyStartToDPM && formData.defaultTestCategory === 'Dispensary Plant Material',
+        microDue: getSuggestedMicroDeadline(manifest.createdDate, assays, isRushMicro),
+        chemistryDue: getSuggestedChemistryDeadline(manifest.createdDate, assays, isRushChem),
+        groupedDeadlines: groupedDeadlines,
+        assayDeadlines: assayDeadlines
       };
     });
     setFormData(prev => ({ ...prev, samples: sampleData }));
@@ -169,12 +225,30 @@ const Receiving3 = () => {
     }));
   };
 
+  /**
+   * Handle individual assay selection and auto-populate deadline
+   * Deadlines are calculated based on:
+   * - Manifest received date
+   * - Assay-specific turnaround time
+   * - Whether rush is applied (micro rush vs chemistry rush)
+   */
   const updateSampleAssay = (sampleIdx, assayKey, value) => {
     if (!selectedManifest) return;
     
     setFormData(prev => {
       const updatedSample = { ...prev.samples[sampleIdx] };
       updatedSample.assays = { ...updatedSample.assays, [assayKey]: value };
+      
+      // Initialize assay deadline if checking the box
+      if (value) {
+        if (!updatedSample.assayDeadlines) updatedSample.assayDeadlines = {};
+        const microAssays = ['salmonella', 'stec', 'totalYeastMold', 'aspergillus', 'totalAerobicBacteria', 'totalColiforms', 'btgn', 'ecoli'];
+        const isRush = microAssays.includes(assayKey) ? updatedSample.isRushMicro : updatedSample.isRushPotency;
+        updatedSample.assayDeadlines[assayKey] = calculateAssayDeadline(selectedManifest.createdDate, assayKey, isRush);
+      } else if (updatedSample.assayDeadlines) {
+        // Remove deadline if unchecking
+        delete updatedSample.assayDeadlines[assayKey];
+      }
       
       // Recalculate deadlines
       const groupedDeadlines = getGroupedDeadlines(
@@ -183,9 +257,55 @@ const Receiving3 = () => {
         updatedSample.isRush
       );
       
-      updatedSample.microDue = getSuggestedMicroDeadline(selectedManifest.createdDate, updatedSample.assays, updatedSample.isRush);
-      updatedSample.chemistryDue = getSuggestedChemistryDeadline(selectedManifest.createdDate, updatedSample.assays, updatedSample.isRush);
+      updatedSample.microDue = getSuggestedMicroDeadline(selectedManifest.createdDate, updatedSample.assays, updatedSample.isRushMicro);
+      updatedSample.chemistryDue = getSuggestedChemistryDeadline(selectedManifest.createdDate, updatedSample.assays, updatedSample.isRushPotency);
       updatedSample.groupedDeadlines = groupedDeadlines;
+      
+      return {
+        ...prev,
+        samples: {
+          ...prev.samples,
+          [sampleIdx]: updatedSample
+        }
+      };
+    });
+  };
+
+  const updateAssayDeadline = (sampleIdx, assayKey, deadline) => {
+    setFormData(prev => ({
+      ...prev,
+      samples: {
+        ...prev.samples,
+        [sampleIdx]: {
+          ...prev.samples[sampleIdx],
+          assayDeadlines: {
+            ...prev.samples[sampleIdx].assayDeadlines,
+            [assayKey]: deadline
+          }
+        }
+      }
+    }));
+  };
+
+  const applyDeadlineToCategory = (sampleIdx, category, deadline) => {
+    const microAssays = ['salmonella', 'stec', 'totalYeastMold', 'aspergillus', 'totalAerobicBacteria', 'totalColiforms', 'btgn', 'ecoli'];
+    const chemAssays = ['cannabinoids', 'terpenes', 'pesticides', 'mycotoxins', 'heavyMetals', 'elementalAnalysis', 'residualSolvents'];
+    const otherAssays = ['moistureContent', 'waterActivity', 'foreignMatter', 'plantPathogens', 'plantSex'];
+    
+    let assaysToUpdate = [];
+    if (category === 'micro') assaysToUpdate = microAssays;
+    else if (category === 'chem') assaysToUpdate = chemAssays;
+    else if (category === 'other') assaysToUpdate = otherAssays;
+    
+    setFormData(prev => {
+      const updatedSample = { ...prev.samples[sampleIdx] };
+      if (!updatedSample.assayDeadlines) updatedSample.assayDeadlines = {};
+      
+      assaysToUpdate.forEach(assayKey => {
+        if (updatedSample.assays[assayKey]) {
+          updatedSample.assayDeadlines[assayKey] = deadline;
+        }
+      });
       
       return {
         ...prev,
@@ -202,10 +322,40 @@ const Receiving3 = () => {
     Object.keys(formData.samples).forEach(idx => {
       updatedSamples[idx] = {
         ...formData.samples[idx],
-        [field]: formData[`default${field.charAt(0).toUpperCase() + field.slice(1)}`]
+        nctlSampleType: formData.defaultSampleType
       };
     });
     setFormData(prev => ({ ...prev, samples: updatedSamples }));
+  };
+
+  /**
+   * Smart rush detection - counts samples with ANY deadline earlier than default
+   * This captures manual deadline adjustments that effectively make a sample "rush"
+   * even if rush flags aren't explicitly set
+   */
+  const hasEarlyDeadlines = (sampleData) => {
+    if (!selectedManifest || !sampleData.assayDeadlines) return false;
+    
+    // Check each assay deadline against its default
+    for (const [assayKey, customDeadline] of Object.entries(sampleData.assayDeadlines)) {
+      if (sampleData.assays[assayKey] && customDeadline) {
+        const defaultDeadline = calculateAssayDeadline(selectedManifest.createdDate, assayKey, false);
+        if (new Date(customDeadline) < new Date(defaultDeadline)) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  };
+
+  const formatDateTimeForInput = (dateString) => {
+    if (!dateString) return '';
+    try {
+      return new Date(dateString).toISOString().slice(0, 16);
+    } catch (e) {
+      return '';
+    }
   };
 
   const handleSubmit = () => {
@@ -215,10 +365,16 @@ const Receiving3 = () => {
     setSelectedManifest(null);
     setFormData({
       manifestNotes: '',
+      manifestNumber: '',
       defaultTestCategory: 'Dispensary Plant Material',
       defaultSampleType: '',
       rushAll: false,
-      dpmEarlyStartAll: false,
+      rushAllMicro: false,
+      rushAllPotency: false,
+      applyEarlyStartToDPM: false,
+      applyTerpenesToAll: false,
+      applyTerpenesToDPM: false,
+      applyTerpenesToFlower: false,
       samples: {}
     });
   };
@@ -272,12 +428,116 @@ const Receiving3 = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Manifest Number</label>
-                  <p className="mt-1 text-lg font-mono">{selectedManifest.manifestNumber}</p>
+                  <input
+                    type="text"
+                    value={formData.manifestNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, manifestNumber: e.target.value }))}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md font-mono"
+                  />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div>
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Bulk Actions for All Samples</h3>
+                  
+                  {/* Rush Options */}
+                  <div className="bg-red-50 p-3 rounded-md">
+                    <h4 className="text-sm font-medium text-red-800 mb-2 flex items-center">
+                      <Zap className="w-4 h-4 mr-1" />
+                      Rush Order Options
+                    </h4>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.rushAll}
+                          onChange={(e) => setFormData(prev => ({ ...prev, rushAll: e.target.checked }))}
+                          className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm">Rush All Assays for All Samples</span>
+                      </label>
+                      <label className="flex items-center space-x-2 ml-4">
+                        <input
+                          type="checkbox"
+                          checked={formData.rushAll || formData.rushAllMicro}
+                          onChange={(e) => setFormData(prev => ({ ...prev, rushAllMicro: e.target.checked }))}
+                          className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                          disabled={formData.rushAll}
+                        />
+                        <span className="text-sm">Rush All Micro</span>
+                      </label>
+                      <label className="flex items-center space-x-2 ml-4">
+                        <input
+                          type="checkbox"
+                          checked={formData.rushAll || formData.rushAllPotency}
+                          onChange={(e) => setFormData(prev => ({ ...prev, rushAllPotency: e.target.checked }))}
+                          className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                          disabled={formData.rushAll}
+                        />
+                        <span className="text-sm">Rush All Potency (Cannabinoids)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* DPM Early Start - compensates for lack of Metrc indicators */}
+                  <div className="bg-purple-50 p-3 rounded-md">
+                    <h4 className="text-sm font-medium text-purple-800 mb-2">DPM Early Start</h4>
+                    <label className="flex items-start space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.applyEarlyStartToDPM}
+                        onChange={(e) => setFormData(prev => ({ ...prev, applyEarlyStartToDPM: e.target.checked }))}
+                        className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mt-0.5"
+                      />
+                      <div className="text-sm">
+                        <span className="font-medium">Apply Early Start to All Dispensary Plant Material Samples</span>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Enables chemistry testing while microbial tests are in progress
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Terpenes Options */}
+                  <div className="bg-green-50 p-3 rounded-md">
+                    <h4 className="text-sm font-medium text-green-800 mb-2">Terpenes Testing</h4>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.applyTerpenesToAll}
+                          onChange={(e) => setFormData(prev => ({ ...prev, applyTerpenesToAll: e.target.checked }))}
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm">Apply Terpenes to All Samples</span>
+                      </label>
+                      <label className="flex items-center space-x-2 ml-4">
+                        <input
+                          type="checkbox"
+                          checked={formData.applyTerpenesToDPM}
+                          onChange={(e) => setFormData(prev => ({ ...prev, applyTerpenesToDPM: e.target.checked }))}
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                          disabled={formData.applyTerpenesToAll}
+                        />
+                        <span className="text-sm">Apply Terpenes to All DPM Samples</span>
+                      </label>
+                      <label className="flex items-center space-x-2 ml-4">
+                        <input
+                          type="checkbox"
+                          checked={formData.applyTerpenesToFlower}
+                          onChange={(e) => setFormData(prev => ({ ...prev, applyTerpenesToFlower: e.target.checked }))}
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                          disabled={formData.applyTerpenesToAll}
+                        />
+                        <span className="text-sm">Apply Terpenes to All Flower Samples</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Manifest Notes</label>
                   <textarea
                     value={formData.manifestNotes}
@@ -286,43 +546,6 @@ const Receiving3 = () => {
                     rows="3"
                     placeholder="Enter any special instructions or notes for this manifest..."
                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Default Test Category</label>
-                    <select
-                      value={formData.defaultTestCategory}
-                      onChange={(e) => setFormData(prev => ({ ...prev, defaultTestCategory: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    >
-                      {testCategories.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.rushAll}
-                        onChange={(e) => setFormData(prev => ({ ...prev, rushAll: e.target.checked }))}
-                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                      />
-                      <span className="text-sm font-medium">Rush All Samples</span>
-                      <Zap className="w-4 h-4 text-red-600" />
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.dpmEarlyStartAll}
-                        onChange={(e) => setFormData(prev => ({ ...prev, dpmEarlyStartAll: e.target.checked }))}
-                        className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                      />
-                      <span className="text-sm font-medium">DPM Early Start All</span>
-                    </label>
-                  </div>
                 </div>
               </div>
             </div>
@@ -333,21 +556,26 @@ const Receiving3 = () => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Sample Types</h2>
+              <h2 className="text-xl font-semibold">Assign Sample Type(s)</h2>
               <div className="flex items-center space-x-4">
                 <select
                   value={formData.defaultSampleType}
                   onChange={(e) => setFormData(prev => ({ ...prev, defaultSampleType: e.target.value }))}
                   className="px-3 py-2 border border-gray-300 rounded-md text-sm"
                 >
-                  <option value="">Select default type...</option>
+                  <option value="">Select Type</option>
                   {sampleTypes.map(type => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
                 <button
                   onClick={() => applyToAllSamples('sampleType')}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                  disabled={!formData.defaultSampleType}
+                  className={`px-4 py-2 rounded-md text-sm ${
+                    formData.defaultSampleType 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   Apply to All
                 </button>
@@ -383,7 +611,10 @@ const Receiving3 = () => {
                     </div>
                     <div className="flex items-center space-x-4 mt-2">
                       {sampleData.isRush && <Zap className="w-4 h-4 text-red-600" title="Rush" />}
-                      {sampleData.dpmEarlyStart && <span className="text-purple-600 text-xs font-bold">DPM</span>}
+                      {sampleData.isRushMicro && !sampleData.isRush && <span className="text-red-600 text-xs font-bold">RUSH-M</span>}
+                      {sampleData.isRushPotency && !sampleData.isRush && <span className="text-red-600 text-xs font-bold">RUSH-P</span>}
+                      {sampleData.dpmEarlyStart && <span className="text-purple-600 text-xs font-bold">EARLY</span>}
+                      {sampleData.assays?.terpenes && <span className="text-green-600 text-xs font-bold">TERP</span>}
                     </div>
                   </div>
                 );
@@ -399,6 +630,28 @@ const Receiving3 = () => {
             <div className="space-y-4">
               {selectedManifest.samples.map((sample, idx) => {
                 const sampleData = formData.samples[idx] || {};
+                const microAssays = [
+                  { key: 'salmonella', name: 'Salmonella' },
+                  { key: 'stec', name: 'STEC' },
+                  { key: 'totalAerobicBacteria', name: 'Total Aerobic' },
+                  { key: 'totalColiforms', name: 'Total Coliforms' },
+                  { key: 'totalYeastMold', name: 'Total Yeast & Mold' },
+                  { key: 'btgn', name: 'BTGN' }
+                ];
+                const chemAssays = [
+                  { key: 'cannabinoids', name: 'Cannabinoids' },
+                  { key: 'terpenes', name: 'Terpenes' },
+                  { key: 'pesticides', name: 'Pesticides' },
+                  { key: 'mycotoxins', name: 'Mycotoxins' },
+                  { key: 'heavyMetals', name: 'Heavy Metals' },
+                  { key: 'residualSolvents', name: 'Residual Solvents' }
+                ];
+                const otherAssays = [
+                  { key: 'moistureContent', name: 'Moisture Content' },
+                  { key: 'waterActivity', name: 'Water Activity' },
+                  { key: 'foreignMatter', name: 'Foreign Matter' }
+                ];
+
                 return (
                   <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
                     <div className="mb-3">
@@ -446,34 +699,131 @@ const Receiving3 = () => {
                       </div>
                     </div>
 
-                    {/* Deadline Summary */}
-                    {sampleData.groupedDeadlines?.hasVariability && (
-                      <div className="border rounded p-2 mb-3 bg-orange-50">
-                        <div className="flex items-center text-xs">
-                          <AlertCircle className="w-3 h-3 text-orange-600 mr-1" />
-                          <span className="font-medium">Variable Deadlines:</span>
-                          <span className="ml-2">
-                            Micro: {sampleData.microDue ? new Date(sampleData.microDue).toLocaleDateString() : 'N/A'} | 
-                            Chem: {sampleData.chemistryDue ? new Date(sampleData.chemistryDue).toLocaleDateString() : 'N/A'}
-                          </span>
+                    {/* Assay Deadline Table */}
+                    <div className="border rounded overflow-hidden">
+                      {/* Microbial Testing */}
+                      <div className="bg-blue-50 p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="text-sm font-medium text-blue-900">Microbial Testing</h5>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="datetime-local"
+                              value={formatDateTimeForInput(sampleData.microDue)}
+                              onChange={(e) => applyDeadlineToCategory(idx, 'micro', e.target.value)}
+                              className="px-2 py-1 border border-blue-300 rounded text-xs"
+                            />
+                            <button
+                              onClick={() => applyDeadlineToCategory(idx, 'micro', sampleData.microDue)}
+                              className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                            >
+                              Apply to All Micro
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          {microAssays.map(assay => (
+                            <div key={assay.key} className="flex items-center space-x-2 bg-white p-2 rounded">
+                              <input
+                                type="checkbox"
+                                checked={sampleData.assays?.[assay.key] || false}
+                                onChange={(e) => updateSampleAssay(idx, assay.key, e.target.checked)}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                              <span className="text-sm flex-1">{assay.name}</span>
+                              {sampleData.assays?.[assay.key] && (
+                                <input
+                                  type="datetime-local"
+                                  value={formatDateTimeForInput(sampleData.assayDeadlines?.[assay.key])}
+                                  onChange={(e) => updateAssayDeadline(idx, assay.key, e.target.value)}
+                                  className="px-2 py-1 border border-gray-300 rounded text-xs w-40"
+                                />
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    )}
 
-                    <div className="border-t pt-3">
-                      <h5 className="text-xs font-medium text-gray-700 mb-2">Selected Assays</h5>
-                      <div className="grid grid-cols-3 gap-2">
-                        {assayOptions.map(assay => (
-                          <label key={assay.key} className="flex items-center space-x-1 text-xs">
+                      {/* Chemistry Testing */}
+                      <div className="bg-green-50 p-3 border-t">
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="text-sm font-medium text-green-900">Chemistry Testing</h5>
+                          <div className="flex items-center space-x-2">
                             <input
-                              type="checkbox"
-                              checked={sampleData.assays?.[assay.key] || false}
-                              onChange={(e) => updateSampleAssay(idx, assay.key, e.target.checked)}
-                              className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              type="datetime-local"
+                              value={formatDateTimeForInput(sampleData.chemistryDue)}
+                              onChange={(e) => applyDeadlineToCategory(idx, 'chem', e.target.value)}
+                              className="px-2 py-1 border border-green-300 rounded text-xs"
                             />
-                            <span>{assay.name}</span>
-                          </label>
-                        ))}
+                            <button
+                              onClick={() => applyDeadlineToCategory(idx, 'chem', sampleData.chemistryDue)}
+                              className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                            >
+                              Apply to All Chem
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          {chemAssays.map(assay => (
+                            <div key={assay.key} className="flex items-center space-x-2 bg-white p-2 rounded">
+                              <input
+                                type="checkbox"
+                                checked={sampleData.assays?.[assay.key] || false}
+                                onChange={(e) => updateSampleAssay(idx, assay.key, e.target.checked)}
+                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                              />
+                              <span className="text-sm flex-1">{assay.name}</span>
+                              {sampleData.assays?.[assay.key] && (
+                                <input
+                                  type="datetime-local"
+                                  value={formatDateTimeForInput(sampleData.assayDeadlines?.[assay.key])}
+                                  onChange={(e) => updateAssayDeadline(idx, assay.key, e.target.value)}
+                                  className="px-2 py-1 border border-gray-300 rounded text-xs w-40"
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Other Testing */}
+                      <div className="bg-gray-50 p-3 border-t">
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="text-sm font-medium text-gray-900">Other Testing</h5>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="datetime-local"
+                              className="px-2 py-1 border border-gray-300 rounded text-xs"
+                            />
+                            <button
+                              onClick={() => applyDeadlineToCategory(idx, 'other', document.querySelector(`[data-other-deadline-${idx}]`)?.value)}
+                              className="px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700"
+                              data-other-deadline-idx={idx}
+                            >
+                              Apply to All Other
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          {otherAssays.map(assay => (
+                            <div key={assay.key} className="flex items-center space-x-2 bg-white p-2 rounded">
+                              <input
+                                type="checkbox"
+                                checked={sampleData.assays?.[assay.key] || false}
+                                onChange={(e) => updateSampleAssay(idx, assay.key, e.target.checked)}
+                                className="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                              />
+                              <span className="text-sm flex-1">{assay.name}</span>
+                              {sampleData.assays?.[assay.key] && (
+                                <input
+                                  type="datetime-local"
+                                  value={formatDateTimeForInput(sampleData.assayDeadlines?.[assay.key])}
+                                  onChange={(e) => updateAssayDeadline(idx, assay.key, e.target.value)}
+                                  className="px-2 py-1 border border-gray-300 rounded text-xs w-40"
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -496,7 +846,7 @@ const Receiving3 = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Manifest:</span>
-                  <span className="font-medium">{selectedManifest.manifestNumber}</span>
+                  <span className="font-medium">{formData.manifestNumber}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Samples:</span>
@@ -505,13 +855,19 @@ const Receiving3 = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Rush Samples:</span>
                   <span className="font-medium">
-                    {Object.values(formData.samples).filter(s => s.isRush).length}
+                    {Object.values(formData.samples).filter(s => s.isRush || s.isRushMicro || s.isRushPotency || hasEarlyDeadlines(s)).length}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">DPM Early Start:</span>
                   <span className="font-medium">
                     {Object.values(formData.samples).filter(s => s.dpmEarlyStart).length}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Terpenes Testing:</span>
+                  <span className="font-medium">
+                    {Object.values(formData.samples).filter(s => s.assays?.terpenes).length}
                   </span>
                 </div>
               </div>
@@ -539,7 +895,10 @@ const Receiving3 = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           {sampleData.isRush && <Zap className="w-3 h-3 text-red-600" />}
-                          {sampleData.dpmEarlyStart && <span className="text-purple-600 text-xs font-bold">DPM</span>}
+                          {sampleData.isRushMicro && !sampleData.isRush && <span className="text-red-600 text-xs">M-RUSH</span>}
+                          {sampleData.isRushPotency && !sampleData.isRush && <span className="text-red-600 text-xs">P-RUSH</span>}
+                          {sampleData.dpmEarlyStart && <span className="text-purple-600 text-xs font-bold">EARLY</span>}
+                          {sampleData.assays?.terpenes && <span className="text-green-600 text-xs">TERP</span>}
                         </div>
                       </div>
                     );

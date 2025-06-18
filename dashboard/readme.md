@@ -115,3 +115,22 @@ npm run build
 4. Access via: `https://<storage-account>.z13.web.core.windows.net/`
 
 See CLAUDE.md for detailed deployment instructions including CORS configuration, custom domains, and CI/CD setup.
+
+## Documentation
+
+### Architecture & Design
+- [CLAUDE.md](CLAUDE.md) - Comprehensive project guide and development instructions
+- [Project Overview](../ProjectOverview.md) - High-level system overview
+- [Customer Journey Design Plan](../CustJourneyDesignPlan.md) - Design decisions and user flows
+- [Workflow Innovations](../WorkflowInnovations.md) - Key workflow improvements
+
+### Implementation Details
+- [Recent Updates](RECENT_UPDATES_JUNE_2025.md) - Latest changes and improvements
+- [Navigation Implementation Summary](NAVIGATION_IMPLEMENTATION_SUMMARY.md) - Navigation patterns and structure
+- [Test Category Management](TEST_CATEGORY_MANAGEMENT.md) - Test category configuration
+- [Receiving Workflow Design Decisions](RECEIVING_WORKFLOW_DESIGN_DECISIONS.md) - Detailed rationale for Receiving3 implementation
+- [DPM Early Start Logic](DPM_EARLY_START_LOGIC.md) - Business logic for DPM Early Start workflow
+
+### Deployment Guides
+- [Azure Deployment Guide](AZURE_DEPLOYMENT_GUIDE.md) - Step-by-step Azure deployment
+- [Deployment Options](DEPLOYMENT_OPTIONS.md) - Various deployment platforms
