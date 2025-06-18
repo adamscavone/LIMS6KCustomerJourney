@@ -883,18 +883,6 @@ const Receiving1 = () => {
     })}`;
   };
 
-  const expandAllSamples = () => {
-    const newExpandedSamples = {};
-    manifests.forEach(manifest => {
-      if (expandedReceiving[manifest.manifestId]) {
-        manifest.samples.forEach((_, idx) => {
-          const key = `${manifest.manifestId}-${idx}`;
-          newExpandedSamples[key] = true;
-        });
-      }
-    });
-    setExpandedSamples(newExpandedSamples);
-  };
 
   const calculateDashboardStats = () => {
     const stats = {
@@ -1453,7 +1441,7 @@ const Receiving1 = () => {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Ohio Lab
+                  Ohio
                 </button>
                 <button
                   onClick={() => setSelectedState('michigan')}
@@ -1463,7 +1451,7 @@ const Receiving1 = () => {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Michigan Lab
+                  Michigan
                 </button>
               </div>
               
@@ -1559,38 +1547,23 @@ const Receiving1 = () => {
             <div className="bg-white rounded-lg shadow-sm p-4">
               <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
                 <Timer className="w-4 h-4 mr-2" />
-                Arrival Timeline (3hr)
+                Arrival Timeline
               </h3>
               {dashboardStats.upcomingArrivals.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="relative h-2 bg-gray-200 rounded-full mb-3">
-                    {dashboardStats.upcomingArrivals.map((arrival, idx) => (
-                      <div
-                        key={idx}
-                        className="absolute top-0 w-2 h-2 bg-blue-600 rounded-full"
-                        style={{ left: `${getTimelinePosition(arrival.eta)}%` }}
-                        title={`${arrival.client} - ${formatLocalTime(arrival.eta)}`}
-                      />
-                    ))}
-                  </div>
-                  <div className="space-y-1 max-h-28 overflow-y-auto">
-                    {dashboardStats.upcomingArrivals.slice(0, 5).map((arrival, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-700 truncate max-w-[120px]" title={arrival.client}>
-                          {arrival.client}
-                        </span>
-                        <span className="text-gray-500">{arrival.sampleCount}</span>
-                        <span className="font-medium text-blue-600">
-                          {arrival.minutesUntil < 60 
-                            ? `${arrival.minutesUntil}m` 
-                            : `${Math.floor(arrival.minutesUntil / 60)}h`}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {dashboardStats.upcomingArrivals.slice(0, 6).map((arrival, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-0">
+                      <span className="text-gray-700 truncate max-w-[140px]" title={arrival.client}>
+                        {arrival.client}
+                      </span>
+                      <span className="font-medium text-gray-900">
+                        {formatLocalTime(arrival.eta)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <p className="text-xs text-gray-500">No arrivals in next 3 hours</p>
+                <p className="text-xs text-gray-500">No upcoming arrivals</p>
               )}
             </div>
             
@@ -1679,28 +1652,6 @@ const Receiving1 = () => {
           </div>
         )}
         
-        {/* Most Requested Assays */}
-        {dashboardStats && Object.keys(dashboardStats.assayFrequency).length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Most Requested Assays Today
-            </h3>
-            <div className="grid grid-cols-4 gap-3">
-              {Object.entries(dashboardStats.assayFrequency)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 12)
-                .map(([assay, count]) => (
-                  <div key={assay} className="flex items-center justify-between text-xs">
-                    <span className="text-gray-700 capitalize">
-                      {assay.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                    <span className="font-medium text-gray-900">{count}</span>
-                  </div>
-                ))}
-            </div>
-          </div>
-        )}
 
         {/* Manifests Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -1711,9 +1662,8 @@ const Receiving1 = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manifest #</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CC Order ID</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Samples</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETA</th>
@@ -1733,22 +1683,13 @@ const Receiving1 = () => {
                   return (
                     <React.Fragment key={manifest.manifestId}>
                       <tr className={expandedReceiving[manifest.manifestId] ? 'bg-gray-50' : 'hover:bg-gray-50'}>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {manifest.customerFacility}
-                          </div>
-                        </td>
                         <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                           {manifest.manifestId}
                         </td>
                         <td className="px-3 py-4 whitespace-nowrap">
-                          <input
-                            type="text"
-                            value={manifestData[manifest.manifestId]?.ccOrderId || ''}
-                            onChange={(e) => handleManifestDataChange(manifest.manifestId, 'ccOrderId', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Enter ID"
-                          />
+                          <div className="text-sm font-medium text-gray-900">
+                            {manifest.customerFacility}
+                          </div>
                         </td>
                         <td className="px-3 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full border inline-flex items-center ${
@@ -1812,56 +1753,8 @@ const Receiving1 = () => {
                       {/* Expanded Receiving Interface Row */}
                       {expandedReceiving[manifest.manifestId] && (
                         <tr>
-                          <td colSpan="10" className="px-3 py-4 bg-gray-50">
-                            <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                    {/* Order Information */}
-                    <div className="mb-4">
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-700">Notes:</label>
-                        <input
-                          type="text"
-                          value={manifestData[manifest.manifestId]?.notes || ''}
-                          onChange={(e) => handleManifestDataChange(manifest.manifestId, 'notes', e.target.value)}
-                          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Enter any notes about this manifest"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <button
-                            onClick={() => generateCCOrder(manifest.manifestId)}
-                            className="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
-                          >
-                            Generate Order on Confident Cannabis
-                          </button>
-                          <button
-                            onClick={() => {
-                              // Apply DPM Early Start to all DPM samples
-                              const updatedData = { ...manifestData[manifest.manifestId] };
-                              Object.keys(updatedData.samples || {}).forEach(idx => {
-                                if (updatedData.samples[idx].testCategory?.includes('Dispensary Plant Material')) {
-                                  updatedData.samples[idx].dpmEarlyStart = true;
-                                }
-                              });
-                              setManifestData(prev => ({
-                                ...prev,
-                                [manifest.manifestId]: updatedData
-                              }));
-                            }}
-                            className="px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
-                          >
-                            DPM Early Start All
-                          </button>
-                        </div>
-                        <button
-                          onClick={expandAllSamples}
-                          className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
-                        >
-                          Expand All Samples
-                        </button>
-                      </div>
-                    </div>
-                    
+                          <td colSpan="9" className="px-3 py-4 bg-gray-50">
+                            <div className="border border-gray-200 rounded-lg p-4 bg-white mx-auto" style={{ maxWidth: '75%' }}>
                     {/* Sample Table */}
                     <div className="overflow-x-auto relative">
                       <table className="min-w-full">
@@ -2046,13 +1939,18 @@ const Receiving1 = () => {
                                 {isExpanded && (
                                   <tr>
                                     <td colSpan="11" className="p-4 bg-gray-50">
-                                      {/* NCTL Sample Type */}
+                                      {/* Assign Sample Type */}
                                       <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">NCTL Sample Type</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                          Assign Sample Type <span className="text-red-500">*</span>
+                                        </label>
                                         <select
                                           value={sampleData.nctlSampleType || ''}
                                           onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'nctlSampleType', e.target.value)}
-                                          className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                          className={`w-full max-w-xs px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                            !sampleData.nctlSampleType ? 'border-red-300' : 'border-gray-300'
+                                          }`}
+                                          required
                                         >
                                           <option value="">Select Sample Type...</option>
                                           <option value="Flower">Flower</option>
@@ -2075,7 +1973,7 @@ const Receiving1 = () => {
                                             <thead className="bg-gray-50">
                                               <tr className="text-xs font-medium text-gray-700 uppercase tracking-wider">
                                                 <th className="py-2 px-3 text-left border-b">Assay</th>
-                                                <th className="py-2 px-3 text-left border-b">Status</th>
+                                                <th className="py-2 px-3 text-left border-b">Category</th>
                                                 <th className="py-2 px-3 text-left border-b">Goal Due</th>
                                                 <th className="py-2 px-3 text-left border-b">Final Reporting Due</th>
                                               </tr>
@@ -2111,7 +2009,19 @@ const Receiving1 = () => {
                                                   : null;
                                                 const customDeadline = sampleData.assayDeadlines?.[assay.key];
                                                 const goalDeadline = customDeadline || calculatedDeadline || '';
-                                                const reportingDeadline = sampleData.assayReportingDeadlines?.[assay.key] || '';
+                                                // Calculate reporting deadline as 1 business day after goal deadline
+                                                const calculateReportingDeadline = (goalDate) => {
+                                                  if (!goalDate) return '';
+                                                  const goal = new Date(goalDate);
+                                                  const reporting = new Date(goal);
+                                                  reporting.setDate(reporting.getDate() + 1);
+                                                  // Skip weekends
+                                                  if (reporting.getDay() === 6) reporting.setDate(reporting.getDate() + 2);
+                                                  if (reporting.getDay() === 0) reporting.setDate(reporting.getDate() + 1);
+                                                  return reporting.toISOString();
+                                                };
+                                                const defaultReportingDeadline = calculateReportingDeadline(goalDeadline);
+                                                const reportingDeadline = sampleData.assayReportingDeadlines?.[assay.key] || defaultReportingDeadline;
                                                 
                                                 return (
                                                   <tr key={assay.key} className={isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}>
@@ -2127,18 +2037,15 @@ const Receiving1 = () => {
                                                       </label>
                                                     </td>
                                                     <td className="py-2 px-3 text-sm">
-                                                      <div className="flex items-center space-x-1">
-                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                                          isSelected ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                                                        }`}>
-                                                          {isSelected ? 'Selected' : 'Not Selected'}
-                                                        </span>
-                                                        {isSelected && calculatedDeadline && (
-                                                          <span className="text-xs text-gray-500">
-                                                            ({assay.type === 'microbial' ? 'Micro' : assay.type === 'chemistry' ? 'Chem' : 'Other'})
-                                                          </span>
-                                                        )}
-                                                      </div>
+                                                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                                        assay.type === 'microbial' ? 'bg-purple-100 text-purple-800' : 
+                                                        assay.type === 'chemistry' ? 'bg-blue-100 text-blue-800' : 
+                                                        'bg-gray-100 text-gray-800'
+                                                      }`}>
+                                                        {assay.type === 'microbial' ? 'Micro' : 
+                                                         assay.type === 'chemistry' ? 'Chemistry' : 
+                                                         'Other'}
+                                                      </span>
                                                     </td>
                                                     <td className="py-2 px-3">
                                                       <div className="relative">
@@ -2466,6 +2373,46 @@ const Receiving1 = () => {
                           })}
                         </tbody>
                       </table>
+                    </div>
+                    
+                    {/* Notes and Manifest Actions */}
+                    <div className="mt-4">
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-gray-700">Notes:</label>
+                        <input
+                          type="text"
+                          value={manifestData[manifest.manifestId]?.notes || ''}
+                          onChange={(e) => handleManifestDataChange(manifest.manifestId, 'notes', e.target.value)}
+                          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Enter any notes about this manifest"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => generateCCOrder(manifest.manifestId)}
+                          className="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                        >
+                          Generate Order on Confident Cannabis
+                        </button>
+                        <button
+                          onClick={() => {
+                            // Apply DPM Early Start to all DPM samples
+                            const updatedData = { ...manifestData[manifest.manifestId] };
+                            Object.keys(updatedData.samples || {}).forEach(idx => {
+                              if (updatedData.samples[idx].testCategory?.includes('Dispensary Plant Material')) {
+                                updatedData.samples[idx].dpmEarlyStart = true;
+                              }
+                            });
+                            setManifestData(prev => ({
+                              ...prev,
+                              [manifest.manifestId]: updatedData
+                            }));
+                          }}
+                          className="px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
+                        >
+                          DPM Early Start All
+                        </button>
+                      </div>
                     </div>
                     
                     {/* Action Buttons */}
