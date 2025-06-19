@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Fragment } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   Truck, 
   Package, 
@@ -40,6 +41,13 @@ import {
 } from '../../utils/assayDeadlines';
 
 const Receiving1 = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Parse URL parameters to determine active tab
+  const searchParams = new URLSearchParams(location.search);
+  const tabFromUrl = searchParams.get('tab') || 'pending';
+  
   const [selectedState, setSelectedState] = useState('ohio');
   const [manifests, setManifests] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -51,6 +59,23 @@ const Receiving1 = () => {
   const [expandedSamples, setExpandedSamples] = useState({});
   const [dashboardStats, setDashboardStats] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
+  
+  // Update active tab when URL changes
+  useEffect(() => {
+    const newTab = searchParams.get('tab') || 'pending';
+    setActiveTab(newTab);
+  }, [location.search]);
+  
+  // Update URL when tab changes
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'pending') {
+      navigate('/receiving1');
+    } else {
+      navigate(`/receiving1?tab=${tab}`);
+    }
+  };
   
   // Format date to MM/DD/YY HH:MM a.m./p.m.
   const formatDueDate = (dateStr) => {
@@ -1472,8 +1497,55 @@ const Receiving1 = () => {
             </div>
           </div>
           
-          {/* Summary Statistics */}
-          {dashboardStats && (
+          {/* Sub-navigation Tabs */}
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => handleTabChange('pending')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'pending'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Pending Receipt
+              </button>
+              <button
+                onClick={() => handleTabChange('today')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'today'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Received Today
+              </button>
+              <button
+                onClick={() => handleTabChange('active')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'active'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Active Manifests
+              </button>
+              <button
+                onClick={() => handleTabChange('history')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'history'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Manifest History
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Summary Statistics */}
+        {dashboardStats && (
             <div className="grid grid-cols-6 gap-3">
               {/* Total Manifests */}
               <div className="bg-gray-50 rounded-lg p-3">
@@ -1653,13 +1725,16 @@ const Receiving1 = () => {
         )}
         
 
-        {/* Manifests Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="p-3 border-b border-gray-200 bg-gray-50">
-            <h2 className="text-sm font-medium text-gray-900">Manifest Details</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+        {/* Tab Content */}
+        {activeTab === 'pending' && (
+          <>
+            {/* Manifests Table */}
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="p-3 border-b border-gray-200 bg-gray-50">
+                <h2 className="text-sm font-medium text-gray-900">Pending Manifests</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manifest #</th>
@@ -1939,30 +2014,83 @@ const Receiving1 = () => {
                                 {isExpanded && (
                                   <tr>
                                     <td colSpan="11" className="p-4 bg-gray-50">
-                                      {/* Assign Sample Type */}
-                                      <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                          Assign Sample Type <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                          value={sampleData.nctlSampleType || ''}
-                                          onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'nctlSampleType', e.target.value)}
-                                          className={`w-full max-w-xs px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                            !sampleData.nctlSampleType ? 'border-red-300' : 'border-gray-300'
-                                          }`}
-                                          required
-                                        >
-                                          <option value="">Select Sample Type...</option>
-                                          <option value="Flower">Flower</option>
-                                          <option value="Shake/Trim">Shake/Trim</option>
-                                          <option value="Concentrate">Concentrate</option>
-                                          <option value="Rosin">Rosin</option>
-                                          <option value="Resin">Resin</option>
-                                          <option value="Vape Cart">Vape Cart</option>
-                                          <option value="Gummy">Gummy</option>
-                                          <option value="Brownie">Brownie</option>
-                                          <option value="Tincture">Tincture</option>
-                                        </select>
+                                      {/* Assign Sample Type and Additional Options in same row */}
+                                      <div className="flex gap-6 mb-4">
+                                        {/* Assign Sample Type */}
+                                        <div className="flex-1">
+                                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Assign Sample Type <span className="text-red-500">*</span>
+                                          </label>
+                                          <select
+                                            value={sampleData.nctlSampleType || ''}
+                                            onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'nctlSampleType', e.target.value)}
+                                            className={`w-full max-w-xs px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                              !sampleData.nctlSampleType ? 'border-red-300' : 'border-gray-300'
+                                            }`}
+                                            required
+                                          >
+                                            <option value="">Select Sample Type...</option>
+                                            <option value="Flower">Flower</option>
+                                            <option value="Shake/Trim">Shake/Trim</option>
+                                            <option value="Concentrate">Concentrate</option>
+                                            <option value="Rosin">Rosin</option>
+                                            <option value="Resin">Resin</option>
+                                            <option value="Vape Cart">Vape Cart</option>
+                                            <option value="Gummy">Gummy</option>
+                                            <option value="Brownie">Brownie</option>
+                                            <option value="Tincture">Tincture</option>
+                                          </select>
+                                        </div>
+                                        
+                                        {/* Additional Options */}
+                                        <div className="flex-1">
+                                          <div className="flex items-center mb-1">
+                                            <h4 className="text-sm font-medium text-gray-700">Additional Options</h4>
+                                            <div className="relative group ml-1">
+                                              <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                                              <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
+                                                <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 w-64">
+                                                  DPM Early Start allows microbial testing to begin immediately for Dispensary Plant Material samples
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div className="flex items-center space-x-4">
+                                            <label className="flex items-center">
+                                              <input
+                                                type="checkbox"
+                                                checked={sampleData.retest || false}
+                                                onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'retest', e.target.checked)}
+                                                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                              />
+                                              <span className="text-sm">Retest</span>
+                                            </label>
+                                            <label className="flex items-center">
+                                              <input
+                                                type="checkbox"
+                                                checked={sampleData.dpmEarlyStart || false}
+                                                onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'dpmEarlyStart', e.target.checked)}
+                                                className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                                              />
+                                              <span className="text-sm">DPM Early Start</span>
+                                            </label>
+                                            <label className="flex items-center">
+                                              <input
+                                                type="checkbox"
+                                                checked={sampleData.isRush || false}
+                                                onChange={(e) => {
+                                                  handleSampleDataChange(manifest.manifestId, idx, 'isRush', e.target.checked);
+                                                  // Recalculate deadlines
+                                                  handleAssayChange(manifest.manifestId, idx, 'dummy', false);
+                                                }}
+                                                className="mr-2 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                              />
+                                              <span className="text-sm flex items-center">
+                                                Rush <Zap className="w-3 h-3 text-red-600 ml-1" />
+                                              </span>
+                                            </label>
+                                          </div>
+                                        </div>
                                       </div>
                                       
                                       {/* Individual Assay Details Table */}
@@ -2126,55 +2254,6 @@ const Receiving1 = () => {
                                         </div>
                                       )}
 
-                                      {/* Options Row */}
-                                      <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center">
-                                          <h4 className="text-sm font-medium text-gray-700">Additional Options</h4>
-                                          <div className="relative group ml-1">
-                                            <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                                            <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
-                                              <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 w-64">
-                                                DPM Early Start allows microbial testing to begin immediately for Dispensary Plant Material samples
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center space-x-4">
-                                          <label className="flex items-center">
-                                            <input
-                                              type="checkbox"
-                                              checked={sampleData.retest || false}
-                                              onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'retest', e.target.checked)}
-                                              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                            />
-                                            <span className="text-sm">Retest</span>
-                                          </label>
-                                          <label className="flex items-center">
-                                            <input
-                                              type="checkbox"
-                                              checked={sampleData.dpmEarlyStart || false}
-                                              onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'dpmEarlyStart', e.target.checked)}
-                                              className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                                            />
-                                            <span className="text-sm">DPM Early Start</span>
-                                          </label>
-                                          <label className="flex items-center">
-                                            <input
-                                              type="checkbox"
-                                              checked={sampleData.isRush || false}
-                                              onChange={(e) => {
-                                                handleSampleDataChange(manifest.manifestId, idx, 'isRush', e.target.checked);
-                                                // Recalculate deadlines
-                                                handleAssayChange(manifest.manifestId, idx, 'dummy', false);
-                                              }}
-                                              className="mr-2 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                                            />
-                                            <span className="text-sm flex items-center">
-                                              Rush <Zap className="w-3 h-3 text-red-600 ml-1" />
-                                            </span>
-                                          </label>
-                                        </div>
-                                      </div>
                                       
                                 {/* Potency Targets and Sample Weights side-by-side */}
                                 <div className="mt-4 grid grid-cols-2 gap-4">
@@ -2412,6 +2491,35 @@ const Receiving1 = () => {
                         >
                           DPM Early Start All
                         </button>
+                        <button
+                          onClick={() => {
+                            // Apply Rush to all samples
+                            const updatedData = { ...manifestData[manifest.manifestId] };
+                            Object.keys(updatedData.samples || {}).forEach(idx => {
+                              updatedData.samples[idx].isRush = true;
+                              // Recalculate deadlines for each sample
+                              const testCategory = updatedData.samples[idx].testCategory || 'Dispensary Plant Material';
+                              const assays = updatedData.samples[idx].assays || {};
+                              const allDeadlines = getAllAssayDeadlines(
+                                testCategory,
+                                manifest.createdDate,
+                                assays,
+                                updatedData.samples[idx].assayDeadlines || {},
+                                true // isRush
+                              );
+                              updatedData.samples[idx].earliestDeadline = allDeadlines.earliestDeadline || '';
+                              updatedData.samples[idx].earliestAssayName = allDeadlines.earliestAssay || '';
+                              updatedData.samples[idx].allDeadlines = allDeadlines.deadlines || [];
+                            });
+                            setManifestData(prev => ({
+                              ...prev,
+                              [manifest.manifestId]: updatedData
+                            }));
+                          }}
+                          className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm flex items-center"
+                        >
+                          Rush All <Zap className="w-3 h-3 ml-1" />
+                        </button>
                       </div>
                     </div>
                     
@@ -2444,9 +2552,61 @@ const Receiving1 = () => {
             </table>
           </div>
         </div>
-      </div>
+          </>
+        )}
 
-    </div>
+        {/* Received Today Tab */}
+        {activeTab === 'today' && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="text-center py-12">
+              <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Received Today</h3>
+              <p className="text-gray-500">Manifests received in the last 24 hours will appear here</p>
+              <p className="text-sm text-gray-400 mt-2">No manifests received today</p>
+            </div>
+          </div>
+        )}
+
+        {/* Active Manifests Tab */}
+        {activeTab === 'active' && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="text-center py-12">
+              <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Active Manifests</h3>
+              <p className="text-gray-500">Manifests with samples currently in testing will appear here</p>
+              <p className="text-sm text-gray-400 mt-2">No active manifests</p>
+            </div>
+          </div>
+        )}
+
+        {/* Manifest History Tab */}
+        {activeTab === 'history' && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="mb-4 flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-900">Manifest History</h3>
+              <div className="flex space-x-2">
+                <input
+                  type="date"
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  placeholder="Start date"
+                />
+                <input
+                  type="date"
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  placeholder="End date"
+                />
+                <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                  Search
+                </button>
+              </div>
+            </div>
+            <div className="text-center py-12">
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">Search for historical manifests by date range</p>
+            </div>
+          </div>
+        )}
+      </div>
   );
 };
 

@@ -74,35 +74,11 @@ const TopNavigation = () => {
       label: 'Receiving',
       icon: Package,
       items: [
-        { label: 'Import Manifests from Metrc', path: '/receiving' },
-        { label: 'Import Manifests from PELs', path: '/receiving' },
-        { label: 'Current Manifests', path: '/receiving' },
-        { label: 'Manifest Archive', path: '/receiving' }
+        { label: 'Pending Receipt', path: '/receiving1' },
+        { label: 'Received Today', path: '/receiving1?tab=today' },
+        { label: 'Active Manifests', path: '/receiving1?tab=active' },
+        { label: 'Manifest History', path: '/receiving1?tab=history' }
       ]
-    },
-    {
-      id: 'receiving1',
-      label: 'Receiving1',
-      icon: Package,
-      path: '/receiving1'
-    },
-    {
-      id: 'receiving2',
-      label: 'Receiving2',
-      icon: Package,
-      path: '/receiving2'
-    },
-    {
-      id: 'receiving3',
-      label: 'Receiving3',
-      icon: Package,
-      path: '/receiving3'
-    },
-    {
-      id: 'receiving4',
-      label: 'Receiving4',
-      icon: Package,
-      path: '/receiving4'
     },
     {
       id: 'prep',
