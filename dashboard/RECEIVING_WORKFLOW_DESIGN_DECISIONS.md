@@ -18,6 +18,37 @@ The workflow provides multiple levels of control:
 
 ## Major Features Implemented
 
+### June 2025 Updates - Receiving2 Overhaul
+
+#### UI/UX Improvements
+- **Step-Based Workflow**: Clear 3-step process (Select Samples → Configure Tests → Review & Continue)
+- **Improved Layout**: Wider sample selection area (3/5 of screen) with better space utilization
+- **Dual Configuration Views**: 
+  - Vertical panel (blue) for traditional scrolling
+  - Horizontal panel (green) for compact, column-based layout
+- **Removed Confusion**: 
+  - Eliminated "Batch Configuration" terminology (confusing for lab personnel)
+  - Replaced with "Test Configuration" throughout
+  - Changed "Processing Options" to "Turnaround Options"
+
+#### Sample Type Intelligence
+- **Automatic Defaults**: System intelligently sets sample types based on:
+  - Metrc Category mappings (Buds → Flower, Vape Cartridge → Vape Cart, etc.)
+  - Item name analysis (detects "gummy", "chocolate", "pre-roll" in names)
+- **Inline Editing**: Sample types editable directly in the table
+- **Bulk Override**: Option to apply a single sample type to all selected samples
+
+#### Deadline Management Enhancements  
+- **Three Deadline Categories**: Chemistry, Microbial, and Other (new)
+- **Informative Tooltips**: Each deadline field shows which assay methods belong to that category
+- **Direct Editing**: All deadlines are immediately editable datetime inputs
+- **Auto-population**: Deadlines calculate and pre-fill based on selected assays and rush status
+
+#### Technical Improvements
+- **Error Handling**: Fixed undefined property errors in bulk operations
+- **Default Values**: Test category now shows current selection by default instead of blank
+- **Time Formatting**: ETAs display as "HH:MM AM/PM" without seconds
+
 ### 1. Enhanced Bulk Actions (Step 2: Manifest Details)
 
 #### Rush Order Options

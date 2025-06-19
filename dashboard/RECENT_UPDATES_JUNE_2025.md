@@ -201,3 +201,66 @@ Created two new documentation files:
 - **Progressive Disclosure**: Complex options hidden until needed
 - **Real-World Alignment**: UI matches actual lab operations
 - **Clear Visual Indicators**: Status badges for quick identification
+
+## Receiving2 - Batch Control Interface Overhaul
+
+### Date: June 19, 2025
+
+#### Problem Statement
+The original Receiving2 interface was confusing with unclear workflow progression, misleading terminology ("Batch Configuration" confused lab personnel), and poor layout utilization.
+
+#### Solution Implemented
+
+**1. Clear Step-Based Workflow**
+- Implemented 3-step visual indicator: Select Samples → Configure Tests → Review & Continue
+- Step highlighting based on user progress
+- Proper starting point at Step 1
+
+**2. Improved Terminology**
+- "Configure Settings" → "Configure Tests"  
+- "Batch Configuration" → "Test Configuration"
+- "Processing Options" → "Turnaround Options"
+- Gear icon → Flask icon (more appropriate for lab context)
+
+**3. Enhanced Layout**
+- Expanded sample selection from 2/3 to 3/5 of screen width
+- Test configuration panel expanded to 2/5 (from 1/3)
+- Added alternative horizontal configuration layout for comparison
+
+**4. Sample Type Intelligence**
+```javascript
+// Automatic sample type mapping
+const categoryMappings = {
+  'Buds': 'Flower',
+  'Vape Cartridge': 'Vape Cart', 
+  'Concentrate': 'Concentrate',
+  'Pre-Roll': 'Pre-Roll'
+};
+
+// Item name detection
+if (itemName.includes('gummy')) return 'Gummy';
+if (itemName.includes('chocolate')) return 'Chocolate';
+```
+
+**5. Deadline Enhancements**
+- Added "Other Due" category for non-chemistry/microbial assays
+- Informative tooltips explaining which methods belong to each category
+- Direct datetime-local inputs (no more modal popups)
+- Auto-population with calculated defaults
+
+**6. Table Improvements**
+- Added Test Category column (shows applied or default)
+- Added editable Sample Type column with smart defaults
+- Removed redundant Status column
+- Changed "Category" to "Metrc Category" for clarity
+
+**7. Bug Fixes**
+- Fixed "Cannot read properties of undefined" error in applyGlobalSettings
+- Proper null checking for manifest.samples access
+- ETA formatting to show only HH:MM AM/PM (removed seconds)
+
+#### Technical Details
+- File: `/dashboard/src/pages/receiving/Receiving2.js`
+- Added `getDefaultSampleType()` function for intelligent defaults
+- Enhanced error handling with proper null checks
+- Maintained backward compatibility with existing data structures
