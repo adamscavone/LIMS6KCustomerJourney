@@ -491,3 +491,71 @@ jobs:
 - For production use, consider adding Azure AD authentication
 - Monitor storage costs (typically minimal for static sites)
 - Enable CDN for better global performance
+
+## Michigan Whitelisting for Single-Analyte Retests
+
+### Overview
+Michigan regulations allow customers who fail a specific analyte test to request a retest for ONLY that failed analyte. This is called "whitelisting" - we explicitly whitelist only the analytes that need retesting to avoid accidentally failing the customer on analytes they didn't request testing for.
+
+### Key Requirements
+1. **Michigan Only**: This feature is ONLY for Michigan operations. Ohio requires ALL analytes in an assay to be retested and reported.
+2. **Retest Samples**: Only applies to samples marked as "Retest" in the test category
+3. **Single Analyte Selection**: When a retest is requested, ONLY the failed analyte(s) should be tested
+4. **Risk Mitigation**: Prevents accidental failure on non-requested analytes (e.g., testing lead only but accidentally failing for cadmium)
+
+### Implementation Details
+
+#### UI Elements (Receiving4.js)
+1. **Retest Toggle**: Added a "Retest" checkbox that appears when:
+   - State is set to Michigan (future implementation will detect this)
+   - Enables whitelisting mode for that sample
+
+2. **Analyte-Specific Selection**: When retest is enabled:
+   - Assay checkboxes expand to show individual analytes
+   - User can select specific analytes within each assay
+   - Visual indicator (yellow background) shows whitelisted samples
+
+3. **Whitelisting Indicators**:
+   - Yellow "RETEST" badge on sample rows
+   - Yellow background on whitelisted analyte checkboxes
+   - Warning icon with tooltip explaining the whitelist
+
+4. **Validation**:
+   - Prevents selecting entire assays when in retest mode
+   - Requires at least one analyte to be selected
+   - Shows clear messaging about which analytes will be tested
+
+#### Data Structure
+```javascript
+sampleData = {
+  // ... existing fields
+  isRetest: boolean,
+  whitelistedAnalytes: {
+    cannabinoids: ['THC', 'CBD'],  // Only test these specific cannabinoids
+    heavyMetals: ['lead'],          // Only test for lead
+    pesticides: [],                 // Empty = no pesticides testing
+    // etc.
+  }
+}
+```
+
+#### Business Logic
+1. When `isRetest` is true:
+   - Assay selection UI changes to analyte-level selection
+   - Only whitelisted analytes are sent to instruments
+   - Review queue shows which analytes were tested
+   - Reports only include tested analytes
+
+2. Downstream Impact:
+   - Prep batches group retest samples separately
+   - Analysis batches clearly mark whitelisted samples
+   - Instruments receive specific analyte lists
+   - Review queue validates only tested analytes
+
+### Example Workflow
+1. Customer fails heavy metals test for lead contamination
+2. Customer requests retest for lead only
+3. Lab receives new sample, marks as "Retest"
+4. Lab selects only "Lead" from heavy metals analytes
+5. Sample proceeds through workflow testing ONLY for lead
+6. Report shows only lead results, avoiding risk of failing for other metals

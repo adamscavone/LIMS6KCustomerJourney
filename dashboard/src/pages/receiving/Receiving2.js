@@ -44,6 +44,11 @@ import {
   TEST_CATEGORY_DEFAULTS,
   ASSAY_TURNAROUND_TIMES
 } from '../../utils/assayDeadlines';
+import { 
+  ANALYTE_DEFINITIONS,
+  getAnalytesForAssay,
+  hasIndividualAnalytes
+} from '../../utils/analyteDefinitions';
 
 const Receiving2 = () => {
   const location = useLocation();
@@ -54,6 +59,7 @@ const Receiving2 = () => {
   const tabFromUrl = searchParams.get('tab') || 'pending';
   
   const [selectedState, setSelectedState] = useState('ohio');
+  const [currentState] = useState('Michigan'); // For demo purposes
   const [manifests, setManifests] = useState([]);
   const [receivedManifests, setReceivedManifests] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -74,7 +80,9 @@ const Receiving2 = () => {
     microDue: '',
     chemistryDue: '',
     otherDue: '',
-    allAssays: {}
+    allAssays: {},
+    isRetest: false,
+    whitelistedAnalytes: {}
   });
 
   // Update active tab when URL changes
@@ -464,6 +472,8 @@ const Receiving2 = () => {
       sample.dpmEarlyStart = globalSettings.dpmEarlyStart;
       sample.isRush = globalSettings.rushTurnaround;
       sample.assays = { ...globalSettings.allAssays };
+      sample.isRetest = globalSettings.isRetest;
+      sample.whitelistedAnalytes = globalSettings.isRetest ? { ...globalSettings.whitelistedAnalytes } : {};
       
       // Calculate deadlines
       if (manifest) {
@@ -769,6 +779,7 @@ const Receiving2 = () => {
                             return (
                               <tr key={idx} className={`${
                                 isSelected ? 'bg-blue-50' : 
+                                sampleData.isRetest ? 'bg-yellow-50' :
                                 canSelect ? 'hover:bg-gray-50' : 'opacity-50'
                               } transition-colors`}>
                                 <td className="py-3 px-4">
@@ -788,6 +799,11 @@ const Receiving2 = () => {
                                     <div className="font-medium text-gray-900">{sample.itemName}</div>
                                     <div className="text-xs text-gray-500">
                                       Tag: ...{sample.metrcTag.slice(-5)} | {sample.strain !== 'N/A' && `Strain: ${sample.strain}`}
+                                      {sampleData.isRetest && (
+                                        <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-yellow-200 text-yellow-800 rounded">
+                                          RETEST
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 </td>
@@ -932,39 +948,107 @@ const Receiving2 = () => {
 
               {/* Assay Selection */}
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Required Assays</h3>
-                <div className="space-y-1 max-h-48 overflow-y-auto p-3 bg-gray-50 rounded-lg">
-                  {Object.entries({
-                    salmonella: 'Salmonella',
-                    stec: 'STEC',
-                    totalAerobicBacteria: 'Total Aerobic',
-                    totalColiforms: 'Total Coliforms',
-                    totalYeastMold: 'Total Yeast & Mold',
-                    btgn: 'BTGN',
-                    cannabinoids: 'Cannabinoids',
-                    terpenes: 'Terpenes',
-                    pesticides: 'Pesticides',
-                    mycotoxins: 'Mycotoxins',
-                    heavyMetals: 'Heavy Metals',
-                    residualSolvents: 'Residual Solvents',
-                    moistureContent: 'Moisture Content',
-                    waterActivity: 'Water Activity',
-                    foreignMatter: 'Foreign Matter'
-                  }).map(([key, label]) => (
-                    <label key={key} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={globalSettings.allAssays[key] || false}
-                        onChange={(e) => setGlobalSettings(prev => ({
-                          ...prev,
-                          allAssays: { ...prev.allAssays, [key]: e.target.checked }
-                        }))}
-                        className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <span className="text-xs">{label}</span>
-                    </label>
-                  ))}
-                </div>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  {currentState === 'Michigan' && globalSettings.isRetest ? 'Select Specific Analytes for Retest' : 'Required Assays'}
+                </h3>
+                {currentState === 'Michigan' && globalSettings.isRetest ? (
+                  <div className="space-y-4 max-h-96 overflow-y-auto p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="text-xs text-yellow-700 mb-2">
+                      <AlertTriangle className="inline w-3 h-3 mr-1" />
+                      Only selected analytes will be tested
+                    </div>
+                    {Object.entries(globalSettings.allAssays).filter(([_, isSelected]) => isSelected).map(([assayKey]) => {
+                      const analytes = getAnalytesForAssay(assayKey);
+                      const whitelisted = globalSettings.whitelistedAnalytes[assayKey] || [];
+                      
+                      if (analytes.length === 0) return null;
+                      
+                      return (
+                        <div key={assayKey} className="border border-gray-200 rounded-lg p-3 bg-white">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">
+                            {getAssayDisplayName(assayKey)}
+                            {whitelisted.length > 0 && (
+                              <span className="ml-2 text-xs text-yellow-600">
+                                ({whitelisted.length} selected)
+                              </span>
+                            )}
+                          </h5>
+                          <div className="grid grid-cols-3 gap-2">
+                            {analytes.map(analyte => (
+                              <label 
+                                key={analyte.key} 
+                                className={`flex items-center space-x-2 p-2 rounded text-xs cursor-pointer ${
+                                  whitelisted.includes(analyte.key) ? 'bg-yellow-100 border border-yellow-300' : 'hover:bg-gray-50 border border-gray-200'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={whitelisted.includes(analyte.key)}
+                                  onChange={(e) => {
+                                    const updatedWhitelisted = { ...globalSettings.whitelistedAnalytes };
+                                    if (!updatedWhitelisted[assayKey]) {
+                                      updatedWhitelisted[assayKey] = [];
+                                    }
+                                    
+                                    if (e.target.checked) {
+                                      if (!updatedWhitelisted[assayKey].includes(analyte.key)) {
+                                        updatedWhitelisted[assayKey].push(analyte.key);
+                                      }
+                                    } else {
+                                      updatedWhitelisted[assayKey] = updatedWhitelisted[assayKey].filter(a => a !== analyte.key);
+                                    }
+                                    
+                                    setGlobalSettings(prev => ({
+                                      ...prev,
+                                      whitelistedAnalytes: updatedWhitelisted
+                                    }));
+                                  }}
+                                  className="h-3 w-3 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                                />
+                                <span title={analyte.fullName}>
+                                  {analyte.name}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="space-y-1 max-h-48 overflow-y-auto p-3 bg-gray-50 rounded-lg">
+                    {Object.entries({
+                      salmonella: 'Salmonella',
+                      stec: 'STEC',
+                      totalAerobicBacteria: 'Total Aerobic',
+                      totalColiforms: 'Total Coliforms',
+                      totalYeastMold: 'Total Yeast & Mold',
+                      btgn: 'BTGN',
+                      cannabinoids: 'Cannabinoids',
+                      terpenes: 'Terpenes',
+                      pesticides: 'Pesticides',
+                      mycotoxins: 'Mycotoxins',
+                      heavyMetals: 'Heavy Metals',
+                      residualSolvents: 'Residual Solvents',
+                      moistureContent: 'Moisture Content',
+                      waterActivity: 'Water Activity',
+                      foreignMatter: 'Foreign Matter'
+                    }).map(([key, label]) => (
+                      <label key={key} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={globalSettings.allAssays[key] || false}
+                          onChange={(e) => setGlobalSettings(prev => ({
+                            ...prev,
+                            allAssays: { ...prev.allAssays, [key]: e.target.checked }
+                          }))}
+                          className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="text-xs">{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Rush Options */}
@@ -989,6 +1073,25 @@ const Receiving2 = () => {
                   />
                   <span className="text-sm text-gray-700">DPM Early Start</span>
                 </label>
+                {currentState === 'Michigan' && (
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={globalSettings.isRetest}
+                      onChange={(e) => {
+                        const isRetest = e.target.checked;
+                        setGlobalSettings(prev => ({ 
+                          ...prev, 
+                          isRetest,
+                          whitelistedAnalytes: isRetest ? {} : prev.whitelistedAnalytes
+                        }));
+                      }}
+                      className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-700">Michigan Retest</span>
+                    <Info className="w-4 h-4 text-yellow-600" title="Single-analyte testing only" />
+                  </label>
+                )}
               </div>
 
               {/* Deadlines */}

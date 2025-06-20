@@ -130,6 +130,7 @@ See CLAUDE.md for detailed deployment instructions including CORS configuration,
 - [Test Category Management](TEST_CATEGORY_MANAGEMENT.md) - Test category configuration
 - [Receiving Workflow Design Decisions](RECEIVING_WORKFLOW_DESIGN_DECISIONS.md) - Detailed rationale for Receiving3 implementation
 - [DPM Early Start Logic](DPM_EARLY_START_LOGIC.md) - Business logic for DPM Early Start workflow
+- [Michigan Features](MICHIGAN_FEATURES.md) - Michigan-specific features including single-analyte retest whitelisting
 
 ### Deployment Guides
 - [Azure Deployment Guide](AZURE_DEPLOYMENT_GUIDE.md) - Step-by-step Azure deployment

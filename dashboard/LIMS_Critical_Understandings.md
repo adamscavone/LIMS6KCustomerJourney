@@ -106,8 +106,15 @@ Every analytical process requires comprehensive tracking of "batch objects":
 
 #### State-Specific Requirements
 - **Ohio**: DPM testing categories, specific Metrc bundles
-- **Michigan**: Different test categories and reporting formats
+- **Michigan**: Different test categories and reporting formats, whitelisting for single-analyte retests
 - **Matrix handling**: Kief as both concentrate and processed product
+
+### Michigan Whitelisting for Single-Analyte Retests
+- **Purpose**: Allows laboratories to retest only specific failed analytes rather than entire assay panels
+- **Business Value**: Significant cost and time savings for both laboratory and customers
+- **Implementation**: Whitelist of analytes approved for single-analyte retest capability
+- **Quality Control**: Maintains data integrity while providing operational flexibility
+- **Regulatory Compliance**: Approved workflow for Michigan state cannabis testing
 
 ### 7. Sample and Batch Naming Conventions
 

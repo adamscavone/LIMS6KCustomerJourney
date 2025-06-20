@@ -515,6 +515,7 @@ npm run build            # Create production version
 - **Invisible Table Structure:** Professional alignment without content shifting
 - **Action-Oriented Guidance:** Specific labels telling users what work is needed
 - **Hierarchical Batch Management:** Real instrument and batch organization visibility
+- **State-Specific Features:** Michigan whitelisting for single-analyte retests
 
 ### Core Workflow Principle: Customer-First with Phase-Based Action Guidance
 **The central innovation:** Customer → Order → Sample organization combined with phase-based workflow management and users checking out samples for qualified work, ensuring:

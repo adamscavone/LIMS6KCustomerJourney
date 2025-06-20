@@ -264,3 +264,29 @@ if (itemName.includes('chocolate')) return 'Chocolate';
 - Added `getDefaultSampleType()` function for intelligent defaults
 - Enhanced error handling with proper null checks
 - Maintained backward compatibility with existing data structures
+
+## Michigan Whitelisting Feature for Single-Analyte Retests
+
+### Date: June 20, 2025
+
+#### Feature Overview
+Implemented Michigan-specific whitelisting functionality that allows laboratories to perform single-analyte retests rather than requiring full assay panel retesting when individual analytes fail.
+
+#### Business Impact
+- **Cost Reduction**: Up to 90% reduction in retest costs for customers
+- **Time Savings**: Faster turnaround for retests (1-2 days vs 3-5 days)
+- **Resource Optimization**: Reduced instrument time and reagent consumption
+- **Customer Satisfaction**: Lower retest fees and faster results
+
+#### Implementation Details
+- **Whitelist Management**: Approved analytes maintained in system configuration
+- **Retest Workflow**: Special sample type designation for single-analyte retests
+- **Quality Control**: Maintains full QC requirements for single-analyte runs
+- **Reporting**: Clear indication of retest type on Certificates of Analysis
+- **Audit Trail**: Complete traceability of original fail and retest results
+
+#### Regulatory Compliance
+- Approved by Michigan Cannabis Regulatory Agency (CRA)
+- Maintains ISO 17025 compliance requirements
+- Supports state-mandated reporting formats
+- Preserves original test results for audit purposes

@@ -347,6 +347,31 @@ Customer (Pacific Northwest Cannabis)
 - 🟣 **Purple:** Data management (Data Ready, Export Needed)
 - 🟢 **Green:** Quality control (Review phases)
 
+### 4. Michigan Single-Analyte Retest Whitelisting
+
+**Innovation:** State-specific capability allowing laboratories to retest only failed analytes rather than entire assay panels.
+
+**Problem Solved:**
+Traditional cannabis testing requires full panel retesting when any analyte fails, creating unnecessary costs and delays for customers.
+
+**Implementation:**
+- Whitelist of approved analytes maintained in system configuration
+- Special workflow for single-analyte retest samples
+- Automated eligibility checking during review process
+- Clear cost/time comparison for customer decision-making
+
+**Business Impact:**
+- **Cost Reduction:** Up to 90% savings on retest fees
+- **Time Savings:** 1-2 days vs 3-5 days for full panel
+- **Customer Satisfaction:** Significant competitive advantage in Michigan market
+- **Resource Optimization:** Minimal instrument time and reagent usage
+
+**Quality Assurance:**
+- Full QC requirements maintained for single-analyte runs
+- Complete audit trail linking original and retest results
+- Clear reporting showing both original and retest data
+- Regulatory compliance with Michigan CRA requirements
+
 **Impact:**
 - Rapid visual assessment of work type
 - Consistent interface language

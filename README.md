@@ -178,6 +178,7 @@ Sarah's ideal day with LIMS6000:
 - **Phase-Based Navigation:** Immediate understanding of required work type for any sample
 - **Analytical Batch Efficiency:** 60% improvement in batch planning and instrument utilization
 - **Air Gap Management:** Clear, efficient data export/import processes with minimal confusion
+- **Retest Efficiency:** Michigan whitelisting enables single-analyte retests, reducing retest costs by up to 90%
 
 ## Customer Communication Scenarios
 

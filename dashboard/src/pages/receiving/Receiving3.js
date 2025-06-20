@@ -47,9 +47,15 @@ import {
   getAssayDisplayName,
   TEST_CATEGORY_DEFAULTS
 } from '../../utils/assayDeadlines';
+import { 
+  ANALYTE_DEFINITIONS,
+  getAnalytesForAssay,
+  hasIndividualAnalytes
+} from '../../utils/analyteDefinitions';
 
 const Receiving3 = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [currentState] = useState('Michigan'); // For demo purposes
   const [selectedManifest, setSelectedManifest] = useState(null);
   const [manifests, setManifests] = useState([]);
   const [formData, setFormData] = useState({
@@ -205,7 +211,9 @@ const Receiving3 = () => {
         microDue: getSuggestedMicroDeadline(manifest.createdDate, assays, isRushMicro),
         chemistryDue: getSuggestedChemistryDeadline(manifest.createdDate, assays, isRushChem),
         groupedDeadlines: groupedDeadlines,
-        assayDeadlines: assayDeadlines
+        assayDeadlines: assayDeadlines,
+        isRetest: false,
+        whitelistedAnalytes: {}
       };
     });
     setFormData(prev => ({ ...prev, samples: sampleData }));
@@ -653,9 +661,18 @@ const Receiving3 = () => {
                 ];
 
                 return (
-                  <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
+                  <div key={idx} className={`bg-white p-4 rounded-lg border ${
+                    sampleData.isRetest ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200'
+                  }`}>
                     <div className="mb-3">
-                      <h4 className="font-medium">{sample.itemName}</h4>
+                      <h4 className="font-medium flex items-center">
+                        {sample.itemName}
+                        {sampleData.isRetest && (
+                          <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-yellow-200 text-yellow-800 rounded">
+                            RETEST
+                          </span>
+                        )}
+                      </h4>
                       <div className="text-sm text-gray-600">
                         <span className="font-mono">...{sample.metrcTag.slice(-5)}</span>
                         <span className="mx-2">•</span>
@@ -696,8 +713,117 @@ const Receiving3 = () => {
                           />
                           <span>DPM Early Start</span>
                         </label>
+                        {currentState === 'Michigan' && (
+                          <label className="flex items-center space-x-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={sampleData.isRetest || false}
+                              onChange={(e) => {
+                                const isRetest = e.target.checked;
+                                setFormData(prev => {
+                                  const updatedSample = { ...prev.samples[idx] };
+                                  updatedSample.isRetest = isRetest;
+                                  if (isRetest) {
+                                    updatedSample.whitelistedAnalytes = {};
+                                    Object.entries(updatedSample.assays || {}).forEach(([assayKey, isSelected]) => {
+                                      if (isSelected) {
+                                        updatedSample.whitelistedAnalytes[assayKey] = [];
+                                      }
+                                    });
+                                  } else {
+                                    updatedSample.whitelistedAnalytes = {};
+                                  }
+                                  return {
+                                    ...prev,
+                                    samples: {
+                                      ...prev.samples,
+                                      [idx]: updatedSample
+                                    }
+                                  };
+                                });
+                              }}
+                              className="h-3 w-3 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                            />
+                            <span>Michigan Retest</span>
+                            <Info className="w-3 h-3 text-yellow-600" title="Single-analyte testing only" />
+                          </label>
+                        )}
                       </div>
                     </div>
+
+                    {/* Michigan Retest Analyte Selection */}
+                    {currentState === 'Michigan' && sampleData.isRetest && (
+                      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                        <h5 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+                          <AlertCircle className="w-4 h-4 text-yellow-600 mr-2" />
+                          Select Specific Analytes for Retest
+                        </h5>
+                        <div className="space-y-3">
+                          {Object.entries(sampleData.assays || {}).filter(([_, isSelected]) => isSelected).map(([assayKey]) => {
+                            const analytes = getAnalytesForAssay(assayKey);
+                            const whitelisted = sampleData.whitelistedAnalytes?.[assayKey] || [];
+                            
+                            if (analytes.length === 0) return null;
+                            
+                            return (
+                              <div key={assayKey} className="border border-gray-200 rounded p-2 bg-white">
+                                <h6 className="text-xs font-medium text-gray-700 mb-2">
+                                  {getAssayDisplayName(assayKey)}
+                                  {whitelisted.length > 0 && (
+                                    <span className="ml-2 text-yellow-600">
+                                      ({whitelisted.length} selected)
+                                    </span>
+                                  )}
+                                </h6>
+                                <div className="grid grid-cols-4 gap-2">
+                                  {analytes.map(analyte => (
+                                    <label 
+                                      key={analyte.key} 
+                                      className={`flex items-center space-x-1 p-1 rounded text-xs cursor-pointer ${
+                                        whitelisted.includes(analyte.key) ? 'bg-yellow-100 border border-yellow-300' : 'hover:bg-gray-50 border border-gray-200'
+                                      }`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={whitelisted.includes(analyte.key)}
+                                        onChange={(e) => {
+                                          setFormData(prev => {
+                                            const updatedSample = { ...prev.samples[idx] };
+                                            if (!updatedSample.whitelistedAnalytes[assayKey]) {
+                                              updatedSample.whitelistedAnalytes[assayKey] = [];
+                                            }
+                                            
+                                            if (e.target.checked) {
+                                              if (!updatedSample.whitelistedAnalytes[assayKey].includes(analyte.key)) {
+                                                updatedSample.whitelistedAnalytes[assayKey].push(analyte.key);
+                                              }
+                                            } else {
+                                              updatedSample.whitelistedAnalytes[assayKey] = updatedSample.whitelistedAnalytes[assayKey].filter(a => a !== analyte.key);
+                                            }
+                                            
+                                            return {
+                                              ...prev,
+                                              samples: {
+                                                ...prev.samples,
+                                                [idx]: updatedSample
+                                              }
+                                            };
+                                          });
+                                        }}
+                                        className="h-3 w-3 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                                      />
+                                      <span title={analyte.fullName}>
+                                        {analyte.name}
+                                      </span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Assay Deadline Table */}
                     <div className="border rounded overflow-hidden">

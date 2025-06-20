@@ -39,6 +39,11 @@ import {
   getAssayDisplayName,
   TEST_CATEGORY_DEFAULTS
 } from '../../utils/assayDeadlines';
+import { 
+  ANALYTE_DEFINITIONS,
+  getAnalytesForAssay,
+  hasIndividualAnalytes
+} from '../../utils/analyteDefinitions';
 
 const Receiving1 = () => {
   const location = useLocation();
@@ -49,6 +54,7 @@ const Receiving1 = () => {
   const tabFromUrl = searchParams.get('tab') || 'pending';
   
   const [selectedState, setSelectedState] = useState('ohio');
+  const [currentState] = useState('Michigan'); // For demo purposes
   const [manifests, setManifests] = useState([]);
   const [receivedManifests, setReceivedManifests] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -1112,6 +1118,8 @@ const Receiving1 = () => {
             waterActivity: ''
           },
           retest: false,
+          isRetest: false,
+          whitelistedAnalytes: {},
           shippedQty: sample.grossWeight || '',
           shippedQtyUnit: 'g',
           srcPkgWgt: '',
@@ -1160,19 +1168,53 @@ const Receiving1 = () => {
   };
   
   const handleSampleDataChange = (manifestId, sampleIndex, field, value) => {
-    setManifestData(prev => ({
-      ...prev,
-      [manifestId]: {
-        ...prev[manifestId],
-        samples: {
-          ...prev[manifestId].samples,
-          [sampleIndex]: {
-            ...prev[manifestId].samples[sampleIndex],
-            [field]: value
+    const manifest = manifests.find(m => m.manifestId === manifestId);
+    
+    setManifestData(prev => {
+      const updated = { ...prev };
+      const sampleData = updated[manifestId]?.samples?.[sampleIndex];
+      if (!sampleData) return prev;
+      
+      // Handle retest toggle
+      if (field === 'isRetest') {
+        if (value) {
+          // Initialize whitelisted analytes for selected assays
+          sampleData.whitelistedAnalytes = {};
+          Object.entries(sampleData.assays || {}).forEach(([assayKey, isSelected]) => {
+            if (isSelected && sampleData.assayDeadlines?.[assayKey]) {
+              sampleData.whitelistedAnalytes[assayKey] = [];
+            }
+          });
+        } else {
+          // Clear whitelisted analytes when disabling retest
+          sampleData.whitelistedAnalytes = {};
+        }
+        sampleData[field] = value;
+      }
+      // Handle individual analyte selection for retests
+      else if (field.startsWith('analyte_')) {
+        const [, assayKey, analyteKey] = field.split('_');
+        if (!sampleData.whitelistedAnalytes[assayKey]) {
+          sampleData.whitelistedAnalytes[assayKey] = [];
+        }
+        
+        if (value) {
+          // Add analyte to whitelist
+          if (!sampleData.whitelistedAnalytes[assayKey].includes(analyteKey)) {
+            sampleData.whitelistedAnalytes[assayKey].push(analyteKey);
           }
+        } else {
+          // Remove analyte from whitelist
+          sampleData.whitelistedAnalytes[assayKey] = sampleData.whitelistedAnalytes[assayKey].filter(a => a !== analyteKey);
         }
       }
-    }));
+      // Regular field update
+      else {
+        sampleData[field] = value;
+      }
+      
+      return updated;
+    });
   };
   
   const getRequiredAssays = (testCategory) => {
@@ -1863,7 +1905,7 @@ const Receiving1 = () => {
                             
                             return (
                               <React.Fragment key={idx}>
-                                <tr className="hover:bg-gray-50 text-sm">
+                                <tr className={`hover:bg-gray-50 text-sm ${sampleData.isRetest ? 'bg-yellow-50' : ''}`}>
                                   <td className="py-2 px-2">
                                     <button
                                       onClick={() => toggleSampleExpansion(manifest.manifestId, idx)}
@@ -1881,6 +1923,7 @@ const Receiving1 = () => {
                                       {sampleData.isRush && <Zap className="w-3 h-3 text-red-600" title="Rush - Due earlier than standard turnaround" />}
                                       {sampleData.dpmEarlyStart && <span className="text-purple-600 text-xs font-bold">DPM</span>}
                                       {sampleData.retest && <RefreshCw className="w-3 h-3 text-orange-600" />}
+                                      {sampleData.isRetest && <span className="px-1.5 py-0.5 text-xs font-medium bg-yellow-200 text-yellow-800 rounded">RETEST</span>}
                                     </div>
                                   </td>
                                   <td className="py-2 px-2">
@@ -2061,6 +2104,20 @@ const Receiving1 = () => {
                                             </div>
                                           </div>
                                           <div className="flex items-center space-x-4">
+                                            {currentState === 'Michigan' && (
+                                              <label className="flex items-center">
+                                                <input
+                                                  type="checkbox"
+                                                  checked={sampleData.isRetest || false}
+                                                  onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'isRetest', e.target.checked)}
+                                                  className="mr-2 h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                                                />
+                                                <span className="text-sm">Michigan Retest</span>
+                                                {sampleData.isRetest && (
+                                                  <Info className="w-3 h-3 text-yellow-600 ml-2" title="Single-analyte testing only" />
+                                                )}
+                                              </label>
+                                            )}
                                             <label className="flex items-center">
                                               <input
                                                 type="checkbox"
@@ -2235,6 +2292,65 @@ const Receiving1 = () => {
                                           </table>
                                         </div>
                                       </div>
+
+                                      {/* Michigan Retest Analyte Selection */}
+                                      {currentState === 'Michigan' && sampleData.isRetest && (
+                                        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                                            <FlaskConical className="w-4 h-4 text-yellow-600 mr-2" />
+                                            Select Specific Analytes for Retest
+                                            <span className="ml-2 text-xs text-yellow-700 font-normal">
+                                              Only selected analytes will be tested
+                                            </span>
+                                          </h4>
+                                          <div className="space-y-4">
+                                            {Object.entries(sampleData.assays || {}).filter(([_, isSelected]) => isSelected).map(([assayKey]) => {
+                                              const analytes = getAnalytesForAssay(assayKey);
+                                              const whitelisted = sampleData.whitelistedAnalytes?.[assayKey] || [];
+                                              
+                                              if (analytes.length === 0) return null;
+                                              
+                                              return (
+                                                <div key={assayKey} className="border border-gray-200 rounded-lg p-3 bg-white">
+                                                  <h5 className="text-sm font-medium text-gray-700 mb-2">
+                                                    {getAssayDisplayName(assayKey)}
+                                                    {whitelisted.length > 0 && (
+                                                      <span className="ml-2 text-xs text-yellow-600">
+                                                        ({whitelisted.length} selected)
+                                                      </span>
+                                                    )}
+                                                  </h5>
+                                                  <div className="grid grid-cols-4 gap-2">
+                                                    {analytes.map(analyte => (
+                                                      <label 
+                                                        key={analyte.key} 
+                                                        className={`flex items-center space-x-2 p-2 rounded cursor-pointer ${
+                                                          whitelisted.includes(analyte.key) ? 'bg-yellow-100 border border-yellow-300' : 'hover:bg-gray-50 border border-gray-200'
+                                                        }`}
+                                                      >
+                                                        <input
+                                                          type="checkbox"
+                                                          checked={whitelisted.includes(analyte.key)}
+                                                          onChange={(e) => handleSampleDataChange(
+                                                            manifest.manifestId, 
+                                                            idx, 
+                                                            `analyte_${assayKey}_${analyte.key}`, 
+                                                            e.target.checked
+                                                          )}
+                                                          className="h-3 w-3 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                                                        />
+                                                        <span className="text-xs" title={analyte.fullName}>
+                                                          {analyte.name}
+                                                        </span>
+                                                      </label>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      )}
 
                                       {/* Deadline Summary */}
                                       {sampleData.groupedDeadlines?.hasVariability && (
