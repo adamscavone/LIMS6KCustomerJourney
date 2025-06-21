@@ -10,7 +10,8 @@
       "Bash(sed:*)",
       "Bash(cp:*)",
       "Bash(npx eslint:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npx react-scripts build:*)"
     ],
     "deny": []
   }
