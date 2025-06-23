@@ -34,7 +34,7 @@ root.render(
           <Route path="/receiving1" element={<Receiving1 />} />
           <Route path="/receiving2" element={<Receiving2 />} />
           <Route path="/receiving3" element={<Receiving3 />} />
-          <Route path="/receiving4" element={<Receiving4 />} />
+          <Route path="/metrc-receiving" element={<Receiving4 />} />
           <Route path="/receiving/process/:manifestId" element={<SampleProcessing />} />
         </Routes>
       </Layout>

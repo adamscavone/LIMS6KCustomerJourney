@@ -74,7 +74,7 @@ const TopNavigation = () => {
       label: 'Receiving',
       icon: Package,
       items: [
-        { label: 'Metrc - Pending', path: '/receiving4' },
+        { label: 'Metrc - Pending', path: '/metrc-receiving' },
         { label: 'Non-Metrc Receiving', path: '#' }
       ]
     },
