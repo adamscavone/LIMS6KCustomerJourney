@@ -854,7 +854,6 @@ const Receiving1 = () => {
             grossWeight: 14.2,
             itemCategory: 'Buds',
             testCategory: 'Raw Plant Material',
-            requiresDPMEarlyStart: true,
             sampleNeededBy: new Date(Date.now() + 24 * 60 * 60000)
           },
           {
@@ -866,7 +865,6 @@ const Receiving1 = () => {
             grossWeight: 16.8,
             itemCategory: 'Buds',
             testCategory: 'Raw Plant Material',
-            requiresDPMEarlyStart: true,
             sampleNeededBy: new Date(Date.now() + 24 * 60 * 60000)
           },
           {
@@ -953,7 +951,6 @@ const Receiving1 = () => {
       priorityBreakdown: { rush: 0, normal: 0 },
       statusBreakdown: { in_transit: 0, scheduled: 0, at_pickup: 0, returning: 0 },
       upcomingArrivals: [],
-      dpmEarlyStartCount: 0,
       retestCount: 0,
       avgSamplesPerManifest: 0,
       clientVolumes: {},
@@ -1007,11 +1004,6 @@ const Receiving1 = () => {
         // Test category breakdown
         const category = sample.testCategory || 'Unknown';
         stats.testCategoryBreakdown[category] = (stats.testCategoryBreakdown[category] || 0) + 1;
-        
-        // Count DPM early start
-        if (sample.requiresDPMEarlyStart || manifestData[manifest.manifestId]?.samples[manifest.samples.indexOf(sample)]?.dpmEarlyStart) {
-          stats.dpmEarlyStartCount++;
-        }
         
         // Count retests
         if (manifestData[manifest.manifestId]?.samples[manifest.samples.indexOf(sample)]?.retest) {
@@ -1131,7 +1123,6 @@ const Receiving1 = () => {
           potencyTargets: [
             { analyte: 'Total THC', target: '', rangeLow: '', rangeHigh: '' }
           ],
-          dpmEarlyStart: sample.requiresDPMEarlyStart || false,
           isRush: false
         };
         
@@ -1531,7 +1522,6 @@ const Receiving1 = () => {
         
         // Calculate counts
         const rushCount = samplesWithData.filter(s => s.isRush).length;
-        const dpmEarlyStartCount = samplesWithData.filter(s => s.isDpmEarlyStart).length;
         const terpenesCount = samplesWithData.filter(s => s.selectedAssays?.terpenes).length;
         
         return (
@@ -1600,13 +1590,6 @@ const Receiving1 = () => {
                         </span>
                       </div>
                     )}
-                    {dpmEarlyStartCount > 0 && (
-                      <div className="flex items-center">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                          {dpmEarlyStartCount} DPM Early Start
-                        </span>
-                      </div>
-                    )}
                     {terpenesCount > 0 && (
                       <div className="flex items-center">
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
@@ -1637,11 +1620,6 @@ const Receiving1 = () => {
                             {sample.isRush && (
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                                 Rush
-                              </span>
-                            )}
-                            {sample.isDpmEarlyStart && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                                DPM
                               </span>
                             )}
                           </div>
@@ -1759,165 +1737,10 @@ const Receiving1 = () => {
           </div>
         </div>
 
-        {/* Summary Statistics */}
-        {dashboardStats && (
-            <div className="grid grid-cols-6 gap-3">
-              {/* Total Manifests */}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <FileText className="w-4 h-4 text-gray-500" />
-                  <span className="text-2xl font-bold text-gray-900">{dashboardStats.totalManifests}</span>
-                </div>
-                <p className="text-xs text-gray-600">Total Manifests</p>
-                <p className="text-xs text-blue-600 font-medium">{dashboardStats.pendingReceipt} pending receipt</p>
-              </div>
-              
-              {/* Total Inbound Metrc Samples */}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <Package className="w-4 h-4 text-gray-500" />
-                  <span className="text-2xl font-bold text-gray-900">{dashboardStats.totalSamples}</span>
-                </div>
-                <p className="text-xs text-gray-600">Total Inbound Metrc Samples</p>
-                <p className="text-xs text-gray-500">~{dashboardStats.avgSamplesPerManifest} per manifest</p>
-              </div>
-              
-              {/* In Transit */}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <Truck className="w-4 h-4 text-blue-500" />
-                  <span className="text-2xl font-bold text-blue-600">{dashboardStats.statusBreakdown.in_transit}</span>
-                </div>
-                <p className="text-xs text-gray-600">In Transit</p>
-                <p className="text-xs text-gray-500">{dashboardStats.statusBreakdown.scheduled} scheduled</p>
-              </div>
-              
-              {/* Retests */}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <RefreshCw className="w-4 h-4 text-orange-500" />
-                  <span className="text-2xl font-bold text-orange-600">{dashboardStats.retestCount}</span>
-                </div>
-                <p className="text-xs text-gray-600">Retests</p>
-                <p className="text-xs text-gray-500">Across all manifests</p>
-              </div>
-            </div>
-          )}
         </div>
 
 
 
-        {/* Arrival Timeline, Test Categories, and DPM Early Start */}
-        {dashboardStats && (
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            {/* Arrival Timeline */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                <Timer className="w-4 h-4 mr-2" />
-                Arrival Timeline
-              </h3>
-              {dashboardStats.upcomingArrivals.length > 0 ? (
-                <div className="space-y-1 max-h-32 overflow-y-auto">
-                  {dashboardStats.upcomingArrivals.slice(0, 6).map((arrival, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-0">
-                      <span className="text-gray-700 truncate max-w-[140px]" title={arrival.client}>
-                        {arrival.client}
-                      </span>
-                      <span className="font-medium text-gray-900">
-                        {formatLocalTime(arrival.eta)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-gray-500">No upcoming arrivals</p>
-              )}
-            </div>
-            
-            {/* Test Category Breakdown */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                <FlaskConical className="w-4 h-4 mr-2" />
-                Test Categories
-              </h3>
-              <div className="space-y-1 max-h-32 overflow-y-auto">
-                {Object.entries(dashboardStats.testCategoryBreakdown)
-                  .sort((a, b) => b[1] - a[1])
-                  .slice(0, 6)
-                  .map(([category, count]) => (
-                    <div key={category} className="flex items-center justify-between text-xs">
-                      <span className="text-gray-700 truncate max-w-[140px]" title={category}>
-                        {category.replace('Dispensary Plant Material', 'DPM')
-                          .replace('Non-Solvent Product (Not Previously Tested)', 'NSPNPT')
-                          .replace('Solvent Based Product (Not Previously Tested)', 'SBPNPT')
-                          .replace('Voluntary Testing - Terpenes', 'Terpenes')}
-                      </span>
-                      <span className="font-medium text-gray-900">{count}</span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-            {/* DPM Early Start Samples */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                <Activity className="w-4 h-4 mr-2 text-purple-600" />
-                DPM Early Start
-              </h3>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {(() => {
-                  const dpmSamples = [];
-                  manifests.forEach(manifest => {
-                    manifest.samples.forEach((sample, idx) => {
-                      const sampleData = manifestData[manifest.manifestId]?.samples[idx];
-                      if (sample.requiresDPMEarlyStart || sampleData?.dpmEarlyStart) {
-                        dpmSamples.push({
-                          manifestId: manifest.manifestId,
-                          client: manifest.customerFacility,
-                          sampleName: sample.itemName,
-                          strain: sample.strain,
-                          metrcTag: sample.metrcTag,
-                          status: manifest.status,
-                          eta: manifest.eta
-                        });
-                      }
-                    });
-                  });
-                  
-                  if (dpmSamples.length === 0) {
-                    return <p className="text-xs text-gray-500">No DPM Early Start samples currently</p>;
-                  }
-                  
-                  return dpmSamples.slice(0, 4).map((dpm, idx) => (
-                    <div key={idx} className="border-l-4 border-purple-500 pl-2 py-1 bg-purple-50 rounded-r">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-900 truncate" title={dpm.client}>
-                            {dpm.client}
-                          </p>
-                          <p className="text-xs text-gray-600 truncate" title={dpm.sampleName}>
-                            {dpm.strain} • {dpm.sampleName.substring(0, 20)}...
-                          </p>
-                        </div>
-                        <div className="text-right ml-2">
-                          {dpm.status === 'in_transit' && (
-                            <p className="text-xs font-medium text-purple-600">
-                              {(() => {
-                                const minutesUntil = Math.floor((new Date(dpm.eta) - currentTime) / 60000);
-                                if (minutesUntil < 0) return 'Now';
-                                if (minutesUntil < 60) return `${minutesUntil}m`;
-                                return `${Math.floor(minutesUntil / 60)}h`;
-                              })()}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ));
-                })()}
-              </div>
-            </div>
-          </div>
-        )}
         
 
         {/* Tab Content */}
@@ -2069,7 +1892,6 @@ const Receiving1 = () => {
                                     <div className="flex items-center space-x-1">
                                       <span className="text-gray-600">{idx + 1}</span>
                                       {sampleData.isRush && <Zap className="w-3 h-3 text-red-600" title="Rush - Due earlier than standard turnaround" />}
-                                      {sampleData.dpmEarlyStart && <span className="text-purple-600 text-xs font-bold">DPM</span>}
                                       {sampleData.retest && <RefreshCw className="w-3 h-3 text-orange-600" />}
                                       {sampleData.isRetest && <span className="px-1.5 py-0.5 text-xs font-medium bg-yellow-200 text-yellow-800 rounded">RETEST</span>}
                                     </div>
@@ -2242,14 +2064,6 @@ const Receiving1 = () => {
                                         <div className="flex-1">
                                           <div className="flex items-center mb-1">
                                             <h4 className="text-sm font-medium text-gray-700">Additional Options</h4>
-                                            <div className="relative group ml-1">
-                                              <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                                              <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
-                                                <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 w-64">
-                                                  DPM Early Start allows microbial testing to begin immediately for Dispensary Plant Material samples
-                                                </div>
-                                              </div>
-                                            </div>
                                           </div>
                                           <div className="flex items-center space-x-4">
                                             {currentState === 'Michigan' && (
@@ -2274,15 +2088,6 @@ const Receiving1 = () => {
                                                 className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                               />
                                               <span className="text-sm">Retest</span>
-                                            </label>
-                                            <label className="flex items-center">
-                                              <input
-                                                type="checkbox"
-                                                checked={sampleData.dpmEarlyStart || false}
-                                                onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'dpmEarlyStart', e.target.checked)}
-                                                className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                                              />
-                                              <span className="text-sm">DPM Early Start</span>
                                             </label>
                                             <label className="flex items-center">
                                               <input
@@ -2744,24 +2549,6 @@ const Receiving1 = () => {
                         </button>
                         <button
                           onClick={() => {
-                            // Apply DPM Early Start to all DPM samples
-                            const updatedData = { ...manifestData[manifest.manifestId] };
-                            Object.keys(updatedData.samples || {}).forEach(idx => {
-                              if (updatedData.samples[idx].testCategory?.includes('Dispensary Plant Material')) {
-                                updatedData.samples[idx].dpmEarlyStart = true;
-                              }
-                            });
-                            setManifestData(prev => ({
-                              ...prev,
-                              [manifest.manifestId]: updatedData
-                            }));
-                          }}
-                          className="px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
-                        >
-                          DPM Early Start All
-                        </button>
-                        <button
-                          onClick={() => {
                             // Apply Rush to all samples
                             const updatedData = { ...manifestData[manifest.manifestId] };
                             Object.keys(updatedData.samples || {}).forEach(idx => {
@@ -2965,8 +2752,7 @@ const Receiving1 = () => {
                                                     <div className="flex items-center space-x-1">
                                                       <span className="text-gray-600">{idx + 1}</span>
                                                       {sampleData.isRush && <Zap className="w-3 h-3 text-red-600" title="Rush - Due earlier than standard turnaround" />}
-                                                      {sampleData.dpmEarlyStart && <span className="text-purple-600 text-xs font-bold">DPM</span>}
-                                                      {sampleData.retest && <RefreshCw className="w-3 h-3 text-orange-600" />}
+                                                                      {sampleData.retest && <RefreshCw className="w-3 h-3 text-orange-600" />}
                                                     </div>
                                                   </td>
                                                   <td className="py-2 px-2">
@@ -3107,14 +2893,6 @@ const Receiving1 = () => {
                                                         <div className="flex-1">
                                                           <div className="flex items-center mb-1">
                                                             <h4 className="text-sm font-medium text-gray-700">Additional Options</h4>
-                                                            <div className="relative group ml-1">
-                                                              <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                                                              <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
-                                                                <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 w-64">
-                                                                  DPM Early Start allows microbial testing to begin immediately for Dispensary Plant Material samples
-                                                                </div>
-                                                              </div>
-                                                            </div>
                                                           </div>
                                                           <div className="flex items-center space-x-4">
                                                             <label className="flex items-center">
@@ -3125,15 +2903,6 @@ const Receiving1 = () => {
                                                                 className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                                               />
                                                               <span className="text-sm">Retest</span>
-                                                            </label>
-                                                            <label className="flex items-center">
-                                                              <input
-                                                                type="checkbox"
-                                                                checked={sampleData.dpmEarlyStart || false}
-                                                                onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'dpmEarlyStart', e.target.checked)}
-                                                                className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                                                              />
-                                                              <span className="text-sm">DPM Early Start</span>
                                                             </label>
                                                             <label className="flex items-center">
                                                               <input
