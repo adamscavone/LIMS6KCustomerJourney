@@ -1585,7 +1585,7 @@ const Receiving1 = () => {
                       <p className="font-medium text-gray-900">{manifestDataForReview.ccOrderId || 'Not assigned'}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Total Samples</p>
+                      <p className="text-sm text-gray-600">Total Inbound Metrc Samples</p>
                       <p className="font-medium text-gray-900">{manifest.samples.length}</p>
                     </div>
                   </div>
@@ -1772,34 +1772,14 @@ const Receiving1 = () => {
                 <p className="text-xs text-blue-600 font-medium">{dashboardStats.pendingReceipt} pending receipt</p>
               </div>
               
-              {/* Total Samples */}
+              {/* Total Inbound Metrc Samples */}
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-1">
                   <Package className="w-4 h-4 text-gray-500" />
                   <span className="text-2xl font-bold text-gray-900">{dashboardStats.totalSamples}</span>
                 </div>
-                <p className="text-xs text-gray-600">Total Samples</p>
+                <p className="text-xs text-gray-600">Total Inbound Metrc Samples</p>
                 <p className="text-xs text-gray-500">~{dashboardStats.avgSamplesPerManifest} per manifest</p>
-              </div>
-              
-              {/* Active Clients */}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <Users className="w-4 h-4 text-gray-500" />
-                  <span className="text-2xl font-bold text-gray-900">{dashboardStats.totalClients}</span>
-                </div>
-                <p className="text-xs text-gray-600">Active Clients</p>
-                <p className="text-xs text-gray-500">{dashboardStats.receivedToday} received today</p>
-              </div>
-              
-              {/* Rush Orders */}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <Zap className="w-4 h-4 text-red-500" />
-                  <span className="text-2xl font-bold text-red-600">{dashboardStats.priorityBreakdown.rush}</span>
-                </div>
-                <p className="text-xs text-gray-600">Rush Orders</p>
-                <p className="text-xs text-gray-500">{dashboardStats.dpmEarlyStartCount} DPM early start</p>
               </div>
               
               {/* In Transit */}
@@ -2280,7 +2260,7 @@ const Receiving1 = () => {
                                                   onChange={(e) => handleSampleDataChange(manifest.manifestId, idx, 'isRetest', e.target.checked)}
                                                   className="mr-2 h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
                                                 />
-                                                <span className="text-sm">Michigan Retest</span>
+                                                <span className="text-sm">Limited Analytes</span>
                                                 {sampleData.isRetest && (
                                                   <Info className="w-3 h-3 text-yellow-600 ml-2" title="Single-analyte testing only" />
                                                 )}
@@ -2461,12 +2441,12 @@ const Receiving1 = () => {
                                         </div>
                                       </div>
 
-                                      {/* Michigan Retest Analyte Selection */}
+                                      {/* Limited Analytes Selection */}
                                       {currentState === 'Michigan' && sampleData.isRetest && (
                                         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                           <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
                                             <FlaskConical className="w-4 h-4 text-yellow-600 mr-2" />
-                                            Select Specific Analytes for Retest
+                                            Select Specific Analytes for Limited Testing
                                             <span className="ml-2 text-xs text-yellow-700 font-normal">
                                               Only selected analytes will be tested
                                             </span>
