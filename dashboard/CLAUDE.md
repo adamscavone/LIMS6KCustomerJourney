@@ -338,6 +338,7 @@ The LIMS tracks critical "batch objects" for quality control and traceability:
 6. **Air Gap**: Acknowledge and handle the disconnect between LIMS and instruments
 7. **Data Integrity**: Never allow null values in data records - all empty fields must be filled with "N/A"
 8. **User Convenience**: Provide "Fill Empty with N/A" buttons where appropriate to expedite data entry
+9. **Receiving Tab Behavior**: After manifest submission, UI must remain on "Pending Receipt" tab (NOT switch to "Active Manifests"). This is intentional for workflow efficiency - see RECEIVING_WORKFLOW_DESIGN_DECISIONS.md
 
 13. **Laboratory Overview Implementation** (June 2025):
     - **New Landing Page**: Neutral overview showing all samples across all pipelines

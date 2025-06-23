@@ -1440,9 +1440,8 @@ const Receiving1 = () => {
         [manifestId]: false
       }));
       
-      // Switch to active tab to show the received manifest
-      console.log('Switching to active tab');
-      handleTabChange('active');
+      // Stay on the pending tab so user can continue importing manifests
+      console.log('Staying on pending tab for continued manifest import');
     } else {
       console.error('Manifest not found:', manifestId);
     }
@@ -1542,7 +1541,7 @@ const Receiving1 = () => {
                 {/* Header Section */}
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Submit</h2>
-                  <p className="text-gray-600">Step-by-step manifest processing</p>
+                  <p className="text-gray-600">Review and confirm testing requirements for manifest {manifest.manifestId}</p>
                   
                   {/* Workflow Progress Indicator */}
                   <div className="mt-4 flex items-center justify-center space-x-4">

@@ -146,6 +146,18 @@ cannabinoids: { days: 2, hours: 17, minutes: 0, method: 'HPLC' },
 - Deadline granularity matches actual workflow needs
 - Rush options reflect common scenarios (rush all, rush micro only, rush potency only)
 
+### 4. Tab Navigation Behavior (Critical Design Decision)
+**IMPORTANT**: After submitting a manifest, the user interface intentionally remains on the "Pending Receipt" tab rather than switching to "Active Manifests". This is a deliberate UX decision that must be preserved in the enterprise implementation.
+
+**Rationale**:
+- Lab technicians often process multiple manifests in succession
+- Switching tabs after each submission disrupts workflow and requires extra clicks
+- Users can see the submitted count increment in the "Active Manifests" tab indicator
+- This behavior supports efficient batch processing of incoming manifests
+- Reduces cognitive load and navigation overhead during high-volume receiving periods
+
+**Implementation Note**: The `handleReceiveManifest` function in Receiving4.js specifically does NOT call `handleTabChange('active')` after moving the manifest to the received list. This is intentional and should not be "fixed" as a bug.
+
 ## Future Considerations
 
 ### 1. API Integration
