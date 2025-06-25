@@ -4,9 +4,15 @@ import { ChevronDown, ChevronUp, AlertCircle, CheckCircle, Plus, Trash2 } from '
 const NonMetrcReceiving2 = () => {
   const [clientName, setClientName] = useState('');
   const [clientError, setClientError] = useState('');
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState(null);
+  const [sampleIdCounter, setSampleIdCounter] = useState(176243);
   const [samples, setSamples] = useState([
     {
       id: 1,
+      sampleId: '176243',
+      customerReference: '',
       sampleType: '',
       sourceDetails: '',
       ccId: '',
@@ -21,6 +27,15 @@ const NonMetrcReceiving2 = () => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const sampleTypes = ['Environmental', 'Food Ingredient', 'Water', 'Other'];
+  
+  // Mock clients data
+  const mockClients = [
+    { id: 1, name: 'Environmental Solutions Inc.', city: 'Columbus', state: 'OH' },
+    { id: 2, name: 'Green Valley Cultivators', city: 'Cleveland', state: 'OH' },
+    { id: 3, name: 'Buckeye Botanicals', city: 'Cincinnati', state: 'OH' },
+    { id: 4, name: 'Ohio Organic Farms', city: 'Dayton', state: 'OH' },
+    { id: 5, name: 'Environmental Testing Labs', city: 'Toledo', state: 'OH' }
+  ];
   const availableAssays = [
     'Cannabinoids',
     'Terpenes',
@@ -65,8 +80,11 @@ const NonMetrcReceiving2 = () => {
   };
 
   const addSample = () => {
+    const newSampleId = sampleIdCounter + samples.length;
     setSamples([...samples, {
       id: samples.length + 1,
+      sampleId: newSampleId.toString(),
+      customerReference: '',
       sampleType: '',
       sourceDetails: '',
       ccId: '',
@@ -105,8 +123,12 @@ const NonMetrcReceiving2 = () => {
       setTimeout(() => {
         setShowSuccess(false);
         setClientName('');
+        const newStartId = sampleIdCounter + samples.length;
+        setSampleIdCounter(newStartId);
         setSamples([{
           id: 1,
+          sampleId: newStartId.toString(),
+          customerReference: '',
           sampleType: '',
           sourceDetails: '',
           ccId: '',
@@ -165,18 +187,49 @@ const NonMetrcReceiving2 = () => {
 
       <div className="mb-4 bg-white shadow-sm rounded-lg border border-gray-200 p-6">
         <FormField label="Client Name" required error={clientError}>
-          <input
-            type="text"
-            value={clientName}
-            onChange={(e) => {
-              setClientName(e.target.value);
-              if (clientError) setClientError('');
-            }}
-            className={`w-full max-w-md px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-              clientError ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Enter client name for this chain of custody"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={clientName}
+              onChange={(e) => {
+                const value = e.target.value;
+                setClientName(value);
+                setClientSearch(value);
+                setShowClientDropdown(value.length > 0);
+                if (clientError) setClientError('');
+              }}
+              onFocus={() => setShowClientDropdown(clientName.length > 0)}
+              onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
+              className={`w-full max-w-md px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
+                clientError ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Start typing to search clients..."
+            />
+            {showClientDropdown && (
+              <div className="absolute z-10 w-full max-w-md mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                {mockClients
+                  .filter(client => client.name.toLowerCase().includes(clientSearch.toLowerCase()))
+                  .map(client => (
+                    <div
+                      key={client.id}
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setClientName(client.name);
+                        setSelectedClientId(client.id);
+                        setShowClientDropdown(false);
+                      }}
+                    >
+                      <div className="font-medium">{client.name}</div>
+                      <div className="text-sm text-gray-500">{client.city}, {client.state}</div>
+                    </div>
+                  ))
+                }
+                {mockClients.filter(client => client.name.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                  <div className="px-3 py-2 text-sm text-gray-500">No clients found</div>
+                )}
+              </div>
+            )}
+          </div>
         </FormField>
       </div>
 
@@ -185,7 +238,10 @@ const NonMetrcReceiving2 = () => {
           <div key={sample.id} className="bg-white shadow-sm rounded-lg border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-lg font-medium text-gray-900">
-                Sample #{index + 1}
+                Sample {sample.sampleId || `#${index + 1}`}
+                {sample.customerReference && (
+                  <span className="ml-2 text-sm text-gray-600">({sample.customerReference})</span>
+                )}
                 {sample.rush && (
                   <span className="ml-2 px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded">RUSH</span>
                 )}
@@ -210,6 +266,27 @@ const NonMetrcReceiving2 = () => {
             {sample.expanded && (
               <div className="px-6 py-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField label="Customer Sample ID" required={false}>
+                    <input
+                      type="text"
+                      value={sample.sampleId}
+                      onChange={(e) => updateSample(index, 'sampleId', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Auto-generated"
+                      readOnly
+                    />
+                  </FormField>
+
+                  <FormField label="Customer Reference" required={false}>
+                    <input
+                      type="text"
+                      value={sample.customerReference}
+                      onChange={(e) => updateSample(index, 'customerReference', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="e.g., CB104-001 or REVERSE OSMOSIS TABLE #1"
+                    />
+                  </FormField>
+
                   <FormField label="Sample Type" required error={sample.errors.sampleType}>
                     <select
                       value={sample.sampleType}

@@ -144,7 +144,7 @@ const NonMetrc1 = () => {
       sampleDescription: '',
       collectionLocation: '',
       containerType: '',
-      preservationMethod: '',
+      preservationMethod: 'Room Temperature',
       numberOfContainers: 1,
       isRetest: false,
       whitelistedAnalytes: {},
@@ -217,7 +217,18 @@ const NonMetrc1 = () => {
     mycotoxins: ['Aflatoxin B1', 'Aflatoxin B2', 'Aflatoxin G1', 'Aflatoxin G2', 'Ochratoxin A'],
     potency: ['THC', 'THCa', 'CBD', 'CBDa', 'CBG', 'CBGa', 'CBN', 'CBC', 'THCV'],
     terpenes: ['Limonene', 'Myrcene', 'Pinene', 'Linalool', 'Caryophyllene', 'Humulene', 'Terpinolene'],
-    residualSolvents: ['Acetone', 'Acetonitrile', 'Butane', 'Ethanol', 'Ethyl Acetate', 'Heptane', 'Hexane', 'Isopropanol', 'Methanol', 'Pentane', 'Propane', 'Toluene', 'Xylenes']
+    residualSolvents: ['Acetone', 'Acetonitrile', 'Butane', 'Ethanol', 'Ethyl Acetate', 'Heptane', 'Hexane', 'Isopropanol', 'Methanol', 'Pentane', 'Propane', 'Toluene', 'Xylenes'],
+    // Additional microbial testing analytes
+    microbialToSequencing: ['Unknown Organism 1', 'Unknown Organism 2', 'Unknown Organism 3', 'Full Microbiome Profile'],
+    microbialSourceEnvironment: ['Environmental Yeast & Mold', 'Environmental Bacteria', 'Listeria spp.', 'Pseudomonas aeruginosa', 'Staphylococcus aureus'],
+    microbialSettlePlates: ['Airborne Yeast & Mold', 'Airborne Bacteria', 'Particulate Count'],
+    microbialWaterCounts: ['Total Plate Count', 'Total Coliforms', 'E. coli', 'Pseudomonas spp.', 'Heterotrophic Plate Count'],
+    // Minerals and nutrients
+    mineralsSoilWater: ['Calcium', 'Magnesium', 'Potassium', 'Sodium', 'Iron', 'Manganese', 'Zinc', 'Copper', 'Boron', 'Phosphorus', 'Sulfur'],
+    plantTissuePanel: ['Nitrogen', 'Phosphorus', 'Potassium', 'Calcium', 'Magnesium', 'Sulfur', 'Iron', 'Manganese', 'Zinc', 'Copper', 'Boron', 'Molybdenum'],
+    // Other multi-analyte tests
+    homogenateTesting: ['Cannabinoids', 'Terpenes', 'Pesticides', 'Heavy Metals', 'Microbials'],
+    geneticSequencing: ['Strain Identification', 'Gender Determination', 'Pathogen Detection', 'GMO Detection']
   };
 
   useEffect(() => {
@@ -393,7 +404,7 @@ const NonMetrc1 = () => {
         sampleDescription: '',
         collectionLocation: '',
         containerType: '',
-        preservationMethod: '',
+        preservationMethod: 'Room Temperature',
         numberOfContainers: 1,
         isRetest: false,
         whitelistedAnalytes: {},
@@ -469,7 +480,7 @@ const NonMetrc1 = () => {
         sampleDescription: '',
         collectionLocation: '',
         containerType: '',
-        preservationMethod: '',
+        preservationMethod: 'Room Temperature',
         numberOfContainers: 1,
         isRetest: false,
         whitelistedAnalytes: {},
@@ -872,7 +883,7 @@ const NonMetrc1 = () => {
                           <option value="Kief">Kief</option>
                           <option value="Isolate">Isolate</option>
                         </optgroup>
-                        <optgroup label="Edibles">
+                        <optgroup label="Infused Products">
                           <option value="Gummy">Gummy</option>
                           <option value="Brownie">Brownie</option>
                           <option value="Chocolate">Chocolate</option>
@@ -947,11 +958,10 @@ const NonMetrc1 = () => {
                         onChange={(e) => handleSampleChange(sampleIdx, 'preservationMethod', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Select preservation...</option>
+                        <option value="Room Temperature">Room Temperature</option>
                         <option value="None">None</option>
                         <option value="Refrigerated (2-8°C)">Refrigerated (2-8°C)</option>
                         <option value="Frozen (-20°C)">Frozen (-20°C)</option>
-                        <option value="Room Temperature">Room Temperature</option>
                         <option value="Chemical Preservative">Chemical Preservative</option>
                       </select>
                     </div>
@@ -975,17 +985,15 @@ const NonMetrc1 = () => {
                       <label className="block text-sm font-medium text-gray-700">
                         Testing Requirements <span className="text-red-500">*</span>
                       </label>
-                      {hasAssaysWithAnalytes(sample) && (
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={sample.isRetest}
-                            onChange={(e) => handleSampleChange(sampleIdx, 'isRetest', e.target.checked)}
-                            className="mr-2"
-                          />
-                          <span className="text-sm font-medium text-orange-600">Select Individual Analytes</span>
-                        </label>
-                      )}
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={sample.isRetest}
+                          onChange={(e) => handleSampleChange(sampleIdx, 'isRetest', e.target.checked)}
+                          className="mr-2"
+                        />
+                        <span className="text-sm font-medium text-orange-600">Select Individual Analytes</span>
+                      </label>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-md">
                       <div>

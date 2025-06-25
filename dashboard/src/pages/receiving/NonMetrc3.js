@@ -30,7 +30,7 @@ const NonMetrc3 = () => {
       sampleDescription: '',
       collectionLocation: '',
       containerType: '',
-      preservationMethod: '',
+      preservationMethod: 'Room Temperature',
       numberOfContainers: 1,
       isRetest: false,
       whitelistedAnalytes: {},
@@ -127,7 +127,7 @@ const NonMetrc3 = () => {
         sampleDescription: '',
         collectionLocation: '',
         containerType: '',
-        preservationMethod: '',
+        preservationMethod: 'Room Temperature',
         numberOfContainers: 1,
         isRetest: false,
         whitelistedAnalytes: {},
@@ -234,7 +234,7 @@ const NonMetrc3 = () => {
             sampleDescription: '',
             collectionLocation: '',
             containerType: '',
-            preservationMethod: '',
+            preservationMethod: 'Room Temperature',
             numberOfContainers: 1,
             isRetest: false,
             whitelistedAnalytes: {},
@@ -683,11 +683,10 @@ const NonMetrc3 = () => {
                           onChange={(e) => handleSampleChange(sampleIdx, 'preservationMethod', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                         >
-                          <option value="">Select...</option>
+                          <option value="Room Temperature">Room Temperature</option>
                           <option value="None">None</option>
                           <option value="Refrigerated">Refrigerated (2-8°C)</option>
                           <option value="Frozen">Frozen (-20°C)</option>
-                          <option value="Room Temperature">Room Temperature</option>
                         </select>
                       </div>
                     </div>

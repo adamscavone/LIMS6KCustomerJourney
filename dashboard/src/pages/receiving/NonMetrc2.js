@@ -80,7 +80,7 @@ const NonMetrc2 = () => {
       sampleDescription: '',
       collectionLocation: '',
       containerType: '',
-      preservationMethod: '',
+      preservationMethod: 'Room Temperature',
       numberOfContainers: 1,
       isRetest: false,
       whitelistedAnalytes: {},
@@ -260,7 +260,7 @@ const NonMetrc2 = () => {
         sampleDescription: '',
         collectionLocation: '',
         containerType: '',
-        preservationMethod: '',
+        preservationMethod: 'Room Temperature',
         numberOfContainers: 1,
         isRetest: false,
         whitelistedAnalytes: {},
@@ -336,7 +336,7 @@ const NonMetrc2 = () => {
         sampleDescription: '',
         collectionLocation: '',
         containerType: '',
-        preservationMethod: '',
+        preservationMethod: 'Room Temperature',
         numberOfContainers: 1,
         isRetest: false,
         whitelistedAnalytes: {},
@@ -684,7 +684,7 @@ const NonMetrc2 = () => {
                           <option value="Pre-Roll">Pre-Roll</option>
                           <option value="Infused Pre-Roll">Infused Pre-Roll</option>
                         </optgroup>
-                        <optgroup label="Edibles">
+                        <optgroup label="Infused Products">
                           <option value="Gummy">Gummy</option>
                           <option value="Brownie">Brownie</option>
                           <option value="Chocolate">Chocolate</option>
@@ -710,17 +710,15 @@ const NonMetrc2 = () => {
                       <label className="block text-sm font-medium text-gray-700">
                         Testing Requirements <span className="text-red-500">*</span>
                       </label>
-                      {hasAssaysWithAnalytes(sample) && (
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={sample.isRetest}
-                            onChange={(e) => handleSampleChange(sampleIdx, 'isRetest', e.target.checked)}
-                            className="mr-2"
-                          />
-                          <span className="text-sm font-medium text-orange-600">Select Individual Analytes</span>
-                        </label>
-                      )}
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={sample.isRetest}
+                          onChange={(e) => handleSampleChange(sampleIdx, 'isRetest', e.target.checked)}
+                          className="mr-2"
+                        />
+                        <span className="text-sm font-medium text-orange-600">Select Individual Analytes</span>
+                      </label>
                     </div>
                     <div className="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded-md">
                       <div>

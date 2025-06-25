@@ -4,10 +4,16 @@ import { Plus, X, AlertCircle, CheckCircle, Beaker, Clock, FileText, User } from
 const NonMetrcReceiving4 = () => {
   const [clientName, setClientName] = useState('');
   const [clientError, setClientError] = useState('');
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState(null);
+  const [sampleIdCounter, setSampleIdCounter] = useState(176243);
   const [samples, setSamples] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newSample, setNewSample] = useState({
+    sampleId: '',
+    customerReference: '',
     sampleType: '',
     sourceDetails: '',
     ccId: '',
@@ -19,6 +25,15 @@ const NonMetrcReceiving4 = () => {
   });
 
   const sampleTypes = ['Environmental', 'Food Ingredient', 'Water', 'Other'];
+  
+  // Mock clients data
+  const mockClients = [
+    { id: 1, name: 'Environmental Solutions Inc.', city: 'Columbus', state: 'OH' },
+    { id: 2, name: 'Green Valley Cultivators', city: 'Cleveland', state: 'OH' },
+    { id: 3, name: 'Buckeye Botanicals', city: 'Cincinnati', state: 'OH' },
+    { id: 4, name: 'Ohio Organic Farms', city: 'Dayton', state: 'OH' },
+    { id: 5, name: 'Environmental Testing Labs', city: 'Toledo', state: 'OH' }
+  ];
   const availableAssays = [
     'Cannabinoids',
     'Terpenes',
@@ -58,8 +73,11 @@ const NonMetrcReceiving4 = () => {
     const errors = validateSample(newSample);
     
     if (Object.keys(errors).length === 0) {
-      setSamples([...samples, { ...newSample, id: Date.now() }]);
+      const newSampleId = sampleIdCounter + samples.length;
+      setSamples([...samples, { ...newSample, id: Date.now(), sampleId: newSampleId.toString() }]);
       setNewSample({
+        sampleId: '',
+        customerReference: '',
         sampleType: '',
         sourceDetails: '',
         ccId: '',
@@ -90,6 +108,7 @@ const NonMetrcReceiving4 = () => {
       setTimeout(() => {
         setShowSuccess(false);
         setClientName('');
+        setSampleIdCounter(prev => prev + samples.length);
         setSamples([]);
       }, 3000);
     }
@@ -119,7 +138,12 @@ const NonMetrcReceiving4 = () => {
       <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-semibold text-gray-900">Sample #{samples.indexOf(sample) + 1}</h3>
+            <h3 className="font-semibold text-gray-900">
+              Sample {sample.sampleId}
+              {sample.customerReference && (
+                <span className="ml-2 text-sm font-normal text-gray-600">({sample.customerReference})</span>
+              )}
+            </h3>
             <p className="text-sm text-gray-600">{sample.sampleType}</p>
           </div>
           <button
@@ -196,6 +220,32 @@ const NonMetrcReceiving4 = () => {
       <h3 className="text-lg font-semibold mb-4">Add New Sample</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Customer Sample ID
+          </label>
+          <input
+            type="text"
+            value={(sampleIdCounter + samples.length).toString()}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Auto-generated"
+            readOnly
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Customer Reference
+          </label>
+          <input
+            type="text"
+            value={newSample.customerReference}
+            onChange={(e) => updateNewSample('customerReference', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            placeholder="e.g., CB104-001 or REVERSE OSMOSIS TABLE #1"
+          />
+        </div>
+        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Sample Type <span className="text-red-500">*</span>
@@ -315,6 +365,8 @@ const NonMetrcReceiving4 = () => {
           onClick={() => {
             setShowAddForm(false);
             setNewSample({
+              sampleId: '',
+              customerReference: '',
               sampleType: '',
               sourceDetails: '',
               ccId: '',
@@ -357,18 +409,49 @@ const NonMetrcReceiving4 = () => {
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Client Name <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
-          value={clientName}
-          onChange={(e) => {
-            setClientName(e.target.value);
-            if (clientError) setClientError('');
-          }}
-          className={`w-full max-w-md px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-            clientError ? 'border-red-500' : 'border-gray-300'
-          }`}
-          placeholder="Enter client name for this chain of custody"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            value={clientName}
+            onChange={(e) => {
+              const value = e.target.value;
+              setClientName(value);
+              setClientSearch(value);
+              setShowClientDropdown(value.length > 0);
+              if (clientError) setClientError('');
+            }}
+            onFocus={() => setShowClientDropdown(clientName.length > 0)}
+            onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
+            className={`w-full max-w-md px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
+              clientError ? 'border-red-500' : 'border-gray-300'
+            }`}
+            placeholder="Start typing to search clients..."
+          />
+          {showClientDropdown && (
+            <div className="absolute z-10 w-full max-w-md mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+              {mockClients
+                .filter(client => client.name.toLowerCase().includes(clientSearch.toLowerCase()))
+                .map(client => (
+                  <div
+                    key={client.id}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setClientName(client.name);
+                      setSelectedClientId(client.id);
+                      setShowClientDropdown(false);
+                    }}
+                  >
+                    <div className="font-medium">{client.name}</div>
+                    <div className="text-sm text-gray-500">{client.city}, {client.state}</div>
+                  </div>
+                ))
+              }
+              {mockClients.filter(client => client.name.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                <div className="px-3 py-2 text-sm text-gray-500">No clients found</div>
+              )}
+            </div>
+          )}
+        </div>
         {clientError && (
           <p className="mt-1 text-sm text-red-600 flex items-center">
             <AlertCircle className="h-4 w-4 mr-1" />

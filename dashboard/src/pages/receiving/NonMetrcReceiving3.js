@@ -4,8 +4,14 @@ import { ChevronRight, ChevronLeft, Check, AlertCircle, CheckCircle } from 'luci
 const NonMetrcReceiving3 = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [clientName, setClientName] = useState('');
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState(null);
+  const [sampleIdCounter, setSampleIdCounter] = useState(176243);
   const [samples, setSamples] = useState([{
     id: 1,
+    sampleId: '176243',
+    customerReference: '',
     sampleType: '',
     sourceDetails: '',
     ccId: '',
@@ -19,6 +25,15 @@ const NonMetrcReceiving3 = () => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const sampleTypes = ['Environmental', 'Food Ingredient', 'Water', 'Other'];
+  
+  // Mock clients data
+  const mockClients = [
+    { id: 1, name: 'Environmental Solutions Inc.', city: 'Columbus', state: 'OH' },
+    { id: 2, name: 'Green Valley Cultivators', city: 'Cleveland', state: 'OH' },
+    { id: 3, name: 'Buckeye Botanicals', city: 'Cincinnati', state: 'OH' },
+    { id: 4, name: 'Ohio Organic Farms', city: 'Dayton', state: 'OH' },
+    { id: 5, name: 'Environmental Testing Labs', city: 'Toledo', state: 'OH' }
+  ];
   const availableAssays = [
     'Cannabinoids',
     'Terpenes',
@@ -92,8 +107,12 @@ const NonMetrcReceiving3 = () => {
     setTimeout(() => {
       setShowSuccess(false);
       setClientName('');
+      const newStartId = sampleIdCounter + samples.length;
+      setSampleIdCounter(newStartId);
       setSamples([{
         id: 1,
+        sampleId: newStartId.toString(),
+        customerReference: '',
         sampleType: '',
         sourceDetails: '',
         ccId: '',
@@ -132,8 +151,11 @@ const NonMetrcReceiving3 = () => {
   };
 
   const addSample = () => {
+    const newSampleId = sampleIdCounter + samples.length;
     setSamples([...samples, {
       id: samples.length + 1,
+      sampleId: newSampleId.toString(),
+      customerReference: '',
       sampleType: '',
       sourceDetails: '',
       ccId: '',
@@ -191,18 +213,49 @@ const NonMetrcReceiving3 = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Client Name <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={clientName}
-                onChange={(e) => {
-                  setClientName(e.target.value);
-                  if (errors.clientName) setErrors({ ...errors, clientName: null });
-                }}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.clientName ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter client name for this chain of custody"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={clientName}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setClientName(value);
+                    setClientSearch(value);
+                    setShowClientDropdown(value.length > 0);
+                    if (errors.clientName) setErrors({ ...errors, clientName: null });
+                  }}
+                  onFocus={() => setShowClientDropdown(clientName.length > 0)}
+                  onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
+                  className={`w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.clientName ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Start typing to search clients..."
+                />
+                {showClientDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                    {mockClients
+                      .filter(client => client.name.toLowerCase().includes(clientSearch.toLowerCase()))
+                      .map(client => (
+                        <div
+                          key={client.id}
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            setClientName(client.name);
+                            setSelectedClientId(client.id);
+                            setShowClientDropdown(false);
+                          }}
+                        >
+                          <div className="font-medium">{client.name}</div>
+                          <div className="text-sm text-gray-500">{client.city}, {client.state}</div>
+                        </div>
+                      ))
+                    }
+                    {mockClients.filter(client => client.name.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                      <div className="px-3 py-2 text-sm text-gray-500">No clients found</div>
+                    )}
+                  </div>
+                )}
+              </div>
               {errors.clientName && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
@@ -223,6 +276,33 @@ const NonMetrcReceiving3 = () => {
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold mb-4">Sample Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Customer Sample ID
+                </label>
+                <input
+                  type="text"
+                  value={sample.sampleId}
+                  onChange={(e) => updateSample('sampleId', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Auto-generated"
+                  readOnly
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Customer Reference
+                </label>
+                <input
+                  type="text"
+                  value={sample.customerReference}
+                  onChange={(e) => updateSample('customerReference', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., CB104-001 or REVERSE OSMOSIS TABLE #1"
+                />
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Sample Type <span className="text-red-500">*</span>
@@ -379,7 +459,12 @@ const NonMetrcReceiving3 = () => {
             
             {samples.map((s, idx) => (
               <div key={s.id} className="bg-gray-50 rounded-lg p-4 space-y-2">
-                <h4 className="font-medium text-gray-900 mb-2">Sample #{idx + 1}</h4>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Sample {s.sampleId}
+                  {s.customerReference && (
+                    <span className="ml-2 text-sm text-gray-600">({s.customerReference})</span>
+                  )}
+                </h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-gray-600">Type:</span>

@@ -12,7 +12,8 @@
       "Bash(npx eslint:*)",
       "Bash(node:*)",
       "Bash(npx react-scripts build:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(true)"
     ],
     "deny": []
   }

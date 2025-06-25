@@ -4,9 +4,15 @@ import { Plus, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 const NonMetrcReceiving1 = () => {
   const [clientName, setClientName] = useState('');
   const [clientError, setClientError] = useState('');
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState(null);
+  const [sampleIdCounter, setSampleIdCounter] = useState(176243);
   const [samples, setSamples] = useState([
     {
       id: 1,
+      sampleId: '176243',
+      customerReference: '',
       sampleType: '',
       sourceDetails: '',
       ccId: '',
@@ -20,6 +26,15 @@ const NonMetrcReceiving1 = () => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const sampleTypes = ['Environmental', 'Food Ingredient', 'Water', 'Other'];
+  
+  // Mock clients data
+  const mockClients = [
+    { id: 1, name: 'Environmental Solutions Inc.', city: 'Columbus', state: 'OH' },
+    { id: 2, name: 'Green Valley Cultivators', city: 'Cleveland', state: 'OH' },
+    { id: 3, name: 'Buckeye Botanicals', city: 'Cincinnati', state: 'OH' },
+    { id: 4, name: 'Ohio Organic Farms', city: 'Dayton', state: 'OH' },
+    { id: 5, name: 'Environmental Testing Labs', city: 'Toledo', state: 'OH' }
+  ];
   const availableAssays = [
     'Cannabinoids',
     'Terpenes',
@@ -58,8 +73,11 @@ const NonMetrcReceiving1 = () => {
   };
 
   const addSample = () => {
+    const newSampleId = sampleIdCounter + samples.length;
     setSamples([...samples, {
       id: samples.length + 1,
+      sampleId: newSampleId.toString(),
+      customerReference: '',
       sampleType: '',
       sourceDetails: '',
       ccId: '',
@@ -97,8 +115,12 @@ const NonMetrcReceiving1 = () => {
       setTimeout(() => {
         setShowSuccess(false);
         setClientName('');
+        const newStartId = sampleIdCounter + samples.length;
+        setSampleIdCounter(newStartId);
         setSamples([{
           id: 1,
+          sampleId: newStartId.toString(),
+          customerReference: '',
           sampleType: '',
           sourceDetails: '',
           ccId: '',
@@ -142,18 +164,49 @@ const NonMetrcReceiving1 = () => {
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Client Name <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
-          value={clientName}
-          onChange={(e) => {
-            setClientName(e.target.value);
-            if (clientError) setClientError('');
-          }}
-          className={`w-full max-w-md px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-            clientError ? 'border-red-500' : 'border-gray-300'
-          }`}
-          placeholder="Enter client name for this chain of custody"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            value={clientName}
+            onChange={(e) => {
+              const value = e.target.value;
+              setClientName(value);
+              setClientSearch(value);
+              setShowClientDropdown(value.length > 0);
+              if (clientError) setClientError('');
+            }}
+            onFocus={() => setShowClientDropdown(clientName.length > 0)}
+            onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
+            className={`w-full max-w-md px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${
+              clientError ? 'border-red-500' : 'border-gray-300'
+            }`}
+            placeholder="Start typing to search clients..."
+          />
+          {showClientDropdown && (
+            <div className="absolute z-10 w-full max-w-md mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+              {mockClients
+                .filter(client => client.name.toLowerCase().includes(clientSearch.toLowerCase()))
+                .map(client => (
+                  <div
+                    key={client.id}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setClientName(client.name);
+                      setSelectedClientId(client.id);
+                      setShowClientDropdown(false);
+                    }}
+                  >
+                    <div className="font-medium">{client.name}</div>
+                    <div className="text-sm text-gray-500">{client.city}, {client.state}</div>
+                  </div>
+                ))
+              }
+              {mockClients.filter(client => client.name.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                <div className="px-3 py-2 text-sm text-gray-500">No clients found</div>
+              )}
+            </div>
+          )}
+        </div>
         {clientError && (
           <p className="mt-1 text-sm text-red-600 flex items-center">
             <AlertCircle className="h-4 w-4 mr-1" />
@@ -167,6 +220,8 @@ const NonMetrcReceiving1 = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Sample ID</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Ref</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sample Type</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source Details</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CC ID</th>
@@ -180,6 +235,25 @@ const NonMetrcReceiving1 = () => {
               {samples.map((sample, index) => (
                 <React.Fragment key={sample.id}>
                   <tr>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <input
+                        type="text"
+                        value={sample.sampleId}
+                        onChange={(e) => updateSample(index, 'sampleId', e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-300 rounded bg-gray-50"
+                        placeholder="Auto-generated"
+                        readOnly
+                      />
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <input
+                        type="text"
+                        value={sample.customerReference}
+                        onChange={(e) => updateSample(index, 'customerReference', e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-300 rounded"
+                        placeholder="e.g., CB104-001"
+                      />
+                    </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <select
                         value={sample.sampleType}
@@ -252,7 +326,7 @@ const NonMetrcReceiving1 = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td colSpan="7" className="px-4 py-2 bg-gray-50">
+                    <td colSpan="9" className="px-4 py-2 bg-gray-50">
                       <div className="space-y-2">
                         <div className="text-sm font-medium text-gray-700">Select Assays:</div>
                         <div className="grid grid-cols-3 gap-2">
@@ -273,7 +347,7 @@ const NonMetrcReceiving1 = () => {
                   </tr>
                   {sample.sampleType === 'Environmental' && (
                     <tr>
-                      <td colSpan="7" className="px-4 py-2 bg-blue-50">
+                      <td colSpan="9" className="px-4 py-2 bg-blue-50">
                         <div className="flex items-center">
                           <label className="text-sm font-medium text-gray-700 mr-4">Swab Location:</label>
                           <input
@@ -295,7 +369,7 @@ const NonMetrcReceiving1 = () => {
                   )}
                   {Object.keys(sample.errors).length > 0 && (
                     <tr>
-                      <td colSpan="7" className="px-4 py-2 bg-red-50">
+                      <td colSpan="9" className="px-4 py-2 bg-red-50">
                         <div className="text-sm text-red-600">
                           {Object.entries(sample.errors).map(([field, error]) => (
                             <div key={field} className="flex items-center">
