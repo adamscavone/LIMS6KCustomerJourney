@@ -153,7 +153,18 @@ const NonMetrc2 = () => {
     mycotoxins: ['Aflatoxin B1', 'Aflatoxin B2', 'Aflatoxin G1', 'Aflatoxin G2', 'Ochratoxin A'],
     potency: ['THC', 'THCa', 'CBD', 'CBDa', 'CBG', 'CBGa', 'CBN', 'CBC', 'THCV'],
     terpenes: ['Limonene', 'Myrcene', 'Pinene', 'Linalool', 'Caryophyllene', 'Humulene', 'Terpinolene'],
-    residualSolvents: ['Acetone', 'Acetonitrile', 'Butane', 'Ethanol', 'Ethyl Acetate', 'Heptane', 'Hexane', 'Isopropanol', 'Methanol', 'Pentane', 'Propane', 'Toluene', 'Xylenes']
+    residualSolvents: ['Acetone', 'Acetonitrile', 'Butane', 'Ethanol', 'Ethyl Acetate', 'Heptane', 'Hexane', 'Isopropanol', 'Methanol', 'Pentane', 'Propane', 'Toluene', 'Xylenes'],
+    // Additional microbial testing analytes
+    microbialToSequencing: ['Unknown Organism 1', 'Unknown Organism 2', 'Unknown Organism 3', 'Full Microbiome Profile'],
+    microbialSourceEnvironment: ['Environmental Yeast & Mold', 'Environmental Bacteria', 'Listeria spp.', 'Pseudomonas aeruginosa', 'Staphylococcus aureus'],
+    microbialSettlePlates: ['Airborne Yeast & Mold', 'Airborne Bacteria', 'Particulate Count'],
+    microbialWaterCounts: ['Total Plate Count', 'Total Coliforms', 'E. coli', 'Pseudomonas spp.', 'Heterotrophic Plate Count'],
+    // Minerals and nutrients
+    mineralsSoilWater: ['Calcium', 'Magnesium', 'Potassium', 'Sodium', 'Iron', 'Manganese', 'Zinc', 'Copper', 'Boron', 'Phosphorus', 'Sulfur'],
+    plantTissuePanel: ['Nitrogen', 'Phosphorus', 'Potassium', 'Calcium', 'Magnesium', 'Sulfur', 'Iron', 'Manganese', 'Zinc', 'Copper', 'Boron', 'Molybdenum'],
+    // Other multi-analyte tests
+    homogenateTesting: ['Cannabinoids', 'Terpenes', 'Pesticides', 'Heavy Metals', 'Microbials'],
+    geneticSequencing: ['Strain Identification', 'Gender Determination', 'Pathogen Detection', 'GMO Detection']
   };
 
   useEffect(() => {
@@ -725,19 +736,39 @@ const NonMetrc2 = () => {
                         <h5 className="text-xs font-medium text-gray-600 mb-2 uppercase">Microbial</h5>
                         <div className="space-y-2">
                           {['microbial', 'microbialToSequencing', 'microbialSourceEnvironment', 'microbialSettlePlates', 'microbialWaterCounts'].map(test => (
-                            <label key={test} className="flex items-center text-sm">
-                              <input
-                                type="checkbox"
-                                checked={sample.tests[test]}
-                                onChange={(e) => handleSampleChange(sampleIdx, `tests.${test}`, e.target.checked)}
-                                className="mr-2"
-                              />
-                              {test === 'microbial' && 'Microbial'}
-                              {test === 'microbialToSequencing' && 'Microbial to Sequencing'}
-                              {test === 'microbialSourceEnvironment' && 'Source Environment'}
-                              {test === 'microbialSettlePlates' && 'Settle Plates'}
-                              {test === 'microbialWaterCounts' && 'Water Counts'}
-                            </label>
+                            <div key={test}>
+                              <label className="flex items-center text-sm">
+                                <input
+                                  type="checkbox"
+                                  checked={sample.tests[test]}
+                                  onChange={(e) => handleSampleChange(sampleIdx, `tests.${test}`, e.target.checked)}
+                                  className="mr-2"
+                                />
+                                {test === 'microbial' && 'Microbial'}
+                                {test === 'microbialToSequencing' && 'Microbial to Sequencing'}
+                                {test === 'microbialSourceEnvironment' && 'Source Environment'}
+                                {test === 'microbialSettlePlates' && 'Settle Plates'}
+                                {test === 'microbialWaterCounts' && 'Water Counts'}
+                              </label>
+                              {sample.isRetest && sample.tests[test] && assayAnalytes[test] && (
+                                <div className="ml-6 mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                                  <div className="text-xs font-medium text-yellow-800 mb-1">Select analytes:</div>
+                                  <div className="space-y-1">
+                                    {assayAnalytes[test].map(analyte => (
+                                      <label key={analyte} className="flex items-center text-xs">
+                                        <input
+                                          type="checkbox"
+                                          checked={sample.whitelistedAnalytes[test]?.includes(analyte) || false}
+                                          onChange={(e) => handleSampleChange(sampleIdx, `analyte.${test}.${analyte}`, e.target.checked)}
+                                          className="mr-1"
+                                        />
+                                        {analyte}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -745,23 +776,43 @@ const NonMetrc2 = () => {
                         <h5 className="text-xs font-medium text-gray-600 mb-2 uppercase">Chemistry</h5>
                         <div className="space-y-2">
                           {['heavyMetals', 'plantTissuePanel', 'mineralsSoilWater', 'homogenateTesting', 'residualSolvents', 'terpenes', 'potency', 'pesticides', 'mycotoxins'].map(test => (
-                            <label key={test} className="flex items-center text-sm">
-                              <input
-                                type="checkbox"
-                                checked={sample.tests[test]}
-                                onChange={(e) => handleSampleChange(sampleIdx, `tests.${test}`, e.target.checked)}
-                                className="mr-2"
-                              />
-                              {test === 'heavyMetals' && 'Heavy Metals'}
-                              {test === 'plantTissuePanel' && 'Plant Tissue Panel'}
-                              {test === 'mineralsSoilWater' && 'Minerals (Soil/Water)'}
-                              {test === 'homogenateTesting' && 'Homogenate Testing'}
-                              {test === 'residualSolvents' && 'Residual Solvents'}
-                              {test === 'terpenes' && 'Terpenes'}
-                              {test === 'potency' && 'Potency'}
-                              {test === 'pesticides' && 'Pesticides'}
-                              {test === 'mycotoxins' && 'Mycotoxins'}
-                            </label>
+                            <div key={test}>
+                              <label className="flex items-center text-sm">
+                                <input
+                                  type="checkbox"
+                                  checked={sample.tests[test]}
+                                  onChange={(e) => handleSampleChange(sampleIdx, `tests.${test}`, e.target.checked)}
+                                  className="mr-2"
+                                />
+                                {test === 'heavyMetals' && 'Heavy Metals'}
+                                {test === 'plantTissuePanel' && 'Plant Tissue Panel'}
+                                {test === 'mineralsSoilWater' && 'Minerals (Soil/Water)'}
+                                {test === 'homogenateTesting' && 'Homogenate Testing'}
+                                {test === 'residualSolvents' && 'Residual Solvents'}
+                                {test === 'terpenes' && 'Terpenes'}
+                                {test === 'potency' && 'Potency'}
+                                {test === 'pesticides' && 'Pesticides'}
+                                {test === 'mycotoxins' && 'Mycotoxins'}
+                              </label>
+                              {sample.isRetest && sample.tests[test] && assayAnalytes[test] && (
+                                <div className="ml-6 mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                                  <div className="text-xs font-medium text-yellow-800 mb-1">Select analytes:</div>
+                                  <div className="space-y-1">
+                                    {assayAnalytes[test].map(analyte => (
+                                      <label key={analyte} className="flex items-center text-xs">
+                                        <input
+                                          type="checkbox"
+                                          checked={sample.whitelistedAnalytes[test]?.includes(analyte) || false}
+                                          onChange={(e) => handleSampleChange(sampleIdx, `analyte.${test}.${analyte}`, e.target.checked)}
+                                          className="mr-1"
+                                        />
+                                        {analyte}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -769,26 +820,46 @@ const NonMetrc2 = () => {
                         <h5 className="text-xs font-medium text-gray-600 mb-2 uppercase">Other</h5>
                         <div className="space-y-2 max-h-96 overflow-y-auto">
                           {['earlyDetectionPowderyMildew', 'earlyDetectionRussetMites', 'earlyDetectionOther', 'plantVirusTesting', 'packageStability', 'moistureContent', 'waterActivity', 'density', 'foreignMatter', 'geneticSequencing', 'stabilityTesting', 'packageTesting'].map(test => (
-                            <label key={test} className="flex items-center text-sm">
-                              <input
-                                type="checkbox"
-                                checked={sample.tests[test]}
-                                onChange={(e) => handleSampleChange(sampleIdx, `tests.${test}`, e.target.checked)}
-                                className="mr-2"
-                              />
-                              {test === 'earlyDetectionPowderyMildew' && 'Early Detection Powdery Mildew'}
-                              {test === 'earlyDetectionRussetMites' && 'Early Detection Russet Mites'}
-                              {test === 'earlyDetectionOther' && 'Early Detection Other'}
-                              {test === 'plantVirusTesting' && 'Plant Virus Testing'}
-                              {test === 'packageStability' && 'Package Stability'}
-                              {test === 'moistureContent' && 'Moisture Content'}
-                              {test === 'waterActivity' && 'Water Activity'}
-                              {test === 'density' && 'Density'}
-                              {test === 'foreignMatter' && 'Foreign Matter'}
-                              {test === 'geneticSequencing' && 'Genetic Sequencing'}
-                              {test === 'stabilityTesting' && 'Stability Testing'}
-                              {test === 'packageTesting' && 'Package Testing'}
-                            </label>
+                            <div key={test}>
+                              <label className="flex items-center text-sm">
+                                <input
+                                  type="checkbox"
+                                  checked={sample.tests[test]}
+                                  onChange={(e) => handleSampleChange(sampleIdx, `tests.${test}`, e.target.checked)}
+                                  className="mr-2"
+                                />
+                                {test === 'earlyDetectionPowderyMildew' && 'Early Detection Powdery Mildew'}
+                                {test === 'earlyDetectionRussetMites' && 'Early Detection Russet Mites'}
+                                {test === 'earlyDetectionOther' && 'Early Detection Other'}
+                                {test === 'plantVirusTesting' && 'Plant Virus Testing'}
+                                {test === 'packageStability' && 'Package Stability'}
+                                {test === 'moistureContent' && 'Moisture Content'}
+                                {test === 'waterActivity' && 'Water Activity'}
+                                {test === 'density' && 'Density'}
+                                {test === 'foreignMatter' && 'Foreign Matter'}
+                                {test === 'geneticSequencing' && 'Genetic Sequencing'}
+                                {test === 'stabilityTesting' && 'Stability Testing'}
+                                {test === 'packageTesting' && 'Package Testing'}
+                              </label>
+                              {sample.isRetest && sample.tests[test] && assayAnalytes[test] && (
+                                <div className="ml-6 mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                                  <div className="text-xs font-medium text-yellow-800 mb-1">Select analytes:</div>
+                                  <div className="space-y-1">
+                                    {assayAnalytes[test].map(analyte => (
+                                      <label key={analyte} className="flex items-center text-xs">
+                                        <input
+                                          type="checkbox"
+                                          checked={sample.whitelistedAnalytes[test]?.includes(analyte) || false}
+                                          onChange={(e) => handleSampleChange(sampleIdx, `analyte.${test}.${analyte}`, e.target.checked)}
+                                          className="mr-1"
+                                        />
+                                        {analyte}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           ))}
                         </div>
                       </div>

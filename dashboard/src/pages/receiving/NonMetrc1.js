@@ -1022,16 +1022,16 @@ const NonMetrc1 = () => {
                                     onChange={(e) => handleSampleChange(sampleIdx, `deadline.${test}`, e.target.value)}
                                     className="w-full mt-1 px-2 py-1 text-xs border border-gray-300 rounded"
                                   />
-                                  {sample.isRetest && test === 'microbial' && assayAnalytes.microbial && (
+                                  {sample.isRetest && assayAnalytes[test] && (
                                     <div className="ml-4 mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
                                       <div className="text-xs font-medium text-yellow-800 mb-1">Select analytes:</div>
                                       <div className="space-y-1">
-                                        {assayAnalytes.microbial.map(analyte => (
+                                        {assayAnalytes[test].map(analyte => (
                                           <label key={analyte} className="flex items-center text-xs">
                                             <input
                                               type="checkbox"
-                                              checked={sample.whitelistedAnalytes.microbial?.includes(analyte) || false}
-                                              onChange={(e) => handleSampleChange(sampleIdx, `analyte.microbial.${analyte}`, e.target.checked)}
+                                              checked={sample.whitelistedAnalytes[test]?.includes(analyte) || false}
+                                              onChange={(e) => handleSampleChange(sampleIdx, `analyte.${test}.${analyte}`, e.target.checked)}
                                               className="mr-1"
                                             />
                                             {analyte}
@@ -1136,16 +1136,16 @@ const NonMetrc1 = () => {
                                     onChange={(e) => handleSampleChange(sampleIdx, `deadline.${test}`, e.target.value)}
                                     className="w-full mt-1 px-2 py-1 text-xs border border-gray-300 rounded"
                                   />
-                                  {sample.isRetest && test === 'plantVirusTesting' && assayAnalytes.plantVirusTesting && (
+                                  {sample.isRetest && assayAnalytes[test] && (
                                     <div className="ml-4 mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
                                       <div className="text-xs font-medium text-yellow-800 mb-1">Select analytes:</div>
                                       <div className="space-y-1">
-                                        {assayAnalytes.plantVirusTesting.map(analyte => (
+                                        {assayAnalytes[test].map(analyte => (
                                           <label key={analyte} className="flex items-center text-xs">
                                             <input
                                               type="checkbox"
-                                              checked={sample.whitelistedAnalytes.plantVirusTesting?.includes(analyte) || false}
-                                              onChange={(e) => handleSampleChange(sampleIdx, `analyte.plantVirusTesting.${analyte}`, e.target.checked)}
+                                              checked={sample.whitelistedAnalytes[test]?.includes(analyte) || false}
+                                              onChange={(e) => handleSampleChange(sampleIdx, `analyte.${test}.${analyte}`, e.target.checked)}
                                               className="mr-1"
                                             />
                                             {analyte}
