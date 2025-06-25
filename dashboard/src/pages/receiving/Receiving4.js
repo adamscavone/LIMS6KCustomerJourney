@@ -1086,6 +1086,11 @@ const Receiving1 = () => {
             foreignMatter: false,
             moistureContent: false,
             waterActivity: false,
+            geneticSequencing: false,
+            homogenateTesting: false,
+            stabilityTesting: false,
+            packageTesting: false,
+            density: false,
             residualSolvents: false
           },
           assayDeadlines: {
@@ -1108,7 +1113,12 @@ const Receiving1 = () => {
             plantSex: '',
             foreignMatter: '',
             moistureContent: '',
-            waterActivity: ''
+            waterActivity: '',
+            geneticSequencing: '',
+            homogenateTesting: '',
+            stabilityTesting: '',
+            packageTesting: '',
+            density: ''
           },
           retest: false,
           isRetest: false,
@@ -2143,7 +2153,12 @@ const Receiving1 = () => {
                                                 { key: 'moistureContent', name: 'Moisture Content', type: 'other' },
                                                 { key: 'waterActivity', name: 'Water Activity', type: 'other' },
                                                 { key: 'plantPathogens', name: 'Plant Pathogens', type: 'other' },
-                                                { key: 'plantSex', name: 'Plant Sex', type: 'other' }
+                                                { key: 'plantSex', name: 'Plant Sex', type: 'other' },
+                                                { key: 'geneticSequencing', name: 'Genetic Sequencing', type: 'other' },
+                                                { key: 'homogenateTesting', name: 'Homogenate Testing', type: 'other' },
+                                                { key: 'stabilityTesting', name: 'Stability Testing', type: 'other' },
+                                                { key: 'packageTesting', name: 'Package Testing', type: 'other' },
+                                                { key: 'density', name: 'Density', type: 'other' }
                                               ].map(assay => {
                                                 const isSelected = sampleData.assays?.[assay.key] || false;
                                                 // Calculate default deadline for this assay
@@ -2958,7 +2973,12 @@ const Receiving1 = () => {
                                                                 { key: 'moistureContent', name: 'Moisture Content', type: 'other' },
                                                                 { key: 'waterActivity', name: 'Water Activity', type: 'other' },
                                                                 { key: 'plantPathogens', name: 'Plant Pathogens', type: 'other' },
-                                                                { key: 'plantSex', name: 'Plant Sex', type: 'other' }
+                                                                { key: 'plantSex', name: 'Plant Sex', type: 'other' },
+                                                                { key: 'geneticSequencing', name: 'Genetic Sequencing', type: 'other' },
+                                                                { key: 'homogenateTesting', name: 'Homogenate Testing', type: 'other' },
+                                                                { key: 'stabilityTesting', name: 'Stability Testing', type: 'other' },
+                                                                { key: 'packageTesting', name: 'Package Testing', type: 'other' },
+                                                                { key: 'density', name: 'Density', type: 'other' }
                                                               ].map(assay => {
                                                                 const isSelected = sampleData.assays?.[assay.key] || false;
                                                                 // Calculate default deadline for this assay

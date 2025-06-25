@@ -290,3 +290,201 @@ Implemented Michigan-specific whitelisting functionality that allows laboratorie
 - Maintains ISO 17025 compliance requirements
 - Supports state-mandated reporting formats
 - Preserves original test results for audit purposes
+
+## Receiving-v2: Compliance vs Non-Compliance Testing Architecture
+
+### Date: June 25, 2025
+
+#### Major Conceptual Shift
+Restructured the receiving system to properly categorize samples by **Compliance vs Non-Compliance** testing rather than the previous **Metrc vs Non-Metrc** distinction. This change reflects the true operational difference in how samples are processed through the laboratory.
+
+#### Key Understanding
+The original categorization by source (Metrc/Non-Metrc) was incorrect because:
+- Many Metrc samples undergo non-compliance testing (R&D, genetic sequencing, pathogen testing)
+- Many non-Metrc samples follow compliance workflows with pass/fail criteria
+- The meaningful distinction is whether testing results in regulatory pass/fail determination
+
+#### New Architecture
+
+##### 1. Navigation Structure
+Added new "Receiving-v2" dropdown with three options:
+- **Compliance Testing**: All samples requiring pass/fail determination
+- **Non-Compliance Testing**: Research, development, and informational testing
+- **Import Manifest**: Bulk import functionality for Excel/CSV files
+
+##### 2. Compliance Testing Page (`/receiving-v2/compliance`)
+Handles samples that require regulatory compliance determination:
+- **Metrc Compliance Samples**:
+  - State-required testing (DPM, PPPT, etc.)
+  - R&D samples that follow compliance workflows
+- **Non-Metrc Compliance Samples**:
+  - Environmental samples (EPA standards)
+  - Food safety testing (FDA/USDA standards)
+  - Water quality testing
+
+##### 3. Non-Compliance Testing Page (`/receiving-v2/non-compliance`)
+Manages research and informational testing without pass/fail:
+- **Metrc R&D Samples**:
+  - Early gender identification
+  - Genetic sequencing
+  - Plant pathogen testing
+  - Nutrient analysis
+- **Non-Metrc R&D Samples**:
+  - Soil nutrient panels
+  - Genetic profiling
+  - Custom research projects
+
+##### 4. Import Manifest Page (`/receiving-v2/import`)
+Provides bulk import capability with:
+- Drag-and-drop file upload interface
+- Template downloads for proper formatting
+- Expected file format documentation
+- Placeholder message: "You will be able to upload Excel versions of manifests here"
+
+#### Technical Implementation
+
+##### File Structure
+```
+src/pages/receiving-v2/
+├── ComplianceReceiving.js (293 lines)
+├── NonComplianceReceiving.js (244 lines)
+└── ImportManifest.js (226 lines)
+```
+
+##### Routing Updates
+```javascript
+// src/index.js
+<Route path="/receiving-v2/compliance" element={<ComplianceReceiving />} />
+<Route path="/receiving-v2/non-compliance" element={<NonComplianceReceiving />} />
+<Route path="/receiving-v2/import" element={<ImportManifest />} />
+```
+
+##### Navigation Updates
+```javascript
+// src/components/navigation/TopNavigation.js
+{
+  id: 'receiving-v2',
+  label: 'Receiving-v2',
+  icon: Package,
+  items: [
+    { label: 'Compliance Testing', path: '/receiving-v2/compliance' },
+    { label: 'Non-Compliance Testing', path: '/receiving-v2/non-compliance' },
+    { label: 'Import Manifest', path: '/receiving-v2/import' }
+  ]
+}
+```
+
+#### Key Design Decisions
+
+1. **Preservation of Existing System**: All original receiving pages remain intact as they've been handed off to developers
+
+2. **Clear Visual Distinction**:
+   - Compliance pages use blue color scheme
+   - Non-compliance pages use purple color scheme
+   - Import page maintains neutral gray scheme
+
+3. **Information Architecture**:
+   - Each page includes educational info boxes explaining the category
+   - Collapsible sections for better organization
+   - Icons to visually distinguish test types
+
+4. **Chain of Custody Integration**:
+   - Non-Metrc samples use comprehensive Chain of Custody forms
+   - Tracks sample collection, transfer, and testing requirements
+   - Supports 20+ test types from microbial to plant virus testing
+
+#### Future Considerations
+
+1. **Unified Sample Entry**: Consider merging the four receiving steps into a single streamlined flow
+
+2. **Smart Routing**: Automatically route samples to compliance/non-compliance based on test selection
+
+3. **API Integration**: Connect Import Manifest to existing file parser service
+
+4. **Mobile Optimization**: Enhance Chain of Custody entry for field collection
+
+5. **Workflow Intelligence**: Auto-suggest compliance vs non-compliance based on client history
+
+#### Developer Handoff Notes
+
+This Receiving-v2 system represents a conceptual restructuring that better aligns with laboratory operations. The existing receiving system (Receiving1-4, NonMetrcReceiving1-4) has already been delivered to developers and should not be modified. The new system provides:
+
+1. **Clearer mental model** for lab personnel
+2. **Reduced errors** in test category selection
+3. **Better alignment** with regulatory requirements
+4. **Scalability** for new test types and regulations
+
+The implementation maintains all existing functionality while providing a more intuitive categorization that reflects how samples actually flow through the laboratory.
+
+## Receiving System Restructure - Metrc-Centric Approach
+
+### Date: June 25, 2025 (Revised)
+
+#### Revised Approach
+After review, the receiving system has been restructured to maintain the Metrc/Non-Metrc distinction as the primary categorization, recognizing that 90% of samples come through Metrc API integration.
+
+#### Key Changes
+
+##### 1. Removed Receiving-v2 System
+- Deleted all Receiving-v2 components and routes
+- Removed the compliance/non-compliance categorization approach
+- Simplified navigation back to two main options
+
+##### 2. Enhanced Metrc Receiving
+Added new "Other" assays to Receiving4.js to handle all Metrc samples including R&D:
+- **Genetic Sequencing**: For strain identification and genetic analysis
+- **Homogenate Testing**: For testing blended/homogenized samples
+- **Stability Testing**: For shelf-life and degradation studies
+- **Package Testing**: For container/packaging compatibility
+- **Density**: For product density measurements
+
+These additions allow the Metrc Receiving interface to handle ANY samples logged into Metrc, including:
+- Compliance testing (DPM, PPPT, etc.)
+- R&D testing (plant pathogens, genetics, etc.)
+- Customer-requested specialty testing
+
+##### 3. New Non-Metrc Samples Interface
+Created a dedicated interface for the 10% of samples that don't come through Metrc:
+
+**Features:**
+- **Manual Entry Tab**: For individual sample creation with chain of custody
+- **Bulk Upload Tab**: For Excel/CSV import of multiple samples
+- **Placeholder Messages**: Clear indication that features are under development
+- **Template Downloads**: Future capability for downloading import templates
+- **Chain of Custody Preview**: Shows the comprehensive data collection planned
+
+**Navigation:**
+- Simplified to "Metrc Receiving" and "Non-Metrc Samples" in dropdown
+- Removed complex multi-step workflows for Non-Metrc samples
+
+#### Benefits of Revised Approach
+
+1. **Operational Efficiency**: 90% of samples handled through familiar Metrc interface
+2. **Flexibility**: Metrc interface can now handle all testing types via expanded assay list
+3. **Simplicity**: Clear binary choice - samples either come from Metrc or they don't
+4. **Future-Ready**: Non-Metrc interface ready for enhancement without disrupting main workflow
+
+#### Technical Implementation
+
+```javascript
+// Added to Receiving4.js assay lists
+{ key: 'geneticSequencing', name: 'Genetic Sequencing', type: 'other' },
+{ key: 'homogenateTesting', name: 'Homogenate Testing', type: 'other' },
+{ key: 'stabilityTesting', name: 'Stability Testing', type: 'other' },
+{ key: 'packageTesting', name: 'Package Testing', type: 'other' },
+{ key: 'density', name: 'Density', type: 'other' }
+```
+
+```javascript
+// New route for Non-Metrc samples
+<Route path="/non-metrc-samples" element={<NonMetrcSamples />} />
+```
+
+#### Developer Notes
+
+The previous Receiving-v2 system has been completely removed. The current implementation focuses on:
+1. Enhancing the existing Metrc Receiving to handle all Metrc samples
+2. Providing a placeholder for future Non-Metrc sample handling
+3. Maintaining backward compatibility with existing receiving workflows
+
+This approach better aligns with actual laboratory operations where Metrc integration is the primary sample source.
