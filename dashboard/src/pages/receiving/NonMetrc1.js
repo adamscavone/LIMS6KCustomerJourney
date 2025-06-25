@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Plus, X, Calendar, ChevronDown, Upload, Save, AlertCircle } from 'lucide-react';
 
-const NonMetrcSamples = () => {
+const NonMetrc1 = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showForm, setShowForm] = useState(true); // Start with form open
   const [samples, setSamples] = useState([]);
@@ -535,7 +535,7 @@ const NonMetrcSamples = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-gray-900">Non-Metrc Samples</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Non-Metrc1: Chain of Custody</h1>
               <div className="text-sm text-gray-500">
                 Create orders for samples not in Metrc system
               </div>
@@ -1326,4 +1326,4 @@ const NonMetrcSamples = () => {
   );
 };
 
-export default NonMetrcSamples;
+export default NonMetrc1;

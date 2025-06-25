@@ -75,7 +75,10 @@ const TopNavigation = () => {
       icon: Package,
       items: [
         { label: 'Metrc Receiving', path: '/metrc-receiving' },
-        { label: 'Non-Metrc Samples', path: '/non-metrc-samples' }
+        { label: 'Non-Metrc1: Chain of Custody', path: '/non-metrc1' },
+        { label: 'Non-Metrc2: Order Management', path: '/non-metrc2' },
+        { label: 'Non-Metrc3: Batch Import', path: '/non-metrc3' },
+        { label: 'Non-Metrc4: Reports & Analytics', path: '/non-metrc4' }
       ]
     },
     {

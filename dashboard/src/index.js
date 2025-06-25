@@ -20,7 +20,10 @@ import NonMetrcReceiving3 from './pages/receiving/NonMetrcReceiving3';
 import NonMetrcReceiving4 from './pages/receiving/NonMetrcReceiving4';
 import SampleProcessing from './pages/receiving/SampleProcessing';
 import SamplingDashboard from './pages/sampling/SamplingDashboard';
-import NonMetrcSamples from './pages/receiving/NonMetrcSamples';
+import NonMetrc1 from './pages/receiving/NonMetrc1';
+import NonMetrc2 from './pages/receiving/NonMetrc2';
+import NonMetrc3 from './pages/receiving/NonMetrc3';
+import NonMetrc4 from './pages/receiving/NonMetrc4';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -45,7 +48,10 @@ root.render(
           <Route path="/non-metrc-receiving3" element={<NonMetrcReceiving3 />} />
           <Route path="/non-metrc-receiving4" element={<NonMetrcReceiving4 />} />
           <Route path="/receiving/process/:manifestId" element={<SampleProcessing />} />
-          <Route path="/non-metrc-samples" element={<NonMetrcSamples />} />
+          <Route path="/non-metrc1" element={<NonMetrc1 />} />
+          <Route path="/non-metrc2" element={<NonMetrc2 />} />
+          <Route path="/non-metrc3" element={<NonMetrc3 />} />
+          <Route path="/non-metrc4" element={<NonMetrc4 />} />
         </Routes>
       </Layout>
     </BrowserRouter>

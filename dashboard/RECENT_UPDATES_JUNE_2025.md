@@ -488,3 +488,93 @@ The previous Receiving-v2 system has been completely removed. The current implem
 3. Maintaining backward compatibility with existing receiving workflows
 
 This approach better aligns with actual laboratory operations where Metrc integration is the primary sample source.
+
+## Non-Metrc Samples Enhancement
+
+### Date: June 25, 2025 (Updated)
+
+#### Overview
+Enhanced the Non-Metrc Samples interface with professional features for handling samples outside the Metrc system, including environmental testing, R&D samples, and customer-submitted materials.
+
+#### Key Enhancements
+
+##### 1. Customer-Selected/Submitted Samples
+- Added checkbox to indicate when samples were selected by the customer (not collected by North Coast technicians)
+- When checked:
+  - Sampler Name field auto-fills with "N/A" and becomes disabled
+  - Sampler Signature field auto-fills with "N/A" and becomes disabled  
+  - Relinquishment signature serves as the only required signature
+- Critical distinction for compliance and quality assurance
+- Yellow warning box explains the importance of this designation
+
+##### 2. Professional Autocomplete Features
+- **Client Autocomplete**: 
+  - Search from 5 mock Ohio-based clients
+  - "Save as new client" option for unmatched entries
+  - Shows city and state in dropdown
+- **Sampler Autocomplete**:
+  - Search from 6 trained technicians
+  - Shows certification level (Senior Technician, Lead Sampler, etc.)
+  - No ability to add new samplers (requires training certification)
+  - Disabled when customer-selected is checked
+
+##### 3. Mock Data Implementation
+```javascript
+// Ohio-based test clients
+const mockClients = [
+  'Environmental Solutions Inc.' (Columbus),
+  'Green Valley Cultivators' (Cleveland),
+  'Buckeye Botanicals' (Cincinnati),
+  'Ohio Organic Farms' (Dayton),
+  'Environmental Testing Labs' (Toledo)
+];
+
+// Trained sampling technicians
+const mockSamplers = [
+  'Michael Chen' (Senior Technician),
+  'Sarah Johnson' (Lead Sampler),
+  'David Martinez' (Sampling Technician),
+  'Emily Williams' (Senior Technician),
+  'James Thompson' (Sampling Technician),
+  'Maria Rodriguez' (Lead Sampler)
+];
+```
+
+##### 4. UI/UX Improvements
+- **Sample Type Reorganization**: Environmental samples moved to top of dropdown (most frequently used)
+- **Collection Start Time**: Renamed from "Collection Time" for clarity
+- **Non-Metrc Order**: Changed from "Chain of Custody" throughout:
+  - Page subtitle: "Create orders for samples not in Metrc system"
+  - Form header: "New Non-Metrc Order"
+  - Submit button: "Create Non-Metrc Order"
+  - Table header: "Recent Non-Metrc Orders"
+
+##### 5. Individual Analyte Selection Enhancement
+- **Progressive Disclosure**: "Select Individual Analytes" checkbox only appears when relevant
+- **Comprehensive Analyte Lists**:
+  - Microbial: Ohio-specific analytes including Aspergillus species
+  - Plant Pathogens: 12 viruses, fungi, and mites from provided CSV
+  - Chemistry: Full panels for heavy metals, pesticides, mycotoxins, etc.
+- **Smart Detection**: `hasAssaysWithAnalytes()` function determines when to show checkbox
+- **Visual Indicators**: Yellow highlighting for whitelisted analytes
+
+##### 6. Technical Implementation
+- Component maintains all previous functionality
+- Added state variables for sampler search
+- Customer-selected logic integrated throughout form
+- Proper field validation and required field handling
+- Responsive design maintained
+
+#### Business Value
+1. **Compliance**: Clear documentation of sampling methodology
+2. **Efficiency**: Autocomplete reduces data entry time
+3. **Quality**: Distinction between customer vs. professional sampling
+4. **Flexibility**: Handles diverse sample types beyond cannabis
+5. **Accuracy**: Individual analyte selection prevents over-testing
+
+#### Developer Notes
+- All changes backward compatible
+- Mock data can be easily replaced with API calls
+- Form validation uses HTML5 patterns
+- State management via React hooks
+- No external dependencies added

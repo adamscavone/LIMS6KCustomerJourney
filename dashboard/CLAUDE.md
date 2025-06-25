@@ -560,3 +560,108 @@ sampleData = {
 4. Lab selects only "Lead" from heavy metals analytes
 5. Sample proceeds through workflow testing ONLY for lead
 6. Report shows only lead results, avoiding risk of failing for other metals
+
+## Non-Metrc Samples System
+
+### Overview
+The Non-Metrc Samples system (`/non-metrc-samples`) handles orders for samples that don't come through the Metrc tracking system. This includes environmental samples, R&D samples, and customer-submitted samples that bypass state cannabis tracking requirements.
+
+### Key Features
+
+#### 1. **Customer-Selected/Submitted Samples**
+- Checkbox to indicate when samples were selected by the customer (not collected by trained North Coast technicians)
+- When checked:
+  - Sampler Name field becomes disabled and auto-fills with "N/A"
+  - Sampler Signature field becomes disabled and auto-fills with "N/A"
+  - Relinquishment signature serves as the only required signature
+- This distinction is critical for compliance and quality assurance
+
+#### 2. **Autocomplete Functionality**
+- **Client Search**: Start typing to search from 5 mock Ohio-based clients
+  - Environmental Solutions Inc. (Columbus)
+  - Green Valley Cultivators (Cleveland)
+  - Buckeye Botanicals (Cincinnati)
+  - Ohio Organic Farms (Dayton)
+  - Environmental Testing Labs (Toledo)
+- **Sampler Search**: Start typing to search from 6 trained technicians
+  - No ability to add new samplers (requires training certification)
+  - Shows name and certification level
+- **Save New Client**: Option appears when entering unmatched client name
+
+#### 3. **Sample Type Organization**
+- Environmental samples listed first (most frequently used):
+  - Water
+  - Soil
+  - Plant Tissue
+  - Environmental Swab
+- Followed by Cannabis, Edibles, Topicals, and Other categories
+
+#### 4. **Individual Analyte Selection (Whitelisting)**
+- "Select Individual Analytes" checkbox appears when assays with multiple analytes are selected
+- Progressive disclosure - only shows when relevant
+- Allows selection of specific analytes within:
+  - **Microbial**: Total Yeast & Mold, BTGN, E. coli/STEC, Salmonella spp., etc.
+  - **Plant Pathogens**: Hop Latent Viroid, various viruses, fungi, mites
+  - **Chemistry**: Heavy metals, pesticides, mycotoxins, potency, terpenes
+- Yellow highlighting indicates whitelisted analytes
+
+#### 5. **Comprehensive Testing Options**
+- **Microbial**: Standard testing, sequencing, environmental, settle plates, water counts
+- **Chemistry**: Heavy metals, minerals, solvents, pesticides, mycotoxins, terpenes, potency
+- **Other**: Plant tissue panels, early detection (powdery mildew, russet mites), plant virus testing, stability testing, moisture/water activity, density, foreign matter
+
+### Implementation Details
+
+#### Mock Data
+```javascript
+// Mock Clients (Ohio-based)
+const mockClients = [
+  { id: 1, name: 'Environmental Solutions Inc.', city: 'Columbus', state: 'OH' },
+  { id: 2, name: 'Green Valley Cultivators', city: 'Cleveland', state: 'OH' },
+  // ... etc
+];
+
+// Mock Samplers (Trained technicians only)
+const mockSamplers = [
+  { id: 1, name: 'Michael Chen', certificationLevel: 'Senior Technician' },
+  { id: 2, name: 'Sarah Johnson', certificationLevel: 'Lead Sampler' },
+  // ... etc
+];
+```
+
+#### State Management
+- Form data includes:
+  - Client information with autocomplete
+  - Collection date/time (labeled as "Collection Start Time")
+  - Customer-selected boolean flag
+  - Sampler information (disabled when customer-selected)
+  - Chain of custody transfer details
+  - Multiple samples with individual test requirements
+
+#### Business Rules
+1. **Customer Selection Impact**: When customerSelected = true, sampler fields become "N/A"
+2. **Required Fields**: All fields marked with red asterisk are required
+3. **Deadline Calculation**: Each assay has predefined turnaround times in business days
+4. **Sample IDs**: User-defined, typically follow pattern like "CB104-001"
+5. **COC Number**: Auto-generated as `COC-YYYY-####`
+
+### User Workflow
+1. Client information auto-populates from search or can be entered new
+2. Select whether samples are customer-selected (affects sampler requirements)
+3. Enter collection date and start time
+4. Add one or more samples with:
+   - Sample ID and type
+   - Description and collection location
+   - Container type and preservation method
+   - Testing requirements
+   - Optional individual analyte selection
+5. Complete chain of custody transfer information
+6. Submit to create Non-Metrc Order
+
+### Developer Notes
+- Component located at `/src/pages/receiving/NonMetrcSamples.js`
+- Uses React hooks for state management
+- No backend integration - all data is mock/demo
+- Autocomplete uses filter-as-you-type pattern
+- Form validation uses HTML5 required attributes
+- Responsive design with Tailwind CSS grid system
