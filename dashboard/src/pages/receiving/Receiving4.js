@@ -1541,7 +1541,7 @@ const Receiving1 = () => {
                 {/* Header Section */}
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Submit</h2>
-                  <p className="text-gray-600">Review and confirm testing requirements for manifest {manifest.manifestId}</p>
+                  <p className="text-gray-600">Review and confirm required tests for manifest {manifest.manifestId}</p>
                   
                   {/* Workflow Progress Indicator */}
                   <div className="mt-4 flex items-center justify-center space-x-4">

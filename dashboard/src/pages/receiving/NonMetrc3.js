@@ -36,10 +36,7 @@ const NonMetrc3 = () => {
       whitelistedAnalytes: {},
       tests: {
         microbial: false,
-        microbialToSequencing: false,
         microbialSourceEnvironment: false,
-        microbialSettlePlates: false,
-        microbialWaterCounts: false,
         heavyMetals: false,
         plantTissuePanel: false,
         mineralsSoilWater: false,
@@ -133,10 +130,7 @@ const NonMetrc3 = () => {
         whitelistedAnalytes: {},
         tests: {
         microbial: false,
-        microbialToSequencing: false,
         microbialSourceEnvironment: false,
-        microbialSettlePlates: false,
-        microbialWaterCounts: false,
         heavyMetals: false,
         plantTissuePanel: false,
         mineralsSoilWater: false,
@@ -240,10 +234,7 @@ const NonMetrc3 = () => {
             whitelistedAnalytes: {},
             tests: {
         microbial: false,
-        microbialToSequencing: false,
         microbialSourceEnvironment: false,
-        microbialSettlePlates: false,
-        microbialWaterCounts: false,
         heavyMetals: false,
         plantTissuePanel: false,
         mineralsSoilWater: false,
@@ -693,13 +684,13 @@ const NonMetrc3 = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Testing Requirements <span className="text-red-500">*</span>
+                        Required Tests <span className="text-red-500">*</span>
                       </label>
                       <div className="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded-md">
                         <div>
                           <h5 className="text-xs font-medium text-gray-600 mb-2 uppercase">Microbial</h5>
                           <div className="space-y-1">
-                            {['microbial', 'microbialToSequencing', 'microbialSourceEnvironment', 'microbialSettlePlates', 'microbialWaterCounts'].map(test => (
+                            {['microbial', 'microbialSourceEnvironment'].map(test => (
                               <label key={test} className="flex items-center text-xs">
                                 <input
                                   type="checkbox"
@@ -708,10 +699,7 @@ const NonMetrc3 = () => {
                                   className="mr-1"
                                 />
                                 {test === 'microbial' && 'Microbial'}
-                                {test === 'microbialToSequencing' && 'To Sequencing'}
                                 {test === 'microbialSourceEnvironment' && 'Source Env'}
-                                {test === 'microbialSettlePlates' && 'Settle Plates'}
-                                {test === 'microbialWaterCounts' && 'Water Counts'}
                               </label>
                             ))}
                           </div>

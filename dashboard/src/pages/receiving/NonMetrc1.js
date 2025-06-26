@@ -81,10 +81,7 @@ const NonMetrc1 = () => {
   const assayTurnaroundTimes = {
     // Microbial
     microbial: 3,
-    microbialToSequencing: 7,
     microbialSourceEnvironment: 5,
-    microbialSettlePlates: 5,
-    microbialWaterCounts: 3,
     // Chemistry
     heavyMetals: 2,
     plantTissuePanel: 3,
@@ -150,10 +147,7 @@ const NonMetrc1 = () => {
       whitelistedAnalytes: {},
       tests: {
         microbial: false,
-        microbialToSequencing: false,
         microbialSourceEnvironment: false,
-        microbialSettlePlates: false,
-        microbialWaterCounts: false,
         heavyMetals: false,
         plantTissuePanel: false,
         mineralsSoilWater: false,
@@ -219,10 +213,7 @@ const NonMetrc1 = () => {
     terpenes: ['Limonene', 'Myrcene', 'Pinene', 'Linalool', 'Caryophyllene', 'Humulene', 'Terpinolene'],
     residualSolvents: ['Acetone', 'Acetonitrile', 'Butane', 'Ethanol', 'Ethyl Acetate', 'Heptane', 'Hexane', 'Isopropanol', 'Methanol', 'Pentane', 'Propane', 'Toluene', 'Xylenes'],
     // Additional microbial testing analytes
-    microbialToSequencing: ['Unknown Organism 1', 'Unknown Organism 2', 'Unknown Organism 3', 'Full Microbiome Profile'],
     microbialSourceEnvironment: ['Environmental Yeast & Mold', 'Environmental Bacteria', 'Listeria spp.', 'Pseudomonas aeruginosa', 'Staphylococcus aureus'],
-    microbialSettlePlates: ['Airborne Yeast & Mold', 'Airborne Bacteria', 'Particulate Count'],
-    microbialWaterCounts: ['Total Plate Count', 'Total Coliforms', 'E. coli', 'Pseudomonas spp.', 'Heterotrophic Plate Count'],
     // Minerals and nutrients
     mineralsSoilWater: ['Calcium', 'Magnesium', 'Potassium', 'Sodium', 'Iron', 'Manganese', 'Zinc', 'Copper', 'Boron', 'Phosphorus', 'Sulfur'],
     plantTissuePanel: ['Nitrogen', 'Phosphorus', 'Potassium', 'Calcium', 'Magnesium', 'Sulfur', 'Iron', 'Manganese', 'Zinc', 'Copper', 'Boron', 'Molybdenum'],
@@ -979,11 +970,11 @@ const NonMetrc1 = () => {
                     </div>
                   </div>
 
-                  {/* Testing Requirements */}
+                  {/* Required Tests */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="block text-sm font-medium text-gray-700">
-                        Testing Requirements <span className="text-red-500">*</span>
+                        Required Tests <span className="text-red-500">*</span>
                       </label>
                       <label className="flex items-center">
                         <input
@@ -992,14 +983,14 @@ const NonMetrc1 = () => {
                           onChange={(e) => handleSampleChange(sampleIdx, 'isRetest', e.target.checked)}
                           className="mr-2"
                         />
-                        <span className="text-sm font-medium text-orange-600">Select Individual Analytes</span>
+                        <span className="text-sm font-medium text-orange-600">Reveal Individual Analytes</span>
                       </label>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-md">
                       <div>
                         <h5 className="text-xs font-medium text-gray-600 mb-2 uppercase">Microbial</h5>
                         <div className="space-y-2">
-                          {['microbial', 'microbialToSequencing', 'microbialSourceEnvironment', 'microbialSettlePlates', 'microbialWaterCounts'].map(test => (
+                          {['microbial', 'microbialSourceEnvironment'].map(test => (
                             <div key={test}>
                               <label className="flex items-center text-sm">
                                 <input
@@ -1009,10 +1000,7 @@ const NonMetrc1 = () => {
                                   className="mr-2"
                                 />
                                 {test === 'microbial' && 'Microbial'}
-                                {test === 'microbialToSequencing' && 'Microbial to Sequencing'}
                                 {test === 'microbialSourceEnvironment' && 'Microbial Source Environment'}
-                                {test === 'microbialSettlePlates' && 'Microbial by Settle Plates'}
-                                {test === 'microbialWaterCounts' && 'Microbial Water Counts'}
                               </label>
                               {sample.tests[test] && sample.assayDeadlines[test] && (
                                 <>
@@ -1059,7 +1047,7 @@ const NonMetrc1 = () => {
                                   onChange={(e) => handleSampleChange(sampleIdx, `tests.${test}`, e.target.checked)}
                                   className="mr-2"
                                 />
-                                {test === 'heavyMetals' && 'Heavy Metals (As, Cd, Cr, Hg, Pb)'}
+                                {test === 'heavyMetals' && 'Heavy Metals'}
                                 {test === 'mineralsSoilWater' && 'Minerals Testing (Soil/Water)'}
                                 {test === 'residualSolvents' && 'Residual Solvents'}
                                 {test === 'pesticides' && 'Pesticides'}
@@ -1102,7 +1090,7 @@ const NonMetrc1 = () => {
 
                       <div>
                         <h5 className="text-xs font-medium text-gray-600 mb-2 uppercase">Other</h5>
-                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                        <div className="space-y-2">
                           {['plantTissuePanel', 'homogenateTesting', 'earlyDetectionPowderyMildew', 'earlyDetectionRussetMites', 
                             'plantVirusTesting', 'packageStability', 'moistureContent', 'waterActivity', 'density', 
                             'foreignMatter', 'geneticSequencing', 'stabilityTesting', 'packageTesting'].map(test => (
@@ -1118,7 +1106,7 @@ const NonMetrc1 = () => {
                                 {test === 'homogenateTesting' && 'Homogenate Testing'}
                                 {test === 'earlyDetectionPowderyMildew' && 'Early Detection Powdery Mildew'}
                                 {test === 'earlyDetectionRussetMites' && 'Early Detection Russet Mites'}
-                                {test === 'plantVirusTesting' && 'Plant Virus Testing'}
+                                {test === 'plantVirusTesting' && 'Plant Pathogen Testing'}
                                 {test === 'packageStability' && 'Package Stability'}
                                 {test === 'moistureContent' && 'Moisture Content'}
                                 {test === 'waterActivity' && 'Water Activity'}

@@ -889,7 +889,7 @@ const Receiving2 = () => {
                 Test Configuration
               </h2>
               <p className="text-sm text-blue-100 mt-1">
-                Configure testing requirements for selected samples
+                Configure required tests for selected samples
               </p>
             </div>
 

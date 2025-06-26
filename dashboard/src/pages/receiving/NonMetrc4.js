@@ -48,10 +48,7 @@ const NonMetrc4 = () => {
       whitelistedAnalytes: {},
       tests: {
         microbial: false,
-        microbialToSequencing: false,
         microbialSourceEnvironment: false,
-        microbialSettlePlates: false,
-        microbialWaterCounts: false,
         heavyMetals: false,
         plantTissuePanel: false,
         mineralsSoilWater: false,
@@ -220,10 +217,7 @@ const NonMetrc4 = () => {
   const testGroups = {
     'Microbial': [
       'microbial',
-      'microbialToSequencing',
-      'microbialSourceEnvironment',
-      'microbialSettlePlates',
-      'microbialWaterCounts'
+      'microbialSourceEnvironment'
     ],
     'Chemistry': [
       'heavyMetals',
@@ -573,7 +567,7 @@ const NonMetrc4 = () => {
                             onClick={() => toggleCardExpansion(sampleIdx)}
                             className="flex items-center justify-between w-full text-left"
                           >
-                            <span className="text-xs font-medium text-gray-700">Testing Requirements <span className="text-red-500">*</span></span>
+                            <span className="text-xs font-medium text-gray-700">Required Tests <span className="text-red-500">*</span></span>
                             <ChevronDown className={`w-4 h-4 text-gray-400 transform transition-transform ${
                               expandedCards[sampleIdx] ? 'rotate-180' : ''
                             }`} />
@@ -594,10 +588,7 @@ const NonMetrc4 = () => {
                                           className="mr-1"
                                         />
                                         {test === 'microbial' && 'Microbial'}
-                                        {test === 'microbialToSequencing' && 'Microbial to Seq'}
                                         {test === 'microbialSourceEnvironment' && 'Microbial Env'}
-                                        {test === 'microbialSettlePlates' && 'Settle Plates'}
-                                        {test === 'microbialWaterCounts' && 'Water Counts'}
                                         {test === 'heavyMetals' && 'Heavy Metals'}
                                         {test === 'plantTissuePanel' && 'Plant Tissue'}
                                         {test === 'mineralsSoilWater' && 'Minerals'}

@@ -17,10 +17,7 @@ const NonMetrc2 = () => {
   const assayTurnaroundTimes = {
     // Microbial
     microbial: 3,
-    microbialToSequencing: 7,
     microbialSourceEnvironment: 5,
-    microbialSettlePlates: 5,
-    microbialWaterCounts: 3,
     // Chemistry
     heavyMetals: 2,
     plantTissuePanel: 3,
@@ -86,10 +83,7 @@ const NonMetrc2 = () => {
       whitelistedAnalytes: {},
       tests: {
         microbial: false,
-        microbialToSequencing: false,
         microbialSourceEnvironment: false,
-        microbialSettlePlates: false,
-        microbialWaterCounts: false,
         heavyMetals: false,
         plantTissuePanel: false,
         mineralsSoilWater: false,
@@ -155,10 +149,7 @@ const NonMetrc2 = () => {
     terpenes: ['Limonene', 'Myrcene', 'Pinene', 'Linalool', 'Caryophyllene', 'Humulene', 'Terpinolene'],
     residualSolvents: ['Acetone', 'Acetonitrile', 'Butane', 'Ethanol', 'Ethyl Acetate', 'Heptane', 'Hexane', 'Isopropanol', 'Methanol', 'Pentane', 'Propane', 'Toluene', 'Xylenes'],
     // Additional microbial testing analytes
-    microbialToSequencing: ['Unknown Organism 1', 'Unknown Organism 2', 'Unknown Organism 3', 'Full Microbiome Profile'],
     microbialSourceEnvironment: ['Environmental Yeast & Mold', 'Environmental Bacteria', 'Listeria spp.', 'Pseudomonas aeruginosa', 'Staphylococcus aureus'],
-    microbialSettlePlates: ['Airborne Yeast & Mold', 'Airborne Bacteria', 'Particulate Count'],
-    microbialWaterCounts: ['Total Plate Count', 'Total Coliforms', 'E. coli', 'Pseudomonas spp.', 'Heterotrophic Plate Count'],
     // Minerals and nutrients
     mineralsSoilWater: ['Calcium', 'Magnesium', 'Potassium', 'Sodium', 'Iron', 'Manganese', 'Zinc', 'Copper', 'Boron', 'Phosphorus', 'Sulfur'],
     plantTissuePanel: ['Nitrogen', 'Phosphorus', 'Potassium', 'Calcium', 'Magnesium', 'Sulfur', 'Iron', 'Manganese', 'Zinc', 'Copper', 'Boron', 'Molybdenum'],
@@ -277,10 +268,7 @@ const NonMetrc2 = () => {
         whitelistedAnalytes: {},
         tests: {
           microbial: false,
-          microbialToSequencing: false,
           microbialSourceEnvironment: false,
-          microbialSettlePlates: false,
-          microbialWaterCounts: false,
           heavyMetals: false,
           plantTissuePanel: false,
           mineralsSoilWater: false,
@@ -353,10 +341,7 @@ const NonMetrc2 = () => {
         whitelistedAnalytes: {},
         tests: {
           microbial: false,
-          microbialToSequencing: false,
           microbialSourceEnvironment: false,
-          microbialSettlePlates: false,
-          microbialWaterCounts: false,
           heavyMetals: false,
           plantTissuePanel: false,
           mineralsSoilWater: false,
@@ -715,11 +700,11 @@ const NonMetrc2 = () => {
                     </div>
                   </div>
 
-                  {/* Testing Requirements */}
+                  {/* Required Tests */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="block text-sm font-medium text-gray-700">
-                        Testing Requirements <span className="text-red-500">*</span>
+                        Required Tests <span className="text-red-500">*</span>
                       </label>
                       <label className="flex items-center">
                         <input
@@ -728,14 +713,14 @@ const NonMetrc2 = () => {
                           onChange={(e) => handleSampleChange(sampleIdx, 'isRetest', e.target.checked)}
                           className="mr-2"
                         />
-                        <span className="text-sm font-medium text-orange-600">Select Individual Analytes</span>
+                        <span className="text-sm font-medium text-orange-600">Reveal Individual Analytes</span>
                       </label>
                     </div>
                     <div className="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded-md">
                       <div>
                         <h5 className="text-xs font-medium text-gray-600 mb-2 uppercase">Microbial</h5>
                         <div className="space-y-2">
-                          {['microbial', 'microbialToSequencing', 'microbialSourceEnvironment', 'microbialSettlePlates', 'microbialWaterCounts'].map(test => (
+                          {['microbial', 'microbialSourceEnvironment'].map(test => (
                             <div key={test}>
                               <label className="flex items-center text-sm">
                                 <input
@@ -745,10 +730,7 @@ const NonMetrc2 = () => {
                                   className="mr-2"
                                 />
                                 {test === 'microbial' && 'Microbial'}
-                                {test === 'microbialToSequencing' && 'Microbial to Sequencing'}
                                 {test === 'microbialSourceEnvironment' && 'Source Environment'}
-                                {test === 'microbialSettlePlates' && 'Settle Plates'}
-                                {test === 'microbialWaterCounts' && 'Water Counts'}
                               </label>
                               {sample.isRetest && sample.tests[test] && assayAnalytes[test] && (
                                 <div className="ml-6 mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
@@ -818,7 +800,7 @@ const NonMetrc2 = () => {
                       </div>
                       <div>
                         <h5 className="text-xs font-medium text-gray-600 mb-2 uppercase">Other</h5>
-                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                        <div className="space-y-2">
                           {['earlyDetectionPowderyMildew', 'earlyDetectionRussetMites', 'earlyDetectionOther', 'plantVirusTesting', 'packageStability', 'moistureContent', 'waterActivity', 'density', 'foreignMatter', 'geneticSequencing', 'stabilityTesting', 'packageTesting'].map(test => (
                             <div key={test}>
                               <label className="flex items-center text-sm">
@@ -831,7 +813,7 @@ const NonMetrc2 = () => {
                                 {test === 'earlyDetectionPowderyMildew' && 'Early Detection Powdery Mildew'}
                                 {test === 'earlyDetectionRussetMites' && 'Early Detection Russet Mites'}
                                 {test === 'earlyDetectionOther' && 'Early Detection Other'}
-                                {test === 'plantVirusTesting' && 'Plant Virus Testing'}
+                                {test === 'plantVirusTesting' && 'Plant Pathogen Testing'}
                                 {test === 'packageStability' && 'Package Stability'}
                                 {test === 'moistureContent' && 'Moisture Content'}
                                 {test === 'waterActivity' && 'Water Activity'}

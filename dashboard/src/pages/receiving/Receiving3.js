@@ -77,7 +77,7 @@ const Receiving3 = () => {
     { id: 1, name: 'Select Manifest', icon: Package },
     { id: 2, name: 'Manifest Details', icon: FileText },
     { id: 3, name: 'Sample Types', icon: Beaker },
-    { id: 4, name: 'Testing Requirements', icon: ClipboardList },
+    { id: 4, name: 'Required Tests', icon: ClipboardList },
     { id: 5, name: 'Review & Submit', icon: Check }
   ];
 
@@ -298,7 +298,7 @@ const Receiving3 = () => {
   const applyDeadlineToCategory = (sampleIdx, category, deadline) => {
     const microAssays = ['salmonella', 'stec', 'totalYeastMold', 'aspergillus', 'totalAerobicBacteria', 'totalColiforms', 'btgn', 'ecoli'];
     const chemAssays = ['cannabinoids', 'terpenes', 'pesticides', 'mycotoxins', 'heavyMetals', 'elementalAnalysis', 'residualSolvents'];
-    const otherAssays = ['moistureContent', 'waterActivity', 'foreignMatter', 'plantPathogens', 'plantSex'];
+    const otherAssays = ['moistureContent', 'waterActivity', 'foreignMatter', 'geneticSequencing', 'plantPathogens', 'plantSex'];
     
     let assaysToUpdate = [];
     if (category === 'micro') assaysToUpdate = microAssays;
@@ -634,7 +634,7 @@ const Receiving3 = () => {
       case 4:
         return (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Testing Requirements</h2>
+            <h2 className="text-xl font-semibold">Required Tests</h2>
             <div className="space-y-4">
               {selectedManifest.samples.map((sample, idx) => {
                 const sampleData = formData.samples[idx] || {};
@@ -657,7 +657,8 @@ const Receiving3 = () => {
                 const otherAssays = [
                   { key: 'moistureContent', name: 'Moisture Content' },
                   { key: 'waterActivity', name: 'Water Activity' },
-                  { key: 'foreignMatter', name: 'Foreign Matter' }
+                  { key: 'foreignMatter', name: 'Foreign Matter' },
+                  { key: 'geneticSequencing', name: 'Genetic Sequencing' }
                 ];
 
                 return (

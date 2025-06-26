@@ -16,9 +16,10 @@ export const ANALYTE_DEFINITIONS = {
   ],
   
   heavyMetals: [
-    { key: 'lead', name: 'Lead', fullName: 'Lead (Pb)' },
-    { key: 'cadmium', name: 'Cadmium', fullName: 'Cadmium (Cd)' },
     { key: 'arsenic', name: 'Arsenic', fullName: 'Arsenic (As)' },
+    { key: 'cadmium', name: 'Cadmium', fullName: 'Cadmium (Cd)' },
+    { key: 'chromium', name: 'Chromium', fullName: 'Chromium (Cr)' },
+    { key: 'lead', name: 'Lead', fullName: 'Lead (Pb)' },
     { key: 'mercury', name: 'Mercury', fullName: 'Mercury (Hg)' }
   ],
   
