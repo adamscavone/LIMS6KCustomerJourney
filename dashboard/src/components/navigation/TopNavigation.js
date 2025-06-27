@@ -117,7 +117,7 @@ const TopNavigation = () => {
       label: 'Reporting',
       icon: FileText,
       items: [
-        { label: 'Reporting', path: '/reporting1' },
+        { label: 'Reporting1', path: '/reporting1' },
         { label: 'Reporting2: Performance Focus', path: '/reporting2' },
         { label: 'Reporting3: Compliance & Quality', path: '/reporting3' },
         { label: 'Reporting4: Workflow Tracking', path: '/reporting4' },
