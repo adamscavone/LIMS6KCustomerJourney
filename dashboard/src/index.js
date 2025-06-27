@@ -24,6 +24,20 @@ import NonMetrc1 from './pages/receiving/NonMetrc1';
 import NonMetrc2 from './pages/receiving/NonMetrc2';
 import NonMetrc3 from './pages/receiving/NonMetrc3';
 import NonMetrc4 from './pages/receiving/NonMetrc4';
+import ReportingDashboard from './pages/reporting/ReportingDashboard';
+import ReportingQueue from './pages/reporting/ReportingQueue';
+import QueueAssessment from './pages/reporting/QueueAssessment';
+import SampleProgressTracking from './pages/reporting/SampleProgressTracking';
+import ResultsReview from './pages/reporting/ResultsReview';
+import ComplianceReporting from './pages/reporting/ComplianceReporting';
+import CustomerCommunication from './pages/reporting/CustomerCommunication';
+import PerformanceAnalytics from './pages/reporting/PerformanceAnalytics';
+import Reporting1 from './pages/reporting/Reporting1';
+import Reporting2 from './pages/reporting/Reporting2';
+import Reporting3 from './pages/reporting/Reporting3';
+import Reporting4 from './pages/reporting/Reporting4';
+import SampleReporting from './pages/reporting/SampleReporting';
+import SampleResultsDetail from './pages/reporting/SampleResultsDetail';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -52,6 +66,20 @@ root.render(
           <Route path="/non-metrc2" element={<NonMetrc2 />} />
           <Route path="/non-metrc3" element={<NonMetrc3 />} />
           <Route path="/non-metrc4" element={<NonMetrc4 />} />
+          <Route path="/reporting" element={<ReportingDashboard />} />
+          <Route path="/reporting1" element={<Reporting1 />} />
+          <Route path="/reporting2" element={<Reporting2 />} />
+          <Route path="/reporting3" element={<Reporting3 />} />
+          <Route path="/reporting4" element={<Reporting4 />} />
+          <Route path="/reporting/queue" element={<ReportingQueue />} />
+          <Route path="/reporting/queue-assessment" element={<QueueAssessment />} />
+          <Route path="/reporting/sample-progress" element={<SampleProgressTracking />} />
+          <Route path="/reporting/results-review" element={<ResultsReview />} />
+          <Route path="/reporting/compliance" element={<ComplianceReporting />} />
+          <Route path="/reporting/customer-communication" element={<CustomerCommunication />} />
+          <Route path="/reporting/performance" element={<PerformanceAnalytics />} />
+          <Route path="/reporting/samples" element={<SampleReporting />} />
+          <Route path="/reporting/sample/:sampleId" element={<SampleResultsDetail />} />
         </Routes>
       </Layout>
     </BrowserRouter>

@@ -117,10 +117,18 @@ const TopNavigation = () => {
       label: 'Reporting',
       icon: FileText,
       items: [
-        { label: 'Samples Due Today', path: '/' },
-        { label: 'Samples Due Tomorrow', path: '/' },
-        { label: 'Turnaround Time Tracker', path: '/' },
-        { label: 'Pre-Reporting Review Queue', path: '/' }
+        { label: 'Reporting', path: '/reporting1' },
+        { label: 'Reporting2: Performance Focus', path: '/reporting2' },
+        { label: 'Reporting3: Compliance & Quality', path: '/reporting3' },
+        { label: 'Reporting4: Workflow Tracking', path: '/reporting4' },
+        { label: 'Reporting Dashboard', path: '/reporting' },
+        { label: 'Comprehensive Queue', path: '/reporting/queue' },
+        { label: 'Queue Assessment', path: '/reporting/queue-assessment' },
+        { label: 'Sample Progress', path: '/reporting/sample-progress' },
+        { label: 'Results Review', path: '/reporting/results-review' },
+        { label: 'Compliance Reporting', path: '/reporting/compliance' },
+        { label: 'Customer Communication', path: '/reporting/customer-communication' },
+        { label: 'Performance Analytics', path: '/reporting/performance' }
       ]
     },
     {
