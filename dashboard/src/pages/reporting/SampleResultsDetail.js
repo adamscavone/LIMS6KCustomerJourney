@@ -26,8 +26,23 @@ import {
   User,
   AlertOctagon,
   MessageSquare,
-  Target
+  Target,
+  RefreshCw,
+  TrendingUp,
+  X,
+  ChevronDown
 } from 'lucide-react';
+import { 
+  ComposedChart,
+  Scatter, 
+  Line,
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
 
 // Helper function to generate mock data based on sample ID
 const generateMockDataFromId = (sampleId) => {
@@ -61,6 +76,30 @@ const generateMockDataFromId = (sampleId) => {
   };
 };
 
+// Generate dynamic dates relative to current date
+const generateDynamicDates = () => {
+  const today = new Date();
+  const receivedDate = new Date(today);
+  receivedDate.setDate(today.getDate() - 2); // Received 2 days ago
+  receivedDate.setHours(10, 30, 0, 0);
+  
+  const dueDate = new Date(today);
+  dueDate.setDate(today.getDate() + 1); // Due tomorrow
+  dueDate.setHours(17, 0, 0, 0);
+  
+  const completedDate = new Date(today);
+  completedDate.setDate(today.getDate() - 1); // Completed yesterday
+  completedDate.setHours(16, 45, 0, 0);
+  
+  return {
+    receivedDate: receivedDate.toISOString(),
+    dueDate: dueDate.toISOString(),
+    completedDate: completedDate.toISOString()
+  };
+};
+
+const dynamicDates = generateDynamicDates();
+
 // Mock data - replace with actual API calls
 const mockSampleData = {
   id: 'SAMP-001',
@@ -72,8 +111,8 @@ const mockSampleData = {
   testCategory: 'Dispensary Plant Material',
   client: 'Green Valley Dispensary',
   clientLicense: 'C12-0000123-LIC',
-  receivedDate: '2025-01-26T10:30:00',
-  dueDate: '2025-01-29T17:00:00',
+  receivedDate: dynamicDates.receivedDate,
+  dueDate: dynamicDates.dueDate,
   sampleWeight: '15.5g',
   status: 'ready_to_report',
   metrcTag: '1A4070300002711000010043',
@@ -82,7 +121,7 @@ const mockSampleData = {
     potency: {
       status: 'completed',
       result: 'pass',
-      completedDate: '2025-01-26T16:45:00',
+      completedDate: dynamicDates.completedDate,
       technician: 'John Smith',
       batchNumbers: ['CANN-2025-001', 'CANN-2025-002R'],
       replicates: [
@@ -130,7 +169,7 @@ const mockSampleData = {
     microbiology: {
       status: 'completed',
       result: 'pass',
-      completedDate: '2025-01-26T17:30:00',
+      completedDate: dynamicDates.completedDate,
       technician: 'Jane Doe',
       batchNumbers: ['MICRO-2025-001'],
       data: {
@@ -143,7 +182,7 @@ const mockSampleData = {
     heavyMetals: {
       status: 'completed',
       result: 'pass',
-      completedDate: '2025-01-27T09:15:00',
+      completedDate: dynamicDates.completedDate,
       technician: 'Mike Johnson',
       batchNumbers: ['HM-2025-001'],
       data: {
@@ -501,8 +540,39 @@ const MetrcSubmissionModal = ({ isOpen, onClose, sample, onConfirm }) => {
   );
 };
 
+// Generate mock historical data
+const generateHistoricalData = (analyteType, sampleId) => {
+  const seedNum = typeof sampleId === 'number' ? sampleId : (parseInt(sampleId) || 1);
+  const count = 15 + (seedNum % 10); // 15-24 samples
+  
+  // Base values for different analytes
+  const baseValues = {
+    'Total THC': 22.5 + (seedNum % 3),
+    'Total CBD': 1.2 + (seedNum % 2) * 0.3,
+    'Total Cannabinoids': 24.0 + (seedNum % 4),
+    'Tetrahydrocannabinolic Acid (THCA)': 25.0 + (seedNum % 3),
+    'Tetrahydrocannabinol (THC)': 0.9 + (seedNum % 2) * 0.2,
+    'Cannabidiolic Acid (CBDA)': 0.4 + (seedNum % 3) * 0.1,
+    'Cannabidiol (CBD)': 0.8 + (seedNum % 2) * 0.2,
+    'Cannabigerol (CBG)': 1.3 + (seedNum % 3) * 0.2,
+    'Cannabinol (CBN)': 0.2 + (seedNum % 2) * 0.1
+  };
+  
+  // Calculate average with some variance
+  const baseValue = baseValues[analyteType] || 0.5;
+  const variance = baseValue * 0.05; // 5% variance
+  const average = baseValue + (Math.random() - 0.5) * variance;
+  
+  return {
+    average: Math.round(average * 100) / 100, // Round to 2 decimal places
+    count: count
+  };
+};
+
 // Result row component for replicates
-const ReplicateResultRow = ({ name, replicates, averageData, target, isOhio }) => {
+const ReplicateResultRow = ({ name, replicates, averageData, target, isOhio, sampleId }) => {
+  const historicalData = generateHistoricalData(name, sampleId);
+  
   const getStatusColor = (value, target) => {
     if (!target || (!target.low && !target.high)) return 'text-gray-600';
     
@@ -526,6 +596,9 @@ const ReplicateResultRow = ({ name, replicates, averageData, target, isOhio }) =
   const isOffSpec = averageData && target && (target.low || target.high) && 
     getStatusColor(averageData.value, target) === 'text-red-600';
 
+  // Determine unit for this analyte
+  const unit = averageData?.unit || 'mg/g';
+
   return (
     <tr className={`border-b border-gray-100 last:border-0 ${isOffSpec ? 'bg-red-50' : ''}`}>
       <td className="py-3 px-4 text-sm font-medium text-gray-900">
@@ -534,7 +607,7 @@ const ReplicateResultRow = ({ name, replicates, averageData, target, isOhio }) =
           <span className="ml-2 group relative">
             <Info className="w-3 h-3 text-gray-400 inline" />
             <div className="absolute bottom-full left-0 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-              For data integrity monitoring only - not reported on COA per Ohio regulations
+              For data integrity monitoring only - not reported on CoA per Ohio regulations
             </div>
           </span>
         )}
@@ -544,6 +617,21 @@ const ReplicateResultRow = ({ name, replicates, averageData, target, isOhio }) =
         {isOffSpec && (
           <AlertOctagon className="w-4 h-4 text-red-600 inline ml-2" />
         )}
+      </td>
+      <td className="py-3 px-4 text-sm text-gray-600">
+        {unit}
+      </td>
+      <td className="py-3 px-4 text-sm text-gray-600">
+        <div className="flex items-center gap-1">
+          <span>{historicalData.average}</span>
+          <span className="text-gray-400">({historicalData.count})</span>
+          <span className="ml-1 group relative cursor-help">
+            <Info className="w-3 h-3 text-gray-400" />
+            <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-normal pointer-events-none z-10 w-64">
+              Average value for this analyte across {historicalData.count} samples of the same product (SKU/ItemBrand) tested for this customer over the past 12 months
+            </div>
+          </span>
+        </div>
       </td>
       <td className={`py-3 px-4 text-sm font-medium ${getStatusColor(averageData?.value, target)}`}>
         <div className="flex items-center gap-1">
@@ -566,7 +654,7 @@ const ReplicateResultRow = ({ name, replicates, averageData, target, isOhio }) =
 };
 
 // Test result panel component
-const TestResultPanel = ({ category, data, targets, notes, isOhio }) => {
+const TestResultPanel = ({ category, data, targets, notes, isOhio, sampleId }) => {
   const config = testCategories[category];
   const Icon = config.icon;
 
@@ -655,6 +743,18 @@ const TestResultPanel = ({ category, data, targets, notes, isOhio }) => {
                   <tr className="border-b border-gray-200">
                     <th className="text-left py-2 text-sm font-medium text-gray-700">Analyte</th>
                     <th className="text-left py-2 text-sm font-medium text-gray-700">Target/Range</th>
+                    <th className="text-left py-2 text-sm font-medium text-gray-700">Units</th>
+                    <th className="text-left py-2 text-sm font-medium text-gray-700">
+                      <div className="flex items-center gap-1">
+                        Historical Average
+                        <span className="group relative cursor-help">
+                          <Info className="w-3 h-3 text-gray-400" />
+                          <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-normal pointer-events-none z-10 w-64">
+                            Average value for each analyte based on historical testing of the same product (SKU) for this customer over the past 12 months. Number in parentheses indicates sample count.
+                          </div>
+                        </span>
+                      </div>
+                    </th>
                     <th className="text-left py-2 text-sm font-medium text-gray-700">
                       Reported Result
                     </th>
@@ -681,6 +781,7 @@ const TestResultPanel = ({ category, data, targets, notes, isOhio }) => {
                         averageData={data.averageData[analyte]}
                         target={targets?.[analyte]}
                         isOhio={isOhio}
+                        sampleId={sampleId || 1001}
                       />
                     ));
                   })()}
@@ -787,13 +888,28 @@ function SampleResultsDetail() {
   const [sample, setSample] = useState(mockSampleData);
   const [showReportPreview, setShowReportPreview] = useState(false);
   const [showMetrcModal, setShowMetrcModal] = useState(false);
+  const [showReanalysisModal, setShowReanalysisModal] = useState(false);
   const [additionalData, setAdditionalData] = useState(null);
+  const [selectedCannabinoids, setSelectedCannabinoids] = useState(['Total THC', 'Total CBD']);
+  const [showCannabinoidDropdown, setShowCannabinoidDropdown] = useState(false);
 
   // Load additional mock data
   useEffect(() => {
     const mockData = generateMockDataFromId(sample.sampleId);
     setAdditionalData(mockData);
   }, [sample.sampleId]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showCannabinoidDropdown && !event.target.closest('.cannabinoid-dropdown')) {
+        setShowCannabinoidDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showCannabinoidDropdown]);
 
   // Check if all tests are completed
   const allTestsCompleted = Object.values(sample.testResults).every(
@@ -831,7 +947,7 @@ function SampleResultsDetail() {
         {/* Header */}
         <div className="mb-6">
           <button
-            onClick={() => navigate('/reporting')}
+            onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -897,14 +1013,14 @@ function SampleResultsDetail() {
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
                 >
                   <Eye className="w-4 h-4" />
-                  View Report
+                  Preview
                 </button>
                 <button 
                   onClick={() => setShowReportPreview(true)}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
-                  Download COA/CSV
+                  Download CoA/CSV
                 </button>
                 {allTestsCompleted && !hasFailedTests && (
                   <button 
@@ -963,6 +1079,94 @@ function SampleResultsDetail() {
           </div>
         </div>
 
+        {/* Historical SKU Trends Visualization */}
+        {sample.testResults.potency.status === 'completed' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Historical Potency Trends - {sample.productName}</h3>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>Last 12 months (47 samples)</span>
+                </div>
+                <button
+                  onClick={() => setShowReanalysisModal(true)}
+                  className="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors flex items-center gap-1"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Request Reanalysis
+                </button>
+              </div>
+            </div>
+            
+            {/* Cannabinoid Selection */}
+            <div className="mb-4">
+              <div className="relative cannabinoid-dropdown">
+                <button
+                  onClick={() => setShowCannabinoidDropdown(!showCannabinoidDropdown)}
+                  className="w-full md:w-auto px-4 py-2 text-sm border border-gray-300 rounded-lg hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between gap-2"
+                >
+                  <span className="font-medium">
+                    {selectedCannabinoids.length === 0 
+                      ? 'Select cannabinoids to display'
+                      : `${selectedCannabinoids.length} cannabinoid${selectedCannabinoids.length === 1 ? '' : 's'} selected`
+                    }
+                  </span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showCannabinoidDropdown ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {showCannabinoidDropdown && (
+                  <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                    <div className="p-3 border-b border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">Select Cannabinoids</span>
+                        <button
+                          onClick={() => {
+                            const allCannabinoids = Object.keys(sample.testResults.potency.averageData || {});
+                            setSelectedCannabinoids(selectedCannabinoids.length === allCannabinoids.length ? [] : allCannabinoids);
+                          }}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          {selectedCannabinoids.length === Object.keys(sample.testResults.potency.averageData || {}).length ? 'Deselect All' : 'Select All'}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto p-3">
+                      {Object.keys(sample.testResults.potency.averageData || {}).map(cannabinoid => (
+                        <label key={cannabinoid} className="flex items-center py-1.5 hover:bg-gray-50 cursor-pointer rounded">
+                          <input
+                            type="checkbox"
+                            checked={selectedCannabinoids.includes(cannabinoid)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedCannabinoids([...selectedCannabinoids, cannabinoid]);
+                              } else {
+                                setSelectedCannabinoids(selectedCannabinoids.filter(c => c !== cannabinoid));
+                              }
+                            }}
+                            className="mr-3 h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{cannabinoid}</span>
+                          <span className="ml-auto text-xs text-gray-500">
+                            {sample.testResults.potency.averageData[cannabinoid]?.value.toFixed(2)}%
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <HistoricalSKUChart 
+              productName={sample.productName}
+              currentData={sample.testResults.potency.averageData}
+              sampleId={sample.sampleId}
+              selectedCannabinoids={selectedCannabinoids}
+            />
+          </div>
+        )}
+
         {/* Test Results Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="border-b border-gray-200">
@@ -1004,6 +1208,7 @@ function SampleResultsDetail() {
               targets={activeTab === 'potency' ? additionalData?.potencyTargets : null}
               notes={additionalData?.assayNotes?.[testCategories[activeTab].name]}
               isOhio={isOhio}
+              sampleId={sample.sampleId}
             />
           </div>
         </div>
@@ -1033,8 +1238,448 @@ function SampleResultsDetail() {
         sample={sample}
         onConfirm={handleMetrcSubmission}
       />
+
+      {/* Reanalysis Request Modal */}
+      <ReanalysisModal
+        isOpen={showReanalysisModal}
+        onClose={() => setShowReanalysisModal(false)}
+        sample={sample}
+        onConfirm={(data) => {
+          console.log('Reanalysis requested:', data);
+          alert(`Reanalysis request submitted for ${data.analytes.length} analyte(s)`);
+        }}
+      />
     </div>
   );
 }
+
+// Historical SKU Chart Component
+const HistoricalSKUChart = ({ productName, currentData, sampleId, selectedCannabinoids }) => {
+  // Color palette for different cannabinoids
+  const cannabinoidColors = {
+    'Total THC': '#3B82F6',
+    'Total CBD': '#10B981',
+    'Total Cannabinoids': '#8B5CF6',
+    'Tetrahydrocannabinol (THC)': '#F59E0B',
+    'Cannabidiol (CBD)': '#EC4899',
+    'Tetrahydrocannabinolic Acid (THCA)': '#14B8A6',
+    'Cannabidiolic Acid (CBDA)': '#EF4444',
+    'Cannabigerol (CBG)': '#6366F1',
+    'Cannabinol (CBN)': '#84CC16',
+    'Cannabichromene (CBC)': '#F97316',
+    'Total CBG': '#A78BFA',
+    'delta-9-Tetrahydrocannabinol': '#06B6D4'
+  };
+
+  // Generate mock historical data (12 months with multiple samples per month)
+  const generateHistoricalData = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentMonth = new Date().getMonth();
+    const data = [];
+    
+    // Generate multiple data points per month (3-6 samples per month)
+    for (let i = 0; i < 12; i++) {
+      const monthIndex = (currentMonth - 11 + i + 12) % 12;
+      const samplesInMonth = 3 + Math.floor(Math.random() * 4); // 3-6 samples
+      
+      for (let j = 0; j < samplesInMonth; j++) {
+        const sampleData = {
+          month: months[monthIndex],
+          monthIndex: i,
+          sampleIndex: j,
+          current: i === 11 && j === samplesInMonth - 1 // Mark current sample
+        };
+        
+        // Generate data for each cannabinoid
+        Object.keys(currentData || {}).forEach(cannabinoid => {
+          const currentValue = currentData[cannabinoid]?.value || 0;
+          let baseValue = currentValue;
+          let variation = 0;
+          
+          // Set base values and variations based on cannabinoid type
+          if (cannabinoid === 'Total THC') {
+            baseValue = 22 + (sampleId % 5);
+            variation = (Math.random() - 0.5) * 3; // ±1.5%
+          } else if (cannabinoid === 'Total CBD') {
+            baseValue = 1.5 + (sampleId % 3) * 0.2;
+            variation = (Math.random() - 0.5) * 0.5; // ±0.25%
+          } else if (cannabinoid === 'Total Cannabinoids') {
+            baseValue = 25 + (sampleId % 6);
+            variation = (Math.random() - 0.5) * 4; // ±2%
+          } else if (cannabinoid.includes('THC')) {
+            baseValue = currentValue > 10 ? currentValue : 15 + (sampleId % 4);
+            variation = (Math.random() - 0.5) * 2; // ±1%
+          } else if (cannabinoid.includes('CBD')) {
+            baseValue = currentValue > 1 ? currentValue : 1 + (sampleId % 2) * 0.3;
+            variation = (Math.random() - 0.5) * 0.4; // ±0.2%
+          } else {
+            baseValue = currentValue > 0.5 ? currentValue : 0.5 + (sampleId % 10) * 0.1;
+            variation = (Math.random() - 0.5) * 0.2; // ±0.1%
+          }
+          
+          // For current sample, use actual value
+          if (sampleData.current) {
+            sampleData[cannabinoid] = currentValue;
+          } else {
+            sampleData[cannabinoid] = Math.max(0, baseValue + variation);
+          }
+        });
+        
+        data.push(sampleData);
+      }
+    }
+    
+    return data;
+  };
+
+  const historicalData = generateHistoricalData();
+
+  // Transform data for scatterplot
+  const getScatterData = () => {
+    const scatterData = [];
+    
+    selectedCannabinoids.forEach(cannabinoid => {
+      historicalData.forEach(point => {
+        scatterData.push({
+          month: point.month,
+          monthIndex: point.monthIndex,
+          cannabinoid: cannabinoid,
+          value: point[cannabinoid],
+          current: point.current,
+          color: cannabinoidColors[cannabinoid] || '#6B7280'
+        });
+      });
+    });
+    
+    return scatterData;
+  };
+
+  // Custom dot shape
+  const CustomDot = (props) => {
+    const { cx, cy, payload } = props;
+    
+    if (payload.current) {
+      // Current sample - larger with double circle
+      return (
+        <g>
+          <circle cx={cx} cy={cy} r={8} fill={payload.color} stroke="#fff" strokeWidth={3} />
+          <circle cx={cx} cy={cy} r={4} fill="#fff" />
+        </g>
+      );
+    }
+    
+    // Regular samples - solid circles
+    return <circle cx={cx} cy={cy} r={6} fill={payload.color} stroke="#fff" strokeWidth={2} />;
+  };
+
+  // Custom tooltip
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      
+      // Handle scatter point data
+      if (data.cannabinoid && data.value !== undefined) {
+        return (
+          <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+            <p className="font-medium text-gray-900">{data.cannabinoid}</p>
+            <p className="text-sm text-gray-600">{data.month}: {data.value.toFixed(2)}%</p>
+            {data.current && <p className="text-sm text-blue-600 font-medium">Current Sample</p>}
+          </div>
+        );
+      }
+      
+      // Handle line data (monthly averages)
+      if (data.monthIndex !== undefined) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const currentMonth = new Date().getMonth();
+        const monthIndex = (currentMonth - 11 + data.monthIndex + 12) % 12;
+        const monthName = months[monthIndex];
+        
+        return (
+          <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+            <p className="font-medium text-gray-900">{monthName} - Monthly Average</p>
+            {payload.map((entry, index) => {
+              if (entry.value !== undefined && entry.dataKey !== 'monthIndex') {
+                return (
+                  <p key={index} className="text-sm" style={{ color: entry.stroke }}>
+                    {entry.dataKey}: {entry.value.toFixed(2)}%
+                  </p>
+                );
+              }
+              return null;
+            })}
+          </div>
+        );
+      }
+    }
+    return null;
+  };
+
+  // If no cannabinoids selected, show a message
+  if (!selectedCannabinoids || selectedCannabinoids.length === 0) {
+    return (
+      <div className="h-64 flex items-center justify-center text-gray-500">
+        <p>Please select at least one cannabinoid to display historical trends</p>
+      </div>
+    );
+  }
+
+  const scatterData = getScatterData();
+
+  // Calculate monthly averages for trend lines
+  const getTrendLineData = () => {
+    const trendData = [];
+    
+    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+      const monthData = { monthIndex };
+      
+      selectedCannabinoids.forEach(cannabinoid => {
+        const monthSamples = historicalData.filter(d => d.monthIndex === monthIndex);
+        const values = monthSamples.map(d => d[cannabinoid]).filter(v => v !== undefined);
+        
+        if (values.length > 0) {
+          monthData[cannabinoid] = values.reduce((sum, val) => sum + val, 0) / values.length;
+        }
+      });
+      
+      trendData.push(monthData);
+    }
+    
+    return trendData;
+  };
+
+  const trendLineData = getTrendLineData();
+
+  // Calculate Y-axis domain based on all data
+  const getYDomain = () => {
+    let minValue = Infinity;
+    let maxValue = -Infinity;
+    
+    // Check scatter data
+    scatterData.forEach(point => {
+      if (point.value < minValue) minValue = point.value;
+      if (point.value > maxValue) maxValue = point.value;
+    });
+    
+    // Also check trend line data
+    trendLineData.forEach(point => {
+      selectedCannabinoids.forEach(cannabinoid => {
+        if (point[cannabinoid] !== undefined) {
+          if (point[cannabinoid] < minValue) minValue = point[cannabinoid];
+          if (point[cannabinoid] > maxValue) maxValue = point[cannabinoid];
+        }
+      });
+    });
+    
+    // Add extra padding (20% on top, 10% on bottom)
+    const range = maxValue - minValue;
+    return [
+      Math.max(0, minValue - range * 0.1),
+      maxValue + range * 0.2
+    ];
+  };
+
+  return (
+    <div className="w-full" style={{ height: '400px', overflow: 'visible' }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart margin={{ top: 60, right: 30, bottom: 80, left: 80 }} data={trendLineData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="monthIndex" 
+            type="number"
+            domain={[0, 11]}
+            ticks={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]}
+            tickFormatter={(value) => {
+              const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+              const currentMonth = new Date().getMonth();
+              const monthIndex = (currentMonth - 11 + value + 12) % 12;
+              return months[monthIndex];
+            }}
+            angle={-45}
+            textAnchor="end"
+            height={60}
+          />
+          <YAxis 
+            label={{ value: 'Concentration (%)', angle: -90, position: 'insideLeft' }}
+            domain={getYDomain()}
+            tickFormatter={(value) => value.toFixed(1)}
+          />
+        <Tooltip content={<CustomTooltip />} />
+        <Legend 
+          verticalAlign="top" 
+          height={36}
+          iconType="circle"
+          formatter={(value) => {
+            const count = scatterData.filter(d => d.cannabinoid === value).length;
+            return `${value} (${count})`;
+          }}
+        />
+        
+        {/* Add trend lines first (behind scatter points) */}
+        {selectedCannabinoids.map(cannabinoid => (
+          <Line
+            key={`line-${cannabinoid}`}
+            type="monotone"
+            dataKey={cannabinoid}
+            data={trendLineData}
+            stroke={cannabinoidColors[cannabinoid] || '#6B7280'}
+            strokeWidth={2}
+            dot={false}
+            strokeDasharray="5 5"
+            connectNulls
+            strokeOpacity={0.6}
+          />
+        ))}
+        
+        {/* Add scatter points on top */}
+        {selectedCannabinoids.map(cannabinoid => (
+          <Scatter
+            key={`scatter-${cannabinoid}`}
+            name={cannabinoid}
+            data={scatterData.filter(d => d.cannabinoid === cannabinoid)}
+            fill={cannabinoidColors[cannabinoid] || '#6B7280'}
+            shape={<CustomDot />}
+            isAnimationActive={false}
+          />
+        ))}
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+// Reanalysis Request Modal
+const ReanalysisModal = ({ isOpen, onClose, sample, onConfirm }) => {
+  const [reason, setReason] = useState('');
+  const [selectedAnalytes, setSelectedAnalytes] = useState([]);
+  const [priority, setPriority] = useState('normal');
+  
+  if (!isOpen) return null;
+
+  const analyteOptions = sample.testResults.potency.averageData 
+    ? Object.keys(sample.testResults.potency.averageData) 
+    : [];
+
+  const handleSubmit = () => {
+    if (selectedAnalytes.length === 0) {
+      alert('Please select at least one analyte for reanalysis');
+      return;
+    }
+    if (!reason.trim()) {
+      alert('Please provide a reason for reanalysis');
+      return;
+    }
+    
+    onConfirm({
+      sampleId: sample.labId,
+      analytes: selectedAnalytes,
+      reason,
+      priority,
+      requestedBy: 'Dr. Sarah Chen',
+      requestedAt: new Date().toISOString()
+    });
+    
+    // Reset form
+    setReason('');
+    setSelectedAnalytes([]);
+    setPriority('normal');
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">Request Reanalysis</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Sample Information
+            </label>
+            <div className="bg-gray-50 p-3 rounded text-sm">
+              <p><span className="font-medium">Lab ID:</span> {sample.labId}</p>
+              <p><span className="font-medium">Product:</span> {sample.productName}</p>
+              <p><span className="font-medium">Client:</span> {sample.client}</p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Analytes for Reanalysis
+            </label>
+            <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded p-3">
+              {analyteOptions.map(analyte => (
+                <label key={analyte} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedAnalytes.includes(analyte)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedAnalytes([...selectedAnalytes, analyte]);
+                      } else {
+                        setSelectedAnalytes(selectedAnalytes.filter(a => a !== analyte));
+                      }
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">{analyte}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Priority
+            </label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+            >
+              <option value="normal">Normal</option>
+              <option value="rush">Rush (24 hours)</option>
+              <option value="urgent">Urgent (Same day)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Reason for Reanalysis
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={4}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="Please describe why reanalysis is needed..."
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Submit Request
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default SampleResultsDetail;

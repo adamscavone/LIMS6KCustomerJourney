@@ -13,7 +13,12 @@
       "Bash(node:*)",
       "Bash(npx react-scripts build:*)",
       "Bash(rm:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(npm install:*)",
+      "Bash(ls:*)",
+      "Bash(git restore:*)",
+      "Bash(sudo npm install:*)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }

@@ -38,14 +38,16 @@ This is a React 18 application for a Laboratory Information Management System (L
      - `SamplingDashboard.js`: Driver route management
    - React Router v6 for navigation between views
 
-2. **Mock Data Pattern**: Extensive mock data simulating real laboratory workflows:
-   - Sample IDs starting at 176243 and incrementing
-   - ~16 samples across three pipelines with various statuses
-   - Status progression: `ready_for_prep` → `in_prep` → `prepped` → `analysis` → `analyzed` → `primary_review` → `secondary_review` → `ready_to_report`
-   - Realistic order groupings (1-5 samples per order)
-   - Time-based organization with dates between June 4-11, 2025
-   - Maximum 2 days overdue to reflect realistic lab operations
-   - No rush priority flags - focus on specific due dates
+2. **Mock Data Pattern**: Dynamic mock data that automatically stays current:
+   - **Dynamic Date Generation**: All mock data dates are calculated relative to "today" ensuring data always appears recent
+   - **Sample IDs**: Generated based on current date (base 176000 + date*10) for uniqueness
+   - **Order Numbers**: Format `YYNCTL00XXX` where YY is current year and XXX is date-based
+   - **Business Day Logic**: Respects weekends when calculating received/due dates
+   - **Automatic Daily Updates**: Mock data refreshes daily without code changes
+   - **Recently Reported**: Generates 2-3 samples per day over the last 7 business days
+   - **Status Distribution**: Mix of ready_to_report, in_progress, and pending samples
+   - **Policy**: Keep mock data contemporary to make testing feel natural for end users
+   - **Implementation**: See `generateDynamicMockData()` and `generateRecentlyReportedSamples()` in Reporting1.js
 
 3. **State Management**: 
    - React hooks (useState, useEffect) for local state
